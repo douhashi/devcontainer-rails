@@ -10,6 +10,8 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+      args:
+        RUBY_VERSION: $RUBY_VERSION
     init: true
 
     volumes:
