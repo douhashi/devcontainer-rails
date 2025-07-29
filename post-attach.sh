@@ -1,21 +1,21 @@
 #!/bin/bash
 set -e
 
-# エイリアスの設定を.bashrcに追加
+# Add alias settings to .bashrc
 BASHRC_FILE="$HOME/.bashrc"
 
-# vimでnvimを起動するエイリアス
+# Alias to launch nvim with vim command
 if ! grep -q "alias vim='nvim'" "$BASHRC_FILE" 2>/dev/null; then
     echo "alias vim='nvim'" >> "$BASHRC_FILE"
 fi
 
-# claudeに--dangerously-skip-permissionsオプションを付与するエイリアス
+# Alias to add --dangerously-skip-permissions option to claude
 if ! grep -q "alias claude='claude --dangerously-skip-permissions'" "$BASHRC_FILE" 2>/dev/null; then
     echo "alias claude='claude --dangerously-skip-permissions'" >> "$BASHRC_FILE"
 fi
 
-# 現在のシェルセッションにもエイリアスを適用
+# Apply aliases to current shell session as well
 alias claude='claude --dangerously-skip-permissions'
 
-echo "エイリアスを設定しました:"
+echo "Aliases configured:"
 echo "  claude → claude --dangerously-skip-permissions"
