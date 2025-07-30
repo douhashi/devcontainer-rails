@@ -46,6 +46,14 @@ A fully-featured development container configuration for Ruby on Rails projects 
 
 3. The container will build and start with all configured services
 
+## Updating DevContainer
+
+To update the DevContainer configuration with the latest changes from the upstream repository:
+
+```bash
+git subtree pull --prefix=.devcontainer --squash devcontainer-rails main
+```
+
 ## Configuration
 
 ### Ruby Version
