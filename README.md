@@ -19,13 +19,15 @@ A fully-featured development container configuration for Ruby on Rails projects 
 
 ## Quick Start
 
-1. Clone this repository:
+1. In your Rails project directory, add this repository as a git subtree:
    ```bash
-   git clone https://github.com/douhashi/devcontainer-rails.git
-   cd devcontainer-rails
+   git remote add devcontainer-rails git@github.com:douhashi/devcontainer-rails.git
+   git subtree add --prefix=.devcontainer --squash devcontainer-rails main
    ```
 
-2. Open in VS Code:
+### Visual Studio Code
+
+2. Open your Rails project in VS Code:
    ```bash
    code .
    ```
@@ -33,6 +35,16 @@ A fully-featured development container configuration for Ruby on Rails projects 
 3. When prompted, click "Reopen in Container" or run the command "Dev Containers: Reopen in Container"
 
 4. Wait for the container to build and post-create scripts to complete
+
+### DevContainer CLI
+
+2. Rebuild and start the development container:
+   ```bash
+   .devcontainer/bin/rebuild
+   .devcontainer/bin/up
+   ```
+
+3. The container will build and start with all configured services
 
 ## Configuration
 
