@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "Stopping devcontainer..."
+project_name=$(basename "$(pwd)")
+
+echo "Project name: $project_name"
+
+# docker composeで管理されているコンテナを停止
+cd .devcontainer 2>/dev/null || true
+if [ -f "compose.yaml" ]; then
+    docker compose -f compose.yaml down
+elif [ -f "compose.yml" ]; then
+    docker compose -f compose.yml down
+else
+    # compose.yamlが見つからない場合は、個別にコンテナを停止
+    echo "compose.yaml not found, stopping containers individually..."
+    docker ps -a --format "{{.Names}}" | grep "^${project_name}-" | while read -r container_name; do
+        echo "Stopping container: $container_name"
+        docker stop "$container_name"
+        docker rm "$container_name"
+    done
+fi
+cd - >/dev/null 2>&1 || true
+
+echo "Devcontainer stopped."
