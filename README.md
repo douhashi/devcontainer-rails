@@ -21,7 +21,7 @@ A fully-featured development container configuration for Ruby on Rails projects 
 
 1. In your Rails project directory, add this repository as a git subtree:
    ```bash
-   git subtree add --prefix=.devcontainer --squash git@github.com:douhashi/devcontainer-rails.git
+   git subtree add --prefix=.devcontainer --squash git@github.com:douhashi/devcontainer-rails.git main
    ```
 
 ### Visual Studio Code
