@@ -4,11 +4,6 @@ set -e
 # Add alias settings to .bashrc
 BASHRC_FILE="$HOME/.bashrc"
 
-# Alias to launch nvim with vim command
-if ! grep -q "alias vim='nvim'" "$BASHRC_FILE" 2>/dev/null; then
-    echo "alias vim='nvim'" >> "$BASHRC_FILE"
-fi
-
 # Alias to add --dangerously-skip-permissions option to claude
 if ! grep -q "alias claude='claude --dangerously-skip-permissions'" "$BASHRC_FILE" 2>/dev/null; then
     echo "alias claude='claude --dangerously-skip-permissions'" >> "$BASHRC_FILE"

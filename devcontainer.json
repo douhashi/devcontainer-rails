@@ -54,6 +54,12 @@
       "target": "/home/vscode/.aws",
       "type": "bind",
       "consistency": "cached"
+    },
+    {
+      "source": "${localEnv:HOME}/.gitconfig",
+      "target": "/home/vscode/.gitconfig",
+      "type": "bind",
+      "consistency": "cached"
     }
   ],
   "postCreateCommand": "/bin/bash .devcontainer/post-create.sh",
