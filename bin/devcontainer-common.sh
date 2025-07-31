@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# Sync Ruby version from .tool-versions to .devcontainer/.env
-sync_ruby_version() {
-    local script_path=".devcontainer/sync-ruby-version.sh"
+# Sync environment variables from .tool-versions to .devcontainer/.env
+sync_envs() {
+    local script_path=".devcontainer/sync-envs.sh"
     if [ -f "$script_path" ]; then
-        echo "Syncing Ruby version from .tool-versions..."
+        echo "Syncing environment variables..."
         bash "$script_path"
     else
-        echo "Warning: $script_path not found, skipping Ruby version sync"
+        echo "Warning: $script_path not found, skipping environment sync"
     fi
 }
 
-# devcontainerを起動する関数
+# Function to start devcontainer
 up_devcontainer() {
     local additional_flags="$1"
     
-    # Sync Ruby version before starting devcontainer
-    sync_ruby_version
+    # Sync environment variables before starting devcontainer
+    sync_envs
     
     # Get the tmux config path
     tmux_config_path=~/.config/tmux
@@ -40,7 +40,7 @@ up_devcontainer() {
     eval "$command"
 }
 
-# devcontainerに接続する関数
+# Function to connect to devcontainer
 exec_devcontainer() {
     # Prepare exec command with environment variables
     exec_command="devcontainer exec"

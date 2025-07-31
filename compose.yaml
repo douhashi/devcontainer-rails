@@ -5,8 +5,10 @@ x-logging-minimal: &logging-minimal
       max-size: 1m
       max-file: 1
 
+name: ${COMPOSE_PROJECT_NAME}
 services:
   app:
+    container_name: ${COMPOSE_PROJECT_NAME}-app
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
@@ -31,6 +33,7 @@ services:
     <<: *logging-minimal
 
   selenium:
+    container_name: ${COMPOSE_PROJECT_NAME}-standalone-chrome
     image: selenium/standalone-chrome
     healthcheck:
       test: "curl -f http://localhost:4444/status || exit 1"

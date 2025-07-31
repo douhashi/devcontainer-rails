@@ -25,6 +25,10 @@ fi
 
 echo "Found Ruby version: $RUBY_VERSION"
 
+# Get compose project name from directory
+COMPOSE_PROJECT_NAME=$(basename "$PROJECT_ROOT")
+echo "Found compose project name: $COMPOSE_PROJECT_NAME"
+
 # Create or update .env file
 if [ -f "$ENV_FILE" ]; then
     # Update existing RUBY_VERSION line or add if not exists
@@ -35,10 +39,20 @@ if [ -f "$ENV_FILE" ]; then
         echo "RUBY_VERSION=$RUBY_VERSION" >> "$ENV_FILE"
         echo "Added RUBY_VERSION to $ENV_FILE"
     fi
+    
+    # Update existing COMPOSE_PROJECT_NAME line or add if not exists
+    if grep -q "^COMPOSE_PROJECT_NAME=" "$ENV_FILE"; then
+        sed -i "s/^COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME/" "$ENV_FILE"
+        echo "Updated COMPOSE_PROJECT_NAME in $ENV_FILE"
+    else
+        echo "COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME" >> "$ENV_FILE"
+        echo "Added COMPOSE_PROJECT_NAME to $ENV_FILE"
+    fi
 else
     # Create new .env file
     echo "RUBY_VERSION=$RUBY_VERSION" > "$ENV_FILE"
-    echo "Created $ENV_FILE with RUBY_VERSION"
+    echo "COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME" >> "$ENV_FILE"
+    echo "Created $ENV_FILE with RUBY_VERSION and COMPOSE_PROJECT_NAME"
 fi
 
-echo "Ruby version synchronized successfully!"
+echo "Environment variables synchronized successfully!"
