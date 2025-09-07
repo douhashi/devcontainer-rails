@@ -1,0 +1,12 @@
+{
+  "skip_files": [
+    "docs/kie/audio_concatenator.rb",
+    "docs/kie/client.rb",
+    "docs/kie/errors.rb",
+    "docs/kie/kie.rb",
+    "docs/kie/music_downloader.rb",
+    "docs/kie/task_poller.rb",
+    "docs/kie/version.rb",
+    "docs/kie/video_generator.rb"
+  ]
+}

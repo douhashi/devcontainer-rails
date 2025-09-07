@@ -122,6 +122,8 @@ module Kie
         list_file.close
 
         # Run FFmpeg concat
+        # NOTE: Using Open3.capture3 with separate arguments prevents command injection
+        # Each argument is passed separately, not as a single shell command string
         _stdout, stderr, status = Open3.capture3(
           "ffmpeg", "-f", "concat", "-safe", "0", "-i", list_file.path,
           "-c", "copy", "-y", output_file

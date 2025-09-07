@@ -1,0 +1,16 @@
+<div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-colors">
+  <h3 class="text-lg font-semibold text-gray-100 mb-2">
+    <%= link_to item.theme, item, class: "hover:text-blue-400 transition-colors" %>
+  </h3>
+  <div class="flex justify-between items-center mt-4">
+    <div class="flex gap-2">
+      <%= link_to "Edit", edit_content_path(item), class: "text-sm text-blue-400 hover:text-blue-300" %>
+      <%= link_to "Delete", content_path(item), 
+          data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+          class: "text-sm text-red-400 hover:text-red-300" %>
+    </div>
+    <time class="text-sm text-gray-400">
+      <%= item.created_at.strftime("%Y-%m-%d") %>
+    </time>
+  </div>
+</div>

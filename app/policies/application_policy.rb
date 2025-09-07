@@ -8,16 +8,27 @@ class ApplicationPolicy
     @record = record
   end
 
+  # ⚠️ 警告: セキュリティリスク - 開発段階の一時的な設定 ⚠️
+  #
+  # 現在、すべてのアクションが無条件で許可されています。
+  # これは開発段階のみの設定であり、本番環境では必ず適切な認可ロジックを実装してください。
+  #
+  # 本番環境での実装例:
+  # def index?
+  #   user.present? && user.can_view_contents?
+  # end
+  #
+  # TODO: 本番デプロイ前に必ず認可ロジックを実装すること
   def index?
-    false
+    true
   end
 
   def show?
-    false
+    true
   end
 
   def create?
-    false
+    true
   end
 
   def new?
@@ -25,7 +36,7 @@ class ApplicationPolicy
   end
 
   def update?
-    false
+    true
   end
 
   def edit?
@@ -33,7 +44,7 @@ class ApplicationPolicy
   end
 
   def destroy?
-    false
+    true
   end
 
   class Scope
@@ -43,7 +54,7 @@ class ApplicationPolicy
     end
 
     def resolve
-      raise NoMethodError, "You must define #resolve in #{self.class}"
+      @scope.all
     end
 
     private
