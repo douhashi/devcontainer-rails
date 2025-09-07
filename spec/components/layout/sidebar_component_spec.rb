@@ -5,12 +5,12 @@ RSpec.describe Layout::SidebarComponent, type: :component do
 
   let(:navigation_items) do
     [
-      { name: "Content", path: "/content", icon: "document-text" },
+      { name: "Content", path: "/contents", icon: "document-text" },
       { name: "Tracks", path: "/tracks", icon: "musical-note" },
       { name: "Artwork", path: "/artwork", icon: "photo" }
     ]
   end
-  let(:current_path) { "/content" }
+  let(:current_path) { "/contents" }
 
   describe "#initialize" do
     it "sets navigation items" do
@@ -23,12 +23,52 @@ RSpec.describe Layout::SidebarComponent, type: :component do
   end
 
   describe "#active_item?" do
-    it "returns true for the current path" do
-      expect(component.active_item?("/content")).to be true
+    context "when current path is /contents" do
+      let(:current_path) { "/contents" }
+
+      it "returns true for exact match" do
+        expect(component.active_item?("/contents")).to be true
+      end
+
+      it "returns false for other paths" do
+        expect(component.active_item?("/tracks")).to be false
+      end
     end
 
-    it "returns false for other paths" do
-      expect(component.active_item?("/tracks")).to be false
+    context "when current path is a content subpage" do
+      let(:current_path) { "/contents/123" }
+
+      it "returns true for the parent content path" do
+        expect(component.active_item?("/contents")).to be true
+      end
+
+      it "returns false for other paths" do
+        expect(component.active_item?("/tracks")).to be false
+      end
+    end
+
+    context "when current path is content new page" do
+      let(:current_path) { "/contents/new" }
+
+      it "returns true for the parent content path" do
+        expect(component.active_item?("/contents")).to be true
+      end
+    end
+
+    context "when current path is content edit page" do
+      let(:current_path) { "/contents/123/edit" }
+
+      it "returns true for the parent content path" do
+        expect(component.active_item?("/contents")).to be true
+      end
+    end
+
+    context "when current path has similar prefix but different" do
+      let(:current_path) { "/content" }
+
+      it "returns false for /contents path" do
+        expect(component.active_item?("/contents")).to be false
+      end
     end
   end
 
@@ -48,7 +88,7 @@ RSpec.describe Layout::SidebarComponent, type: :component do
     end
 
     it "marks the current item as active" do
-      expect(page).to have_css('a[href="/content"][aria-current="page"]')
+      expect(page).to have_css('a[href="/contents"][aria-current="page"]')
     end
 
     it "includes icons for navigation items" do

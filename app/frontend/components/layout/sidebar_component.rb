@@ -3,7 +3,7 @@ class Layout::SidebarComponent < ApplicationViewComponent
   option :current_path
 
   def active_item?(path)
-    current_path == path
+    current_path.start_with?(path + "/") || current_path == path
   end
 
   private

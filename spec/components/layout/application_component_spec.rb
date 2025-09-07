@@ -20,6 +20,16 @@ RSpec.describe Layout::ApplicationComponent, type: :component do
     end
   end
 
+  describe "#navigation_items" do
+    it "returns correct navigation items with updated Content path" do
+      expect(component.send(:navigation_items)).to eq([
+        { name: "Content", path: "/contents", icon: "document-text" },
+        { name: "Tracks", path: "/tracks", icon: "musical-note" },
+        { name: "Artwork", path: "/artwork", icon: "photo" }
+      ])
+    end
+  end
+
   describe "rendering" do
     before do
       render_inline(component) do
