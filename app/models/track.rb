@@ -42,6 +42,34 @@ class Track < ApplicationRecord
     end
   end
 
+  def metadata_title
+    metadata&.dig("music_title")
+  end
+
+  def metadata_tags
+    metadata&.dig("music_tags")
+  end
+
+  def metadata_model_name
+    metadata&.dig("model_name")
+  end
+
+  def metadata_generated_prompt
+    metadata&.dig("generated_prompt")
+  end
+
+  def metadata_audio_id
+    metadata&.dig("audio_id")
+  end
+
+  def has_metadata?
+    return false if metadata.nil? || metadata.empty?
+
+    %w[music_title music_tags model_name generated_prompt audio_id].any? do |key|
+      metadata[key].present?
+    end
+  end
+
   def broadcast_status_update
     ActionCable.server.broadcast(
       "content_#{content_id}_tracks",

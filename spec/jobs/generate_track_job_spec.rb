@@ -173,7 +173,10 @@ RSpec.describe GenerateTrackJob, type: :job do
               audio_url: audio_url,
               title: 'Test Track',
               tags: 'lo-fi,chill',
-              duration: 240.0
+              duration: 240.0,
+              model_name: 'chirp-v3-5',
+              generated_prompt: '[Verse]\nSoft beats in the night...',
+              audio_id: '4ed5f074-07d7-42e6-83d6-0b1db3dd0064'
             })
           allow(kie_service).to receive(:download_audio)
             .with(audio_url, anything)
@@ -241,6 +244,15 @@ RSpec.describe GenerateTrackJob, type: :job do
           described_class.perform_now(track.id)
 
           expect(track.reload.duration).to eq(240)
+        end
+
+        it 'stores extended metadata fields' do
+          described_class.perform_now(track.id)
+
+          metadata = track.reload.metadata
+          expect(metadata['model_name']).to eq('chirp-v3-5')
+          expect(metadata['generated_prompt']).to eq('[Verse]\nSoft beats in the night...')
+          expect(metadata['audio_id']).to eq('4ed5f074-07d7-42e6-83d6-0b1db3dd0064')
         end
 
         it 'analyzes duration when not provided by API' do

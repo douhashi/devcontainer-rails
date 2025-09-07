@@ -16,12 +16,22 @@
                 <div>
                   <div class="flex items-center space-x-2 mb-1">
                     <%= render TrackStatus::Component.new(track: track) %>
+                    <% if track.metadata_title.present? %>
+                      <span class="text-sm text-gray-300">
+                        <%= track.metadata_title %>
+                      </span>
+                    <% end %>
                     <% if track.duration.present? %>
                       <span class="text-sm text-gray-400">
                         🎵 <%= track.formatted_duration %>
                       </span>
                     <% end %>
                   </div>
+                  <% if track.metadata_tags.present? %>
+                    <p class="text-xs text-gray-500 mb-1">
+                      タグ: <%= track.metadata_tags %>
+                    </p>
+                  <% end %>
                   <p class="text-sm text-gray-400">作成: <%= formatted_created_at(track) %></p>
                 </div>
               </div>

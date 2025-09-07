@@ -114,12 +114,15 @@ class KieService
     audio_url = first_music["audioUrl"]
     return nil if audio_url.nil? || audio_url.to_s.strip.empty?
 
-    # Extract music metadata
+    # Extract music metadata with extended fields
     {
       audio_url: audio_url,
       title: first_music["title"],
       tags: first_music["tags"],
-      duration: first_music["duration"]
+      duration: first_music["duration"],
+      model_name: first_music["modelName"],
+      generated_prompt: first_music["prompt"],
+      audio_id: first_music["audioId"]
     }
   end
 

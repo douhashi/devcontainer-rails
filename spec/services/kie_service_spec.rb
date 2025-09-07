@@ -200,27 +200,36 @@ RSpec.describe KieService do
                 'audioUrl' => 'https://api.kie.ai/downloads/audio_123.mp3',
                 'title' => 'Relaxing Lo-fi Beat',
                 'tags' => 'lo-fi,chill,study',
-                'duration' => 240.0
+                'duration' => 240.0,
+                'modelName' => 'chirp-v3-5',
+                'prompt' => '[Verse]\nSoft beats in the night...',
+                'audioId' => '4ed5f074-07d7-42e6-83d6-0b1db3dd0064'
               },
               {
                 'audioUrl' => 'https://api.kie.ai/downloads/audio_456.mp3',
                 'title' => 'Alternative Version',
                 'tags' => 'lo-fi,chill,study',
-                'duration' => 240.0
+                'duration' => 240.0,
+                'modelName' => 'chirp-v3-5',
+                'prompt' => '[Verse]\nAlternative beats...',
+                'audioId' => '5ed5f074-07d7-42e6-83d6-0b1db3dd0065'
               }
             ]
           }
         }
       end
 
-      it 'extracts the first music data' do
+      it 'extracts the first music data with all metadata' do
         result = service.extract_music_data(response_data)
 
         expect(result).to eq({
           audio_url: 'https://api.kie.ai/downloads/audio_123.mp3',
           title: 'Relaxing Lo-fi Beat',
           tags: 'lo-fi,chill,study',
-          duration: 240.0
+          duration: 240.0,
+          model_name: 'chirp-v3-5',
+          generated_prompt: '[Verse]\nSoft beats in the night...',
+          audio_id: '4ed5f074-07d7-42e6-83d6-0b1db3dd0064'
         })
       end
     end
@@ -310,7 +319,10 @@ RSpec.describe KieService do
           audio_url: 'https://api.kie.ai/downloads/audio_123.mp3',
           title: nil,
           tags: nil,
-          duration: nil
+          duration: nil,
+          model_name: nil,
+          generated_prompt: nil,
+          audio_id: nil
         })
       end
     end

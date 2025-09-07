@@ -113,6 +113,9 @@ class GenerateTrackJob < ApplicationJob
       # Store music metadata
       @track.metadata["music_title"] = music_data[:title] if music_data[:title].present?
       @track.metadata["music_tags"] = music_data[:tags] if music_data[:tags].present?
+      @track.metadata["model_name"] = music_data[:model_name] if music_data[:model_name].present?
+      @track.metadata["generated_prompt"] = music_data[:generated_prompt] if music_data[:generated_prompt].present?
+      @track.metadata["audio_id"] = music_data[:audio_id] if music_data[:audio_id].present?
 
       # Store duration from API response if available (convert to integer)
       if music_data[:duration].present?
