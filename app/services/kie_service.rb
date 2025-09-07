@@ -57,6 +57,14 @@ class KieService
 
     task_data = response["data"]
 
+    # Log full response in development environment
+    if Rails.env.development? && task_data
+      Rails.logger.debug "KIE API Response for task #{task_id}: #{JSON.pretty_generate(task_data)}"
+    end
+
+    # Validate response format
+    validate_task_response(task_data) if task_data
+
     # Check if task failed
     if task_data && task_data["status"] == "failed"
       error_message = task_data["error"] || "Generation failed"
@@ -220,6 +228,31 @@ class KieService
         retry
       else
         raise
+      end
+    end
+  end
+
+  def validate_task_response(task_data)
+    # Check if response is a Hash
+    unless task_data.is_a?(Hash)
+      Rails.logger.warn "Unexpected response format for KIE API task status: #{task_data.class} instead of Hash"
+      return
+    end
+
+    # Check for required fields
+    required_fields = %w[taskId status]
+    missing_fields = required_fields - task_data.keys
+
+    missing_fields.each do |field|
+      Rails.logger.warn "Missing required field: #{field} in KIE API response. Response keys: #{task_data.keys.join(', ')}"
+    end
+
+    # Log if status has unexpected value (for monitoring API changes)
+    if task_data["status"]
+      expected_statuses = %w[pending processing completed failed success]
+      normalized_status = task_data["status"].to_s.downcase
+      unless expected_statuses.include?(normalized_status)
+        Rails.logger.warn "Unexpected status value in KIE API response: '#{task_data['status']}'"
       end
     end
   end

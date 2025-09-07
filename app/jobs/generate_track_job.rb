@@ -33,6 +33,15 @@ class GenerateTrackJob < ApplicationJob
       task_id = @service.generate_music(prompt: prompt)
       @track.metadata["task_id"] = task_id
       @track.metadata["polling_attempts"] = 0
+
+      # Initialize status history
+      @track.metadata["status_history"] ||= []
+      @track.metadata["status_history"] << {
+        "status" => "pending_to_processing",
+        "timestamp" => Time.current.iso8601,
+        "task_id" => task_id
+      }
+
       @track.save!
 
       Rails.logger.info "Started music generation for Track ##{@track.id} with task_id: #{task_id}, prompt: #{prompt.truncate(100)}"
@@ -49,6 +58,9 @@ class GenerateTrackJob < ApplicationJob
 
     # Normalize status to lowercase for comparison
     normalized_status = status_response["status"].to_s.downcase
+
+    # Log status transition
+    Rails.logger.info "Status transition for Track ##{@track.id}: #{normalized_status} (raw: #{status_response['status']})"
 
     case normalized_status
     when "processing"
@@ -96,6 +108,15 @@ class GenerateTrackJob < ApplicationJob
       download_and_attach_audio(audio_url)
 
       @track.metadata["audio_url"] = audio_url
+
+      # Record status transition
+      @track.metadata["status_history"] ||= []
+      @track.metadata["status_history"] << {
+        "status" => "processing_to_completed",
+        "timestamp" => Time.current.iso8601,
+        "audio_url" => audio_url
+      }
+
       @track.status = :completed
       @track.save!
 
@@ -107,6 +128,15 @@ class GenerateTrackJob < ApplicationJob
     error_message = status_response["error"] || "Unknown error"
 
     @track.metadata["error"] = error_message
+
+    # Record status transition
+    @track.metadata["status_history"] ||= []
+    @track.metadata["status_history"] << {
+      "status" => "processing_to_failed",
+      "timestamp" => Time.current.iso8601,
+      "error" => error_message
+    }
+
     @track.status = :failed
     @track.save!
 

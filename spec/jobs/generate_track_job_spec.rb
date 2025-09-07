@@ -26,6 +26,15 @@ RSpec.describe GenerateTrackJob, type: :job do
         expect(track.reload.metadata['task_id']).to eq('task_123')
       end
 
+      it 'initializes status_history in metadata' do
+        allow(kie_service).to receive(:generate_music).with(prompt: anything).and_return('task_123')
+
+        described_class.perform_now(track.id)
+
+        expect(track.reload.metadata['status_history']).to be_an(Array)
+        expect(track.reload.metadata['status_history'].first).to include('status' => 'pending_to_processing')
+      end
+
       it 'generates music with content audio_prompt' do
         expect(kie_service).to receive(:generate_music)
           .with(prompt: track.content.audio_prompt)
@@ -97,6 +106,17 @@ RSpec.describe GenerateTrackJob, type: :job do
           }.not_to change { track.reload.status }
         end
 
+        it 'logs status transition' do
+          allow(kie_service).to receive(:get_task_status)
+            .with('task_123')
+            .and_return({ 'status' => 'processing' })
+          allow(Rails.logger).to receive(:info).and_call_original
+
+          expect(Rails.logger).to receive(:info).with(/Status transition for Track ##{track.id}: processing/)
+
+          described_class.perform_now(track.id)
+        end
+
         it 'handles uppercase PROCESSING status' do
           allow(kie_service).to receive(:get_task_status)
             .with('task_123')
@@ -140,6 +160,8 @@ RSpec.describe GenerateTrackJob, type: :job do
           allow(kie_service).to receive(:download_audio)
             .with(audio_url, anything)
             .and_return(audio_file.path)
+          track.metadata['status_history'] = []
+          track.save!
         end
 
         after do
@@ -169,6 +191,14 @@ RSpec.describe GenerateTrackJob, type: :job do
           described_class.perform_now(track.id)
 
           expect(track.reload.metadata['audio_url']).to eq(audio_url)
+        end
+
+        it 'records status transition to completed' do
+          described_class.perform_now(track.id)
+
+          history = track.reload.metadata['status_history']
+          expect(history).to be_an(Array)
+          expect(history.last).to include('status' => 'processing_to_completed')
         end
 
         it 'analyzes and stores duration' do

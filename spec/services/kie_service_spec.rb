@@ -68,6 +68,30 @@ RSpec.describe KieService do
         expect(result).to be_a(Hash)
         expect(result).to have_key('taskId')
       end
+
+      context 'in development environment' do
+        before do
+          allow(Rails.env).to receive(:development?).and_return(true)
+          allow(Rails.logger).to receive(:debug)
+        end
+
+        it 'logs the full response in debug level' do
+          expect(Rails.logger).to receive(:debug).with(/KIE API Response for task/)
+          service.get_task_status(task_id)
+        end
+      end
+
+      context 'in production environment' do
+        before do
+          allow(Rails.env).to receive(:development?).and_return(false)
+          allow(Rails.logger).to receive(:debug)
+        end
+
+        it 'does not log the full response' do
+          expect(Rails.logger).not_to receive(:debug)
+          service.get_task_status(task_id)
+        end
+      end
     end
 
     context 'when task_id is blank' do
@@ -82,6 +106,54 @@ RSpec.describe KieService do
       it 'returns nil or error data' do
         result = service.get_task_status(invalid_task_id)
         expect(result).to be_nil.or be_a(Hash)
+      end
+    end
+
+    context 'response validation' do
+      let(:task_id) { 'test-task-id' }
+
+      before do
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      context 'when response is missing required fields' do
+        it 'logs warning when status field is missing' do
+          allow(service).to receive(:with_retry).and_return({ 'data' => { 'taskId' => task_id } })
+
+          expect(Rails.logger).to receive(:warn).with(/Missing required field: status/)
+          service.get_task_status(task_id)
+        end
+
+        it 'logs warning when taskId field is missing' do
+          allow(service).to receive(:with_retry).and_return({ 'data' => { 'status' => 'processing' } })
+
+          expect(Rails.logger).to receive(:warn).with(/Missing required field: taskId/)
+          service.get_task_status(task_id)
+        end
+      end
+
+      context 'when response has unexpected format' do
+        it 'logs warning for unexpected response structure' do
+          allow(service).to receive(:with_retry).and_return({ 'data' => 'unexpected_string_response' })
+
+          expect(Rails.logger).to receive(:warn).with(/Unexpected response format/)
+          service.get_task_status(task_id)
+        end
+      end
+
+      context 'when response has all required fields' do
+        it 'does not log warning for valid response' do
+          allow(service).to receive(:with_retry).and_return({
+            'data' => {
+              'taskId' => task_id,
+              'status' => 'completed',
+              'output' => { 'audio_url' => 'https://example.com/audio.mp3' }
+            }
+          })
+
+          expect(Rails.logger).not_to receive(:warn)
+          service.get_task_status(task_id)
+        end
       end
     end
   end
