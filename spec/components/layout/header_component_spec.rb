@@ -46,5 +46,9 @@ RSpec.describe Layout::HeaderComponent, type: :component do
     it "includes user info area" do
       expect(page).to have_css('[data-testid="user-info"]')
     end
+
+    it "renders title as home link" do
+      expect(page).to have_link(title, href: "/")
+    end
   end
 end
