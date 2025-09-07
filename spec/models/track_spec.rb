@@ -77,4 +77,31 @@ RSpec.describe Track, type: :model do
       expect(track.audio_data).to be_nil
     end
   end
+
+  describe '#generate_audio!' do
+    let(:track) { create(:track, status: :pending) }
+
+    it 'enqueues GenerateTrackJob' do
+      expect {
+        track.generate_audio!
+      }.to have_enqueued_job(GenerateTrackJob).with(track.id)
+    end
+
+    it 'does not enqueue job if status is not pending' do
+      track.update!(status: :processing)
+
+      expect {
+        track.generate_audio!
+      }.not_to have_enqueued_job(GenerateTrackJob)
+    end
+
+    it 'returns true when job is enqueued' do
+      expect(track.generate_audio!).to be true
+    end
+
+    it 'returns false when job is not enqueued' do
+      track.update!(status: :completed)
+      expect(track.generate_audio!).to be false
+    end
+  end
 end

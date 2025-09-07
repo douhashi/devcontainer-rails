@@ -61,9 +61,20 @@ RSpec.configure do |config|
   config.include Capybara::RSpecMatchers, type: :view_component
   config.include ViewComponent::TestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
+  config.include ActiveJob::TestHelper, type: :job
+  config.include ActiveJob::TestHelper, type: :model
 
   config.define_derived_metadata(file_path: %r{/spec/components}) do |metadata|
     metadata[:type] = :component
+  end
+
+  # Configure ActiveJob test adapter
+  config.before(:each, type: :job) do
+    ActiveJob::Base.queue_adapter = :test
+  end
+
+  config.before(:each, type: :model) do
+    ActiveJob::Base.queue_adapter = :test
   end
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
