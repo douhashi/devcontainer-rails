@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_213001) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_221339) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -50,7 +50,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_213001) do
     t.index [ "status" ], name: "index_tracks_on_status"
   end
 
+  create_table "videos", force: :cascade do |t|
+    t.integer "content_id", null: false
+    t.string "status", default: "pending", null: false
+    t.text "video_data"
+    t.string "resolution"
+    t.integer "file_size"
+    t.integer "duration_seconds"
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "content_id" ], name: "index_videos_on_content_id"
+    t.index [ "status" ], name: "index_videos_on_status"
+  end
+
   add_foreign_key "artworks", "contents"
   add_foreign_key "audios", "contents"
   add_foreign_key "tracks", "contents"
+  add_foreign_key "videos", "contents"
 end

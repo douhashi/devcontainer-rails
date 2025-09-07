@@ -2,6 +2,7 @@ class Content < ApplicationRecord
   has_many :tracks, dependent: :destroy
   has_one :artwork, dependent: :destroy
   has_one :audio, dependent: :destroy
+  has_one :video, dependent: :destroy
 
   validates :theme, presence: true, length: { maximum: 256 }
   validates :duration, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 60 }
@@ -59,5 +60,44 @@ class Content < ApplicationRecord
     end
 
     actions
+  end
+
+  def video_generation_prerequisites_met?
+    audio_ready? && artwork_ready?
+  end
+
+  def video_generation_missing_prerequisites
+    missing = []
+    missing << "オーディオが完成していません" unless audio_ready?
+    missing << "アートワークが設定されていません" unless artwork_ready?
+    missing
+  end
+
+  def video_status
+    return :not_configured unless video_generation_prerequisites_met?
+    return :not_created unless video.present?
+
+    case video.status.to_sym
+    when :pending
+      :pending
+    when :processing
+      :processing
+    when :completed
+      :completed
+    when :failed
+      :failed
+    else
+      :unknown
+    end
+  end
+
+  private
+
+  def audio_ready?
+    audio.present? && audio.completed?
+  end
+
+  def artwork_ready?
+    artwork.present?
   end
 end

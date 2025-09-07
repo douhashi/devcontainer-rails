@@ -1,8 +1,10 @@
 FactoryBot.define do
-  factory :audio do
+  factory :video do
     association :content
     status { :pending }
-    metadata { {} }
+    resolution { "1920x1080" }
+    file_size { 50_000_000 }
+    duration_seconds { 180 }
 
     trait :pending do
       status { :pending }
@@ -14,14 +16,14 @@ FactoryBot.define do
 
     trait :completed do
       status { :completed }
+      resolution { "1920x1080" }
+      file_size { 50_000_000 }
+      duration_seconds { 180 }
     end
 
     trait :failed do
       status { :failed }
-    end
-
-    trait :with_metadata do
-      metadata { { selected_tracks: [ 1, 2, 3 ], total_duration: 180, tracks_used: 3 } }
+      error_message { "ffmpeg command failed" }
     end
   end
 end

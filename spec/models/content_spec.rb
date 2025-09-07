@@ -4,6 +4,8 @@ RSpec.describe Content, type: :model do
   describe 'associations' do
     it { is_expected.to have_many(:tracks).dependent(:destroy) }
     it { is_expected.to have_one(:artwork).dependent(:destroy) }
+    it { is_expected.to have_one(:audio).dependent(:destroy) }
+    it { is_expected.to have_one(:video).dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -335,6 +337,134 @@ RSpec.describe Content, type: :model do
         it 'returns empty array' do
           actions = content.next_actions
           expect(actions).to be_empty
+        end
+      end
+    end
+  end
+
+  describe 'video generation methods' do
+    let(:content) { create(:content) }
+
+    describe '#video_generation_prerequisites_met?' do
+      context 'when both audio and artwork are ready' do
+        before do
+          create(:audio, :completed, content: content)
+          create(:artwork, content: content)
+        end
+
+        it 'returns true' do
+          expect(content.video_generation_prerequisites_met?).to be true
+        end
+      end
+
+      context 'when audio is missing' do
+        before do
+          create(:artwork, content: content)
+        end
+
+        it 'returns false' do
+          expect(content.video_generation_prerequisites_met?).to be false
+        end
+      end
+
+      context 'when audio is not completed' do
+        before do
+          create(:audio, :pending, content: content)
+          create(:artwork, content: content)
+        end
+
+        it 'returns false' do
+          expect(content.video_generation_prerequisites_met?).to be false
+        end
+      end
+
+      context 'when artwork is missing' do
+        before do
+          create(:audio, :completed, content: content)
+        end
+
+        it 'returns false' do
+          expect(content.video_generation_prerequisites_met?).to be false
+        end
+      end
+    end
+
+    describe '#video_generation_missing_prerequisites' do
+      context 'when both prerequisites are missing' do
+        it 'returns both missing messages' do
+          missing = content.video_generation_missing_prerequisites
+          expect(missing).to include('オーディオが完成していません')
+          expect(missing).to include('アートワークが設定されていません')
+        end
+      end
+
+      context 'when only audio is missing' do
+        before do
+          create(:artwork, content: content)
+        end
+
+        it 'returns only audio missing message' do
+          missing = content.video_generation_missing_prerequisites
+          expect(missing).to include('オーディオが完成していません')
+          expect(missing).not_to include('アートワークが設定されていません')
+        end
+      end
+
+      context 'when all prerequisites are met' do
+        before do
+          create(:audio, :completed, content: content)
+          create(:artwork, content: content)
+        end
+
+        it 'returns empty array' do
+          missing = content.video_generation_missing_prerequisites
+          expect(missing).to be_empty
+        end
+      end
+    end
+
+    describe '#video_status' do
+      context 'when prerequisites are not met' do
+        it 'returns not_configured' do
+          expect(content.video_status).to eq(:not_configured)
+        end
+      end
+
+      context 'when prerequisites are met but video does not exist' do
+        before do
+          create(:audio, :completed, content: content)
+          create(:artwork, content: content)
+        end
+
+        it 'returns not_created' do
+          expect(content.video_status).to eq(:not_created)
+        end
+      end
+
+      context 'when video exists' do
+        before do
+          create(:audio, :completed, content: content)
+          create(:artwork, content: content)
+        end
+
+        it 'returns pending for pending video' do
+          create(:video, :pending, content: content)
+          expect(content.video_status).to eq(:pending)
+        end
+
+        it 'returns processing for processing video' do
+          create(:video, :processing, content: content)
+          expect(content.video_status).to eq(:processing)
+        end
+
+        it 'returns completed for completed video' do
+          create(:video, :completed, content: content)
+          expect(content.video_status).to eq(:completed)
+        end
+
+        it 'returns failed for failed video' do
+          create(:video, :failed, content: content)
+          expect(content.video_status).to eq(:failed)
         end
       end
     end

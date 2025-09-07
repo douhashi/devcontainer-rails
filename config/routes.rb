@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     end
     resources :artworks, except: [ :index, :show, :edit, :new ]
     resource :artwork, only: [ :destroy ]
+    resource :video, only: [ :create, :show, :destroy ]
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
