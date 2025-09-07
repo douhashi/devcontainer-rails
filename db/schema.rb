@@ -10,13 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_170338) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_213001) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index [ "content_id" ], name: "index_artworks_on_content_id"
+  end
+
+  create_table "audios", force: :cascade do |t|
+    t.integer "content_id", null: false
+    t.string "status"
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "audio_data"
+    t.index [ "content_id" ], name: "index_audios_on_content_id"
   end
 
   create_table "contents", force: :cascade do |t|
@@ -41,5 +51,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_170338) do
   end
 
   add_foreign_key "artworks", "contents"
+  add_foreign_key "audios", "contents"
   add_foreign_key "tracks", "contents"
 end

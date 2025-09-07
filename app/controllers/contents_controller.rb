@@ -1,5 +1,5 @@
 class ContentsController < ApplicationController
-  before_action :set_content, only: [ :edit, :update, :destroy, :generate_tracks, :generate_single_track ]
+  before_action :set_content, only: [ :edit, :update, :destroy, :generate_tracks, :generate_single_track, :generate_audio ]
 
   def index
     # N+1問題を防ぐためにincludesを使用
@@ -80,13 +80,72 @@ class ContentsController < ApplicationController
     end
   end
 
+  def generate_audio
+    # Check prerequisites
+    unless audio_generation_prerequisites_met?
+      redirect_to @content, alert: audio_generation_error_message
+      return
+    end
+
+    # Check if audio already exists
+    if @content.audio&.completed?
+      redirect_to @content, alert: "Audio has already been generated for this content."
+      return
+    end
+
+    begin
+      # Create or update audio record
+      audio = @content.audio || @content.build_audio
+      audio.status = :pending
+      audio.metadata = {}
+      audio.save!
+
+      # Queue the generation job
+      GenerateAudioJob.perform_later(audio.id)
+
+      Rails.logger.info "Queued audio generation for Content ##{@content.id}"
+      redirect_to @content, notice: "Audio generation has been started."
+    rescue StandardError => e
+      Rails.logger.error "Failed to start audio generation for Content ##{@content.id}: #{e.message}"
+      redirect_to @content, alert: "Failed to start audio generation: #{e.message}"
+    end
+  end
+
   private
 
   def set_content
-    @content = Content.includes(:tracks, :artwork).find(params[:id])
+    @content = Content.includes(:tracks, :artwork, :audio).find(params[:id])
   end
 
   def content_params
     params.require(:content).permit(:theme, :duration, :audio_prompt)
+  end
+
+  def audio_generation_prerequisites_met?
+    return false unless @content.tracks.completed.exists?
+    return false unless @content.artwork.present?
+
+    # Check if we have enough completed tracks with duration information
+    completed_tracks_count = @content.tracks.completed.where.not(duration: nil).count
+    completed_tracks_count >= 2 # Minimum tracks required for audio generation
+  end
+
+  def audio_generation_error_message
+    errors = []
+
+    unless @content.tracks.completed.exists?
+      errors << "No completed tracks available"
+    end
+
+    unless @content.artwork.present?
+      errors << "Artwork must be configured"
+    end
+
+    completed_tracks_count = @content.tracks.completed.where.not(duration: nil).count
+    if completed_tracks_count < 2
+      errors << "At least 2 completed tracks with duration information are required"
+    end
+
+    "Audio generation is not available: #{errors.join(', ')}"
   end
 end

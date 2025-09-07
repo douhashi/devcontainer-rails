@@ -125,6 +125,12 @@
       ) %>
     </div>
 
+    <!-- Audio Generation section -->
+    <div class="mb-8">
+      <h2 class="text-xl font-bold text-gray-200 mb-4">音源生成</h2>
+      <%= render AudioGenerationButton::Component.new(content_record: item) %>
+    </div>
+
     <!-- Track List -->
     <% if item.tracks.any? %>
     <div class="tracks-section mb-8">

@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     member do
       post :generate_tracks
       post :generate_single_track
+      post :generate_audio
     end
     resources :tracks do
       collection do

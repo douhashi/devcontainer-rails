@@ -1,0 +1,111 @@
+<div class="audio-generation-section">
+  <!-- Current Audio Status (if exists) -->
+  <% if audio_exists? %>
+    <div class="mb-4 p-4 bg-gray-900 rounded-lg">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-medium text-gray-200 flex items-center">
+          <span class="mr-2"><%= status_icon %></span>
+          音源ステータス
+        </h3>
+        <span class="text-sm text-gray-400">
+          <%= time_tag audio_info[:created_at], "#{audio_info[:created_at].strftime('%Y/%m/%d %H:%M')}" %>
+        </span>
+      </div>
+      
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <% case audio_status %>
+          <% when 'pending' %>
+            <p class="text-yellow-400">生成待機中です</p>
+          <% when 'processing' %>
+            <p class="text-blue-400">音源を生成しています...</p>
+          <% when 'completed' %>
+            <p class="text-green-400">音源が正常に生成されました</p>
+            <% if audio_file_url %>
+              <div class="mt-2">
+                <audio controls class="w-full max-w-md">
+                  <source src="<%= audio_file_url %>" type="audio/mpeg">
+                  お使いのブラウザは音声再生をサポートしていません。
+                </audio>
+              </div>
+            <% end %>
+            <% if audio_info[:metadata].any? %>
+              <div class="mt-2 text-sm text-gray-500">
+                <% if audio_info[:metadata]['tracks_used'] %>
+                  使用トラック数: <%= audio_info[:metadata]['tracks_used'] %>個
+                <% end %>
+                <% if audio_info[:metadata]['total_duration'] %>
+                  • 総再生時間: <%= audio_info[:metadata]['total_duration'] %>秒
+                <% end %>
+              </div>
+            <% end %>
+          <% when 'failed' %>
+            <p class="text-red-400">音源生成に失敗しました</p>
+            <% if audio_info[:metadata]['error'] %>
+              <p class="text-sm text-red-300 mt-1">
+                エラー: <%= audio_info[:metadata]['error'] %>
+              </p>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Prerequisites Check -->
+  <% unless can_generate_audio? %>
+    <div class="mb-4 p-4 bg-yellow-900 bg-opacity-20 border border-yellow-500 rounded-lg">
+      <div class="flex items-center mb-2">
+        <span class="text-yellow-400 text-lg mr-2">⚠️</span>
+        <h4 class="text-yellow-400 font-medium">音源生成の前提条件</h4>
+      </div>
+      <ul class="text-yellow-200 text-sm space-y-1">
+        <% prerequisite_errors.each do |error| %>
+          <li class="flex items-start">
+            <span class="mr-2 mt-0.5">•</span>
+            <%= error %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Generation Button -->
+  <div class="flex items-center gap-4">
+    <% if can_generate_audio? %>
+      <%= button_to generate_audio_content_path(content_record), 
+            method: :post,
+            class: button_classes,
+            disabled: disabled?,
+            data: {
+              controller: "audio-generation",
+              action: "click->audio-generation#generate",
+              audio_generation_content_id_value: content_record.id,
+              turbo_confirm: (audio_status == 'completed' ? "既存の音源を置き換えます。よろしいですか？" : nil)
+            } do %>
+        <span class="mr-2"><%= status_icon %></span>
+        <%= button_text %>
+        <% if processing? %>
+          <svg class="animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        <% end %>
+      <% end %>
+    <% else %>
+      <button disabled class="<%= button_classes %>">
+        <span class="mr-2">🚫</span>
+        <%= button_text %>
+      </button>
+    <% end %>
+
+    <!-- Help Text -->
+    <div class="text-sm text-gray-400">
+      <% if can_generate_audio? %>
+        完成したトラックから音源を自動生成します
+      <% else %>
+        上記の条件を満たしてから音源生成を実行してください
+      <% end %>
+    </div>
+  </div>
+</div>
