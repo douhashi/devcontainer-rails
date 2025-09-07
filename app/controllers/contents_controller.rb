@@ -1,5 +1,5 @@
 class ContentsController < ApplicationController
-  before_action :set_content, only: [ :edit, :update, :destroy, :generate_tracks ]
+  before_action :set_content, only: [ :edit, :update, :destroy, :generate_tracks, :generate_single_track ]
 
   def index
     # N+1問題を防ぐためにincludesを使用
@@ -62,6 +62,20 @@ class ContentsController < ApplicationController
       redirect_to @content, notice: "#{track_count} tracks were queued for generation."
     rescue TrackQueueingService::ValidationError => e
       Rails.logger.warn "Track generation failed for Content ##{@content.id}: #{e.message}"
+      redirect_to @content, alert: e.message
+    end
+  end
+
+  def generate_single_track
+    service = TrackQueueingService.new(@content)
+
+    begin
+      track = service.queue_single_track!
+
+      Rails.logger.info "Generated 1 track for Content ##{@content.id}"
+      redirect_to @content, notice: "1 track was queued for generation."
+    rescue TrackQueueingService::ValidationError => e
+      Rails.logger.warn "Single track generation failed for Content ##{@content.id}: #{e.message}"
       redirect_to @content, alert: e.message
     end
   end

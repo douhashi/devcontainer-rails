@@ -108,7 +108,10 @@
     <!-- Track Generation section -->
     <div class="mb-8">
       <h2 class="text-xl font-bold text-gray-200 mb-4">BGM生成</h2>
-      <%= render TrackGenerationButtonComponent.new(content_record: item) %>
+      <div class="flex gap-4">
+        <%= render TrackGenerationButtonComponent.new(content_record: item) %>
+        <%= render SingleTrackGenerationButton::Component.new(content_record: item) %>
+      </div>
     </div>
 
     <!-- Track List -->

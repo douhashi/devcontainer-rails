@@ -202,4 +202,107 @@ RSpec.describe TrackQueueingService do
       expect(service.send(:would_exceed_limit?, 8)).to be true
     end
   end
+
+  describe '#queue_single_track!' do
+    let(:service) { described_class.new(content) }
+
+    context 'when content is valid' do
+      it 'creates a single track' do
+        expect {
+          service.queue_single_track!
+        }.to change { content.tracks.count }.by(1)
+      end
+
+      it 'creates track with pending status' do
+        service.queue_single_track!
+
+        expect(content.tracks.last.pending?).to be true
+      end
+
+      it 'enqueues GenerateTrackJob for the track' do
+        expect {
+          service.queue_single_track!
+        }.to have_enqueued_job(GenerateTrackJob).once
+      end
+
+      it 'returns the created track' do
+        track = service.queue_single_track!
+
+        expect(track).to be_a(Track)
+        expect(track).to have_attributes(content: content, status: 'pending')
+      end
+
+      it 'logs the operation' do
+        allow(Rails.logger).to receive(:info)
+
+        service.queue_single_track!
+
+        expect(Rails.logger).to have_received(:info).with("Queued 1 track for Content ##{content.id}")
+      end
+    end
+
+    context 'when validation fails' do
+      context 'when duration is missing' do
+        let(:invalid_content) { Content.new(theme: 'test', duration: nil, audio_prompt: 'test') }
+        let(:service) { described_class.new(invalid_content) }
+
+        it 'raises ValidationError' do
+          expect { service.queue_single_track! }.to raise_error(
+            TrackQueueingService::ValidationError,
+            'Content duration is required'
+          )
+        end
+      end
+
+      context 'when audio_prompt is missing' do
+        let(:invalid_content) { Content.new(theme: 'test', duration: 10, audio_prompt: nil) }
+        let(:service) { described_class.new(invalid_content) }
+
+        it 'raises ValidationError' do
+          expect { service.queue_single_track! }.to raise_error(
+            TrackQueueingService::ValidationError,
+            'Content audio_prompt is required'
+          )
+        end
+      end
+
+      context 'when content already has processing tracks' do
+        before do
+          create(:track, content: content, status: :processing)
+        end
+
+        it 'raises ValidationError' do
+          expect { service.queue_single_track! }.to raise_error(
+            TrackQueueingService::ValidationError,
+            'Content already has tracks being generated'
+          )
+        end
+      end
+
+      context 'when content would exceed track limit' do
+        before do
+          create_list(:track, 100, content: content)
+        end
+
+        it 'raises ValidationError' do
+          expect { service.queue_single_track! }.to raise_error(
+            TrackQueueingService::ValidationError,
+            'Content would exceed maximum track limit (100)'
+          )
+        end
+      end
+
+      context 'when content has exactly 99 tracks' do
+        before do
+          create_list(:track, 99, content: content)
+        end
+
+        it 'allows one more track' do
+          expect {
+            service.queue_single_track!
+          }.to change { content.tracks.count }.by(1)
+        end
+      end
+    end
+  end
 end

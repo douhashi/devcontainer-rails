@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   resources :contents do
     member do
       post :generate_tracks
+      post :generate_single_track
     end
     resources :artworks, except: [ :index, :show, :edit, :new ]
     resource :artwork, only: [ :destroy ]

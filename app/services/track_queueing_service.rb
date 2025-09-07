@@ -35,6 +35,20 @@ class TrackQueueingService
     tracks
   end
 
+  def queue_single_track!
+    validate_single_track!
+
+    track = nil
+
+    ActiveRecord::Base.transaction do
+      track = content.tracks.create!(status: :pending)
+      GenerateTrackJob.perform_later(track.id)
+    end
+
+    Rails.logger.info "Queued 1 track for Content ##{content.id}"
+    track
+  end
+
   private
 
   def validate!
@@ -44,6 +58,16 @@ class TrackQueueingService
 
     track_count = self.class.calculate_track_count(content.duration)
     if would_exceed_limit?(track_count)
+      raise ValidationError, "Content would exceed maximum track limit (#{MAX_TRACKS_PER_CONTENT})"
+    end
+  end
+
+  def validate_single_track!
+    raise ValidationError, "Content duration is required" if content.duration.blank?
+    raise ValidationError, "Content audio_prompt is required" if content.audio_prompt.blank?
+    raise ValidationError, "Content already has tracks being generated" if processing_tracks?
+
+    if would_exceed_limit?(1)
       raise ValidationError, "Content would exceed maximum track limit (#{MAX_TRACKS_PER_CONTENT})"
     end
   end

@@ -287,4 +287,78 @@ RSpec.describe "Contents", type: :request do
       end
     end
   end
+
+  describe "POST /contents/:id/generate_single_track" do
+    let(:content) { create(:content, theme: "テストテーマ", duration: 10, audio_prompt: "テスト用プロンプト") }
+
+    context "with valid content" do
+      it "generates a single track successfully" do
+        expect {
+          post generate_single_track_content_path(content)
+        }.to change { content.tracks.count }.by(1)
+
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("1 track was queued for generation")
+      end
+
+      it "enqueues GenerateTrackJob for the created track" do
+        expect {
+          post generate_single_track_content_path(content)
+        }.to have_enqueued_job(GenerateTrackJob).once
+      end
+
+      it "creates track with pending status" do
+        post generate_single_track_content_path(content)
+
+        expect(content.tracks.last.pending?).to be true
+      end
+    end
+
+    context "with invalid content" do
+      context "when tracks are already being generated" do
+        before do
+          create(:track, content: content, status: :processing)
+        end
+
+        it "redirects with error message" do
+          post generate_single_track_content_path(content)
+
+          expect(response).to redirect_to(content)
+          follow_redirect!
+          expect(response.body).to include("Content already has tracks being generated")
+        end
+      end
+
+      context "when track limit would be exceeded" do
+        before do
+          create_list(:track, 100, content: content)
+        end
+
+        it "redirects with error message" do
+          post generate_single_track_content_path(content)
+
+          expect(response).to redirect_to(content)
+          follow_redirect!
+          expect(response.body).to include("Content would exceed maximum track limit")
+        end
+      end
+
+      context "when content has 99 tracks" do
+        before do
+          create_list(:track, 99, content: content)
+        end
+
+        it "allows generating one more track" do
+          expect {
+            post generate_single_track_content_path(content)
+          }.to change { content.tracks.count }.by(1)
+
+          expect(response).to redirect_to(content)
+          follow_redirect!
+          expect(response.body).to include("1 track was queued for generation")
+        end
+      end
+    end
+  end
 end

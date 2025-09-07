@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Artwork::Form::Preview < ViewComponentContrib::Preview
+class Artwork::Form::Preview < ApplicationViewComponentPreview
   def default
     content = FactoryBot.build(:content)
     render Artwork::Form::Component.new(content_record: content)

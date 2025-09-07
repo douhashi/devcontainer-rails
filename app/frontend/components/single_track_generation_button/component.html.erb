@@ -1,0 +1,25 @@
+<div class="single-track-generation-section">
+  <% if can_generate? %>
+    <button 
+      type="button"
+      class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors"
+      data-controller="single-track-generation"
+      data-single-track-generation-url-value="<%= generate_single_track_url %>"
+      data-single-track-generation-confirmation-message-value="<%= confirmation_message %>"
+    >
+      <%= button_text %>
+    </button>
+  <% else %>
+    <button 
+      type="button" 
+      class="bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded cursor-not-allowed"
+      disabled
+    >
+      <%= button_text %>
+    </button>
+    <p class="text-red-600 text-sm mt-1">
+      <%= disability_reason %>
+    </p>
+  <% end %>
+</div>
+
