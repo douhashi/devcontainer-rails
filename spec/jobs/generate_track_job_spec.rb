@@ -157,7 +157,23 @@ RSpec.describe GenerateTrackJob, type: :job do
             .with('task_123')
             .and_return({
               'status' => 'completed',
-              'output' => { 'audio_url' => audio_url }
+              'response' => {
+                'sunoData' => [
+                  {
+                    'audioUrl' => audio_url,
+                    'title' => 'Test Track',
+                    'tags' => 'lo-fi,chill',
+                    'duration' => 240.0
+                  }
+                ]
+              }
+            })
+          allow(kie_service).to receive(:extract_music_data)
+            .and_return({
+              audio_url: audio_url,
+              title: 'Test Track',
+              tags: 'lo-fi,chill',
+              duration: 240.0
             })
           allow(kie_service).to receive(:download_audio)
             .with(audio_url, anything)
@@ -203,7 +219,40 @@ RSpec.describe GenerateTrackJob, type: :job do
           expect(history.last).to include('status' => 'processing_to_completed')
         end
 
-        it 'analyzes and stores duration' do
+        it 'stores music metadata' do
+          described_class.perform_now(track.id)
+
+          metadata = track.reload.metadata
+          expect(metadata['music_title']).to eq('Test Track')
+          expect(metadata['music_tags']).to eq('lo-fi,chill')
+        end
+
+        it 'includes music metadata in status history' do
+          described_class.perform_now(track.id)
+
+          history = track.reload.metadata['status_history']
+          expect(history.last).to include(
+            'music_title' => 'Test Track',
+            'music_tags' => 'lo-fi,chill'
+          )
+        end
+
+        it 'stores duration from API response' do
+          described_class.perform_now(track.id)
+
+          expect(track.reload.duration).to eq(240)
+        end
+
+        it 'analyzes duration when not provided by API' do
+          # Override to not provide duration from API
+          allow(kie_service).to receive(:extract_music_data)
+            .and_return({
+              audio_url: audio_url,
+              title: 'Test Track',
+              tags: 'lo-fi,chill',
+              duration: nil
+            })
+
           audio_analysis_service = instance_double(AudioAnalysisService)
           allow(AudioAnalysisService).to receive(:new).and_return(audio_analysis_service)
           allow(audio_analysis_service).to receive(:analyze_duration).and_return(185)
@@ -211,16 +260,6 @@ RSpec.describe GenerateTrackJob, type: :job do
           described_class.perform_now(track.id)
 
           expect(track.reload.duration).to eq(185)
-        end
-
-        it 'stores default duration when analysis fails' do
-          audio_analysis_service = instance_double(AudioAnalysisService)
-          allow(AudioAnalysisService).to receive(:new).and_return(audio_analysis_service)
-          allow(audio_analysis_service).to receive(:analyze_duration).and_return(180)
-
-          described_class.perform_now(track.id)
-
-          expect(track.reload.duration).to eq(180)
         end
 
         it 'does not re-enqueue itself' do
@@ -235,7 +274,23 @@ RSpec.describe GenerateTrackJob, type: :job do
               .with('task_123')
               .and_return({
                 'status' => 'SUCCESS',
-                'output' => { 'audio_url' => audio_url }
+                'response' => {
+                  'sunoData' => [
+                    {
+                      'audioUrl' => audio_url,
+                      'title' => 'Test Track',
+                      'tags' => 'lo-fi,chill',
+                      'duration' => 240.0
+                    }
+                  ]
+                }
+              })
+            allow(kie_service).to receive(:extract_music_data)
+              .and_return({
+                audio_url: audio_url,
+                title: 'Test Track',
+                tags: 'lo-fi,chill',
+                duration: 240.0
               })
           end
 
@@ -258,7 +313,23 @@ RSpec.describe GenerateTrackJob, type: :job do
               .with('task_123')
               .and_return({
                 'status' => 'Success',
-                'output' => { 'audio_url' => audio_url }
+                'response' => {
+                  'sunoData' => [
+                    {
+                      'audioUrl' => audio_url,
+                      'title' => 'Test Track',
+                      'tags' => 'lo-fi,chill',
+                      'duration' => 240.0
+                    }
+                  ]
+                }
+              })
+            allow(kie_service).to receive(:extract_music_data)
+              .and_return({
+                audio_url: audio_url,
+                title: 'Test Track',
+                tags: 'lo-fi,chill',
+                duration: 240.0
               })
           end
 
@@ -266,6 +337,32 @@ RSpec.describe GenerateTrackJob, type: :job do
             expect {
               described_class.perform_now(track.id)
             }.to change { track.reload.status }.from('processing').to('completed')
+          end
+        end
+
+        context 'when task is completed but no audio URL found' do
+          before do
+            allow(kie_service).to receive(:get_task_status)
+              .with('task_123')
+              .and_return({
+                'status' => 'completed',
+                'response' => {
+                  'sunoData' => []
+                }
+              })
+            allow(kie_service).to receive(:extract_music_data)
+              .and_return(nil)
+          end
+
+          it 'updates track status to failed' do
+            expect {
+              described_class.perform_now(track.id)
+            }.to change { track.reload.status }.from('processing').to('failed')
+          end
+
+          it 'stores error in metadata' do
+            described_class.perform_now(track.id)
+            expect(track.reload.metadata['error']).to include('No audio URL in completed task response')
           end
         end
       end

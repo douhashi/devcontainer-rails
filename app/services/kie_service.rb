@@ -99,6 +99,30 @@ class KieService
     raise Kie::Errors::NetworkError, "Download failed: #{e.message}"
   end
 
+  def extract_music_data(task_data)
+    return nil unless task_data.is_a?(Hash)
+
+    # Extract sunoData from response structure
+    suno_data = task_data.dig("response", "sunoData")
+    return nil unless suno_data.is_a?(Array) && !suno_data.empty?
+
+    # Get the first music variant
+    first_music = suno_data.first
+    return nil unless first_music.is_a?(Hash)
+
+    # Audio URL is required
+    audio_url = first_music["audioUrl"]
+    return nil if audio_url.nil? || audio_url.to_s.strip.empty?
+
+    # Extract music metadata
+    {
+      audio_url: audio_url,
+      title: first_music["title"],
+      tags: first_music["tags"],
+      duration: first_music["duration"]
+    }
+  end
+
   private
 
   attr_reader :api_key

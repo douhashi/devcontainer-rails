@@ -98,29 +98,41 @@ class GenerateTrackJob < ApplicationJob
   end
 
   def handle_completed_status(status_response)
-    audio_url = status_response.dig("output", "audio_url")
+    # Extract music data using the new response structure
+    music_data = @service.extract_music_data(status_response)
 
-    if audio_url.blank?
+    if music_data.nil? || music_data[:audio_url].blank?
       raise StandardError, "No audio URL in completed task response"
     end
 
     ActiveRecord::Base.transaction do
-      download_and_attach_audio(audio_url)
+      download_and_attach_audio(music_data[:audio_url])
 
-      @track.metadata["audio_url"] = audio_url
+      @track.metadata["audio_url"] = music_data[:audio_url]
+
+      # Store music metadata
+      @track.metadata["music_title"] = music_data[:title] if music_data[:title].present?
+      @track.metadata["music_tags"] = music_data[:tags] if music_data[:tags].present?
+
+      # Store duration from API response if available (convert to integer)
+      if music_data[:duration].present?
+        @track.duration = music_data[:duration].to_i
+      end
 
       # Record status transition
       @track.metadata["status_history"] ||= []
       @track.metadata["status_history"] << {
         "status" => "processing_to_completed",
         "timestamp" => Time.current.iso8601,
-        "audio_url" => audio_url
+        "audio_url" => music_data[:audio_url],
+        "music_title" => music_data[:title],
+        "music_tags" => music_data[:tags]
       }
 
       @track.status = :completed
       @track.save!
 
-      Rails.logger.info "Successfully completed music generation for Track ##{@track.id}"
+      Rails.logger.info "Successfully completed music generation for Track ##{@track.id} with title: #{music_data[:title]}"
     end
   end
 
@@ -151,8 +163,10 @@ class GenerateTrackJob < ApplicationJob
       @track.audio = file
     end
 
-    # Analyze duration after audio attachment
-    analyze_and_store_duration(audio_path)
+    # Analyze duration after audio attachment only if not already set from API
+    if @track.duration.nil?
+      analyze_and_store_duration(audio_path)
+    end
 
     @track.save!
 

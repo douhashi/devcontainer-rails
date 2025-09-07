@@ -190,6 +190,132 @@ RSpec.describe KieService do
     end
   end
 
+  describe '#extract_music_data' do
+    context 'with valid response structure (sunoData format)' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => [
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_123.mp3',
+                'title' => 'Relaxing Lo-fi Beat',
+                'tags' => 'lo-fi,chill,study',
+                'duration' => 240.0
+              },
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_456.mp3',
+                'title' => 'Alternative Version',
+                'tags' => 'lo-fi,chill,study',
+                'duration' => 240.0
+              }
+            ]
+          }
+        }
+      end
+
+      it 'extracts the first music data' do
+        result = service.extract_music_data(response_data)
+
+        expect(result).to eq({
+          audio_url: 'https://api.kie.ai/downloads/audio_123.mp3',
+          title: 'Relaxing Lo-fi Beat',
+          tags: 'lo-fi,chill,study',
+          duration: 240.0
+        })
+      end
+    end
+
+    context 'with missing sunoData' do
+      let(:response_data) do
+        {
+          'response' => {}
+        }
+      end
+
+      it 'returns nil' do
+        result = service.extract_music_data(response_data)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with empty sunoData array' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => []
+          }
+        }
+      end
+
+      it 'returns nil' do
+        result = service.extract_music_data(response_data)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with missing audioUrl' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => [
+              {
+                'title' => 'Relaxing Lo-fi Beat',
+                'tags' => 'lo-fi,chill,study',
+                'duration' => 240.0
+              }
+            ]
+          }
+        }
+      end
+
+      it 'returns nil' do
+        result = service.extract_music_data(response_data)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with nil response' do
+      it 'returns nil' do
+        result = service.extract_music_data(nil)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with invalid response structure' do
+      let(:response_data) { 'invalid_data' }
+
+      it 'returns nil' do
+        result = service.extract_music_data(response_data)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with partial data (missing optional fields)' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => [
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_123.mp3'
+              }
+            ]
+          }
+        }
+      end
+
+      it 'returns data with available fields' do
+        result = service.extract_music_data(response_data)
+
+        expect(result).to eq({
+          audio_url: 'https://api.kie.ai/downloads/audio_123.mp3',
+          title: nil,
+          tags: nil,
+          duration: nil
+        })
+      end
+    end
+  end
+
   describe '#with_retry' do
     it 'retries on NetworkError' do
       call_count = 0
