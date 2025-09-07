@@ -31,6 +31,9 @@
       </div>
     </div>
 
+    <!-- Artwork section -->
+    <%= render Artwork::Form::Component.new(content_record: item) %>
+
     <div class="flex gap-4">
       <%= link_to "編集", edit_content_path(item), 
           class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>

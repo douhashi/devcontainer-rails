@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   resource :sample, only: [ :show ]
-  resources :contents
+  resources :contents do
+    resources :artworks, except: [ :index, :show, :edit, :new ]
+    resource :artwork, only: [ :destroy ]
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

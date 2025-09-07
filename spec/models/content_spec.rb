@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Content, type: :model do
   describe 'associations' do
     it { is_expected.to have_many(:tracks).dependent(:destroy) }
+    it { is_expected.to have_one(:artwork).dependent(:destroy) }
   end
 
   describe 'validations' do
@@ -177,9 +178,14 @@ RSpec.describe Content, type: :model do
     let!(:content) { create(:content) }
     let!(:track1) { create(:track, content: content) }
     let!(:track2) { create(:track, content: content) }
+    let!(:artwork) { create(:artwork, content: content) }
 
     it 'destroys associated tracks when content is destroyed' do
       expect { content.destroy }.to change(Track, :count).by(-2)
+    end
+
+    it 'destroys associated artwork when content is destroyed' do
+      expect { content.destroy }.to change(Artwork, :count).by(-1)
     end
   end
 end
