@@ -36,9 +36,11 @@ end
 RSpec.configure do |config|
   config.include ViewComponent::TestHelpers, type: :view_component
   config.include Capybara::RSpecMatchers, type: :view_component
+  config.include ViewComponent::TestHelpers, type: :component
+  config.include Capybara::RSpecMatchers, type: :component
 
-  config.define_derived_metadata(file_path: %r{/spec/frontend/components}) do |metadata|
-    metadata[:type] = :view_component
+  config.define_derived_metadata(file_path: %r{/spec/components}) do |metadata|
+    metadata[:type] = :component
   end
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures

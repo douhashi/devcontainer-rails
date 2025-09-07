@@ -2,15 +2,15 @@
 
 require "rails_helper"
 
-describe SampleButton::Component do
+RSpec.describe SampleButton::Component, type: :component do
   let(:options) { { url: '#', text: 'Button' } }
-  let(:component) { SampleButton::Component.new(**options) }
-
-  subject { rendered_content }
+  let(:component) { described_class.new(**options) }
 
   it "renders" do
     render_inline(component)
 
-    is_expected.to have_css "div"
+    expect(page).to have_css "a"
+    expect(page).to have_css "div.p-1.bg-blue-700.text-white"
+    expect(page).to have_content "Button"
   end
 end

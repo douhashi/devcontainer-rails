@@ -1,3 +1,64 @@
 @import "tailwindcss";
 
 @source "../../views/**/*.{haml,slim,erb}";
+
+:root {
+  --header-height: 4rem;
+  --sidebar-width: 16rem;
+  --sidebar-width-collapsed: 3rem;
+}
+
+body {
+  @apply bg-gray-900 text-gray-100 min-h-screen;
+}
+
+.layout-grid {
+  @apply min-h-screen grid;
+  grid-template-areas: 
+    "header header"
+    "sidebar main"
+    "footer footer";
+  grid-template-rows: var(--header-height) 1fr auto;
+  grid-template-columns: var(--sidebar-width) 1fr;
+}
+
+.layout-header {
+  grid-area: header;
+  @apply bg-gray-800 border-b border-gray-700;
+}
+
+.layout-sidebar {
+  grid-area: sidebar;
+  @apply bg-gray-800 border-r border-gray-700;
+  transition: width 0.3s ease;
+}
+
+.layout-main {
+  grid-area: main;
+  @apply bg-gray-900 p-6 overflow-y-auto;
+}
+
+.layout-footer {
+  grid-area: footer;
+  @apply bg-gray-800 border-t border-gray-700;
+}
+
+@media (max-width: 768px) {
+  .layout-grid {
+    grid-template-areas: 
+      "header"
+      "main"
+      "footer";
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--header-height) 1fr auto;
+  }
+  
+  .layout-sidebar {
+    @apply fixed left-0 top-16 h-screen z-40 transform -translate-x-full;
+    width: var(--sidebar-width);
+  }
+  
+  .layout-sidebar.open {
+    @apply translate-x-0;
+  }
+}

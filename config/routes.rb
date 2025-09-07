@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  root "samples#show"
+  root "home#index"
 
   # lookbook
   if Rails.application.config.lookbook_enabled
