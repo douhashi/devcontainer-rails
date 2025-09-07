@@ -1,5 +1,5 @@
 class ContentsController < ApplicationController
-  before_action :set_content, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_content, only: [ :show, :edit, :update, :destroy, :generate_tracks ]
 
   def index
     @contents = Content.all
@@ -36,6 +36,21 @@ class ContentsController < ApplicationController
   def destroy
     @content.destroy!
     redirect_to contents_path, notice: "Content was successfully destroyed."
+  end
+
+  def generate_tracks
+    service = TrackQueueingService.new(@content)
+
+    begin
+      tracks = service.queue_tracks!
+      track_count = tracks.count
+
+      Rails.logger.info "Generated #{track_count} tracks for Content ##{@content.id}"
+      redirect_to @content, notice: "#{track_count} tracks were queued for generation."
+    rescue TrackQueueingService::ValidationError => e
+      Rails.logger.warn "Track generation failed for Content ##{@content.id}: #{e.message}"
+      redirect_to @content, alert: e.message
+    end
   end
 
   private

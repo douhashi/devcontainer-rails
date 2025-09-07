@@ -34,6 +34,55 @@
     <!-- Artwork section -->
     <%= render Artwork::Form::Component.new(content_record: item) %>
 
+    <!-- Track Generation section -->
+    <div class="mb-8">
+      <h2 class="text-xl font-bold text-gray-200 mb-4">BGM生成</h2>
+      <%= render TrackGenerationButtonComponent.new(content_record: item) %>
+    </div>
+
+    <!-- Generated Tracks section -->
+    <% if item.tracks.any? %>
+    <div class="mb-8">
+      <h2 class="text-xl font-bold text-gray-200 mb-4">生成されたBGM</h2>
+      <div class="bg-gray-900 rounded-lg p-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="text-center">
+            <p class="text-sm text-gray-400">待機中</p>
+            <p class="text-2xl font-bold text-yellow-400"><%= item.tracks.pending.count %></p>
+          </div>
+          <div class="text-center">
+            <p class="text-sm text-gray-400">生成中</p>
+            <p class="text-2xl font-bold text-blue-400"><%= item.tracks.processing.count %></p>
+          </div>
+          <div class="text-center">
+            <p class="text-sm text-gray-400">完了</p>
+            <p class="text-2xl font-bold text-green-400"><%= item.tracks.completed.count %></p>
+          </div>
+          <div class="text-center">
+            <p class="text-sm text-gray-400">失敗</p>
+            <p class="text-2xl font-bold text-red-400"><%= item.tracks.failed.count %></p>
+          </div>
+        </div>
+        <div class="mt-4 bg-gray-800 rounded-lg p-2">
+          <p class="text-sm text-gray-400 mb-1">進捗状況</p>
+          <% total_tracks = item.tracks.count %>
+          <% completed_tracks = item.tracks.completed.count %>
+          <% if total_tracks > 0 %>
+            <% progress_percentage = (completed_tracks.to_f / total_tracks * 100).round(1) %>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                   style="width: <%= progress_percentage %>%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1"><%= progress_percentage %>% 完了 (<%= completed_tracks %>/<%= total_tracks %>)</p>
+          <% else %>
+            <div class="w-full bg-gray-700 rounded-full h-2"></div>
+            <p class="text-xs text-gray-400 mt-1">0% 完了 (0/0)</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
     <div class="flex gap-4">
       <%= link_to "編集", edit_content_path(item), 
           class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>

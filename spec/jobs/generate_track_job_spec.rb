@@ -26,9 +26,9 @@ RSpec.describe GenerateTrackJob, type: :job do
         expect(track.reload.metadata['task_id']).to eq('task_123')
       end
 
-      it 'generates music with the correct prompt' do
+      it 'generates music with content audio_prompt' do
         expect(kie_service).to receive(:generate_music)
-          .with(prompt: 'Create a relaxing lo-fi hip-hop beat for studying')
+          .with(prompt: track.content.audio_prompt)
           .and_return('task_123')
 
         described_class.perform_now(track.id)
@@ -41,6 +41,29 @@ RSpec.describe GenerateTrackJob, type: :job do
           described_class.perform_now(track.id)
         }.to have_enqueued_job(described_class)
           .with(track.id)
+      end
+    end
+
+    context 'when starting a new generation with custom audio prompt' do
+      let(:content) { create(:content, audio_prompt: 'Custom lo-fi beat with jazz elements') }
+      let(:track) { create(:track, status: :pending, content: content) }
+
+      it 'generates music with content audio_prompt when provided' do
+        expect(kie_service).to receive(:generate_music)
+          .with(prompt: 'Custom lo-fi beat with jazz elements')
+          .and_return('task_123')
+
+        described_class.perform_now(track.id)
+      end
+
+      it 'uses default prompt when content has no audio_prompt' do
+        content.update_column(:audio_prompt, '')
+
+        expect(kie_service).to receive(:generate_music)
+          .with(prompt: 'Create a relaxing lo-fi hip-hop beat for studying')
+          .and_return('task_123')
+
+        described_class.perform_now(track.id)
       end
     end
 

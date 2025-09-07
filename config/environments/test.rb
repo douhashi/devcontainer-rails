@@ -52,6 +52,6 @@ Rails.application.configure do
   config.action_controller.raise_on_missing_callback_actions = true
 
   # Use SolidQueue for Active Job
-  config.active_job.queue_adapter = :solid_queue
+  config.active_job.queue_adapter = :test
   config.solid_queue.connects_to = { database: { writing: :queue } }
 end

@@ -2,6 +2,9 @@ Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   resource :sample, only: [ :show ]
   resources :contents do
+    member do
+      post :generate_tracks
+    end
     resources :artworks, except: [ :index, :show, :edit, :new ]
     resource :artwork, only: [ :destroy ]
   end

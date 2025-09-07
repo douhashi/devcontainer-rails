@@ -29,12 +29,13 @@ class GenerateTrackJob < ApplicationJob
     ActiveRecord::Base.transaction do
       @track.status = :processing
 
-      task_id = @service.generate_music(prompt: SAMPLE_PROMPT)
+      prompt = @track.content&.audio_prompt.presence || SAMPLE_PROMPT
+      task_id = @service.generate_music(prompt: prompt)
       @track.metadata["task_id"] = task_id
       @track.metadata["polling_attempts"] = 0
       @track.save!
 
-      Rails.logger.info "Started music generation for Track ##{@track.id} with task_id: #{task_id}"
+      Rails.logger.info "Started music generation for Track ##{@track.id} with task_id: #{task_id}, prompt: #{prompt.truncate(100)}"
     end
 
     self.class.set(wait: POLLING_INTERVAL).perform_later(@track.id)
