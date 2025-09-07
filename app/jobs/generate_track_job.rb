@@ -117,6 +117,9 @@ class GenerateTrackJob < ApplicationJob
       @track.audio = file
     end
 
+    # Analyze duration after audio attachment
+    analyze_and_store_duration(audio_path)
+
     @track.save!
 
     temp_file.close
@@ -124,6 +127,17 @@ class GenerateTrackJob < ApplicationJob
   rescue => e
     Rails.logger.error "Failed to attach audio for Track ##{@track.id}: #{e.message}"
     raise
+  end
+
+  def analyze_and_store_duration(audio_path)
+    analysis_service = AudioAnalysisService.new
+    duration = analysis_service.analyze_duration(audio_path)
+    @track.duration = duration
+
+    Rails.logger.info "Analyzed duration for Track ##{@track.id}: #{duration} seconds"
+  rescue StandardError => e
+    Rails.logger.error "Failed to analyze duration for Track ##{@track.id}: #{e.message}"
+    # Continue without duration - not a critical failure
   end
 
   def handle_error(error)

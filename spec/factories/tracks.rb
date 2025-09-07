@@ -14,6 +14,7 @@ FactoryBot.define do
 
     trait :completed do
       status { :completed }
+      duration { 180 }
       metadata do
         {
           "kie_response" => {
@@ -33,6 +34,18 @@ FactoryBot.define do
           "error_code" => "KIE_001"
         }
       end
+    end
+
+    trait :with_short_duration do
+      duration { 90 }
+    end
+
+    trait :with_long_duration do
+      duration { 300 }
+    end
+
+    trait :with_very_long_duration do
+      duration { 3665 } # Over 1 hour
     end
   end
 end

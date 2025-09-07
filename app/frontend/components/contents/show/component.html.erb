@@ -111,18 +111,11 @@
       <%= render TrackGenerationButtonComponent.new(content_record: item) %>
     </div>
 
-    <!-- Detailed Progress (replaces the old tracks section) -->
+    <!-- Track List -->
     <% if item.tracks.any? %>
-    <div class="detailed-progress mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">トラック進捗の詳細</h2>
-      
-      <div class="bg-gray-900 rounded-lg p-6">
-        <%= render ProgressBar::Component.new(
-          percentage: track_progress[:percentage],
-          label: "全体の進捗状況",
-          variant: progress_variant
-        ) %>
-      </div>
+    <div class="tracks-section mb-8">
+      <h2 class="text-xl font-bold text-gray-200 mb-4">トラック一覧</h2>
+      <%= render Tracks::List::Component.new(tracks: item.tracks) %>
     </div>
     <% end %>
 

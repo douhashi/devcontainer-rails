@@ -1,0 +1,60 @@
+<div class="bg-gray-900 rounded-lg">
+  <div class="p-4 border-b border-gray-700">
+    <h3 class="text-lg font-semibold text-gray-200">トラック一覧 (<%= tracks.count %>件)</h3>
+  </div>
+  
+  <% if tracks.any? %>
+    <div class="divide-y divide-gray-700">
+      <% ordered_tracks.each_with_index do |track, index| %>
+        <div class="p-4 hover:bg-gray-800 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="flex-shrink-0">
+                <span class="text-lg text-gray-400">#<%= index + 1 %></span>
+              </div>
+              <div>
+                <div class="flex items-center space-x-2 mb-1">
+                  <span class="px-2 py-1 text-xs font-medium rounded <%= status_badge_class(track) %>">
+                    <%= status_text(track) %>
+                  </span>
+                  <% if track.duration.present? %>
+                    <span class="text-sm text-gray-400">
+                      🎵 <%= track.formatted_duration %>
+                    </span>
+                  <% end %>
+                </div>
+                <p class="text-sm text-gray-400">作成: <%= formatted_created_at(track) %></p>
+              </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              <% if has_audio?(track) %>
+                <audio controls class="h-8">
+                  <source src="<%= track.audio.url %>" type="audio/mpeg">
+                  お使いのブラウザはaudio要素をサポートしていません。
+                </audio>
+              <% elsif track.status.failed? %>
+                <span class="text-red-400 text-sm">
+                  ❌ エラー: <%= track.metadata['error']&.truncate(50) %>
+                </span>
+              <% elsif track.status.processing? %>
+                <span class="text-blue-400 text-sm">
+                  ⚙️ 処理中...
+                </span>
+              <% else %>
+                <span class="text-yellow-400 text-sm">
+                  ⏳ 待機中
+                </span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="p-8 text-center">
+      <p class="text-gray-400 mb-4">まだトラックが生成されていません</p>
+      <p class="text-sm text-gray-500">「BGM生成開始」ボタンを押して楽曲を生成してください</p>
+    </div>
+  <% end %>
+</div>

@@ -48,12 +48,12 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(subject.text).to include('制作ステータス')
     end
 
-    it 'shows detailed track progress when tracks exist' do
+    it 'shows track list when tracks exist' do
       # Simulate that content has tracks
       allow(content.tracks).to receive(:any?).and_return(true)
       result = render_inline(component)
-      expect(result.css('.detailed-progress')).to be_present
-      expect(result.text).to include('トラック進捗の詳細')
+      expect(result.css('.tracks-section')).to be_present
+      expect(result.text).to include('トラック一覧')
     end
 
     it 'displays artwork status with preview' do

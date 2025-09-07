@@ -149,6 +149,26 @@ RSpec.describe GenerateTrackJob, type: :job do
           expect(track.reload.metadata['audio_url']).to eq(audio_url)
         end
 
+        it 'analyzes and stores duration' do
+          audio_analysis_service = instance_double(AudioAnalysisService)
+          allow(AudioAnalysisService).to receive(:new).and_return(audio_analysis_service)
+          allow(audio_analysis_service).to receive(:analyze_duration).and_return(185)
+
+          described_class.perform_now(track.id)
+
+          expect(track.reload.duration).to eq(185)
+        end
+
+        it 'stores default duration when analysis fails' do
+          audio_analysis_service = instance_double(AudioAnalysisService)
+          allow(AudioAnalysisService).to receive(:new).and_return(audio_analysis_service)
+          allow(audio_analysis_service).to receive(:analyze_duration).and_return(180)
+
+          described_class.perform_now(track.id)
+
+          expect(track.reload.duration).to eq(180)
+        end
+
         it 'does not re-enqueue itself' do
           expect {
             described_class.perform_now(track.id)
