@@ -1,21 +1,65 @@
-<div class="space-y-4" data-controller="form-validation">
-  <div class="flex justify-between items-center">
-    <%= form.label :theme, class: "block text-sm font-medium text-gray-300" %>
-    <span class="text-xs text-gray-400">
-      <span data-form-validation-target="charCount">0</span> / 256
-    </span>
+<div class="space-y-6" data-controller="form-validation">
+  <!-- Theme field -->
+  <div class="space-y-2">
+    <div class="flex justify-between items-center">
+      <%= form.label :theme, "テーマ", class: "block text-sm font-medium text-gray-300" %>
+      <span class="text-xs text-gray-400">
+        <span data-form-validation-target="charCount">0</span> / 256
+      </span>
+    </div>
+    <%= form.text_field :theme, 
+        class: "w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+        placeholder: "コンテンツのテーマを入力...",
+        data: {
+          form_validation_target: "input",
+          action: "input->form-validation#updateCharCount"
+        },
+        maxlength: 256 %>
+    <% if item.errors[:theme].any? %>
+      <p class="mt-1 text-sm text-red-400" data-form-validation-target="error">
+        <%= item.errors[:theme].join(", ") %>
+      </p>
+    <% end %>
   </div>
-  <%= form.text_field :theme, 
-      class: "w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-      placeholder: "コンテンツのテーマを入力...",
-      data: {
-        form_validation_target: "input",
-        action: "input->form-validation#updateCharCount"
-      },
-      maxlength: 256 %>
-  <% if item.errors[:theme].any? %>
-    <p class="mt-1 text-sm text-red-400" data-form-validation-target="error">
-      <%= item.errors[:theme].join(", ") %>
-    </p>
-  <% end %>
+
+  <!-- Duration field -->
+  <div class="space-y-2">
+    <%= form.label :duration, "再生時間（分）", class: "block text-sm font-medium text-gray-300" %>
+    <%= form.number_field :duration, 
+        class: "w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+        placeholder: "5",
+        min: 1,
+        max: 60 %>
+    <p class="text-xs text-gray-400">1分から60分の間で指定してください</p>
+    <% if item.errors[:duration].any? %>
+      <p class="mt-1 text-sm text-red-400">
+        <%= item.errors[:duration].join(", ") %>
+      </p>
+    <% end %>
+  </div>
+
+  <!-- Audio prompt field -->
+  <div class="space-y-2">
+    <div class="flex justify-between items-center">
+      <%= form.label :audio_prompt, "音楽生成プロンプト", class: "block text-sm font-medium text-gray-300" %>
+      <span class="text-xs text-gray-400">
+        <span data-form-validation-target="promptCharCount">0</span> / 1000
+      </span>
+    </div>
+    <%= form.text_area :audio_prompt, 
+        class: "w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+        placeholder: "どのような音楽を生成したいか詳しく記述してください...",
+        rows: 4,
+        data: {
+          form_validation_target: "promptInput",
+          action: "input->form-validation#updatePromptCharCount"
+        },
+        maxlength: 1000 %>
+    <p class="text-xs text-gray-400">音楽の雰囲気、楽器、テンポなどを具体的に記述してください</p>
+    <% if item.errors[:audio_prompt].any? %>
+      <p class="mt-1 text-sm text-red-400">
+        <%= item.errors[:audio_prompt].join(", ") %>
+      </p>
+    <% end %>
+  </div>
 </div>

@@ -45,6 +45,6 @@ class ContentsController < ApplicationController
   end
 
   def content_params
-    params.require(:content).permit(:theme)
+    params.require(:content).permit(:theme, :duration, :audio_prompt)
   end
 end

@@ -11,12 +11,23 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div>
+        <p class="text-gray-400 text-sm mb-1">再生時間</p>
+        <p class="text-gray-200"><%= item.duration %>分</p>
+      </div>
+      <div>
         <p class="text-gray-400 text-sm mb-1">作成日時</p>
         <p class="text-gray-200"><%= formatted_date(item.created_at) %></p>
       </div>
       <div>
         <p class="text-gray-400 text-sm mb-1">更新日時</p>
         <p class="text-gray-200"><%= formatted_date(item.updated_at) %></p>
+      </div>
+    </div>
+
+    <div class="mb-8">
+      <p class="text-gray-400 text-sm mb-2">音楽生成プロンプト</p>
+      <div class="bg-gray-900 rounded-lg p-4">
+        <p class="text-gray-200 whitespace-pre-wrap"><%= item.audio_prompt %></p>
       </div>
     </div>
 

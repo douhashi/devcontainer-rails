@@ -10,11 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_132950) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_152411) do
   create_table "contents", force: :cascade do |t|
     t.string "theme", limit: 256, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "duration", default: 3, null: false
+    t.text "audio_prompt", null: false
     t.index [ "theme" ], name: "index_contents_on_theme"
   end
 

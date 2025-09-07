@@ -17,6 +17,36 @@ RSpec.describe Content, type: :model do
       expect(content).not_to be_valid
       expect(content.errors[:theme]).to include('is too long (maximum is 256 characters)')
     end
+
+    it 'validates presence of duration' do
+      content = Content.new(duration: nil)
+      expect(content).not_to be_valid
+      expect(content.errors[:duration]).to include("can't be blank")
+    end
+
+    it 'validates duration is greater than 0' do
+      content = Content.new(duration: 0)
+      expect(content).not_to be_valid
+      expect(content.errors[:duration]).to include('must be greater than 0')
+    end
+
+    it 'validates duration is less than or equal to 60' do
+      content = Content.new(duration: 61)
+      expect(content).not_to be_valid
+      expect(content.errors[:duration]).to include('must be less than or equal to 60')
+    end
+
+    it 'validates presence of audio_prompt' do
+      content = Content.new(audio_prompt: nil)
+      expect(content).not_to be_valid
+      expect(content.errors[:audio_prompt]).to include("can't be blank")
+    end
+
+    it 'validates length of audio_prompt is at most 1000 characters' do
+      content = Content.new(audio_prompt: 'a' * 1001)
+      expect(content).not_to be_valid
+      expect(content.errors[:audio_prompt]).to include('is too long (maximum is 1000 characters)')
+    end
   end
 
   describe 'theme attribute' do
@@ -51,6 +81,94 @@ RSpec.describe Content, type: :model do
         content.theme = 'a' * 257
         expect(content).not_to be_valid
         expect(content.errors[:theme]).to include('is too long (maximum is 256 characters)')
+      end
+    end
+  end
+
+  describe 'duration attribute' do
+    let(:content) { build(:content) }
+
+    context 'with valid duration' do
+      it 'is valid with duration of 1' do
+        content.duration = 1
+        expect(content).to be_valid
+      end
+
+      it 'is valid with duration of 30' do
+        content.duration = 30
+        expect(content).to be_valid
+      end
+
+      it 'is valid with duration of 60' do
+        content.duration = 60
+        expect(content).to be_valid
+      end
+    end
+
+    context 'with invalid duration' do
+      it 'is invalid with duration of 0' do
+        content.duration = 0
+        expect(content).not_to be_valid
+        expect(content.errors[:duration]).to include('must be greater than 0')
+      end
+
+      it 'is invalid with negative duration' do
+        content.duration = -1
+        expect(content).not_to be_valid
+        expect(content.errors[:duration]).to include('must be greater than 0')
+      end
+
+      it 'is invalid with duration greater than 60' do
+        content.duration = 61
+        expect(content).not_to be_valid
+        expect(content.errors[:duration]).to include('must be less than or equal to 60')
+      end
+
+      it 'is invalid without duration' do
+        content.duration = nil
+        expect(content).not_to be_valid
+        expect(content.errors[:duration]).to include("can't be blank")
+      end
+    end
+  end
+
+  describe 'audio_prompt attribute' do
+    let(:content) { build(:content) }
+
+    context 'with valid audio_prompt' do
+      it 'is valid with short audio_prompt' do
+        content.audio_prompt = 'Chill and relaxing music'
+        expect(content).to be_valid
+      end
+
+      it 'is valid with long audio_prompt' do
+        content.audio_prompt = 'a' * 1000
+        expect(content).to be_valid
+      end
+
+      it 'is valid with Japanese audio_prompt' do
+        content.audio_prompt = 'リラックスできる穏やかな音楽、自然の音、鳥のさえずり'
+        expect(content).to be_valid
+      end
+    end
+
+    context 'with invalid audio_prompt' do
+      it 'is invalid without audio_prompt' do
+        content.audio_prompt = nil
+        expect(content).not_to be_valid
+        expect(content.errors[:audio_prompt]).to include("can't be blank")
+      end
+
+      it 'is invalid with empty audio_prompt' do
+        content.audio_prompt = ''
+        expect(content).not_to be_valid
+        expect(content.errors[:audio_prompt]).to include("can't be blank")
+      end
+
+      it 'is invalid with audio_prompt longer than 1000 characters' do
+        content.audio_prompt = 'a' * 1001
+        expect(content).not_to be_valid
+        expect(content.errors[:audio_prompt]).to include('is too long (maximum is 1000 characters)')
       end
     end
   end

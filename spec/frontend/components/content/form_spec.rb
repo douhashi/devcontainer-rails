@@ -6,7 +6,7 @@ RSpec.describe Content::Form::Component, type: :component do
   include ViewComponent::TestHelpers
   include ViewComponent::SystemTestHelpers
   let(:content) { build(:content) }
-  let(:form) { double("form", label: "", text_field: "") }
+  let(:form) { double("form", label: "", text_field: "", number_field: "", text_area: "") }
   let(:options) { { item: content, form: form } }
   let(:component) { Content::Form::Component.new(**options) }
 

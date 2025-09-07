@@ -2,11 +2,23 @@
   <h3 class="text-lg font-semibold text-gray-100 mb-2">
     <%= link_to item.theme, item, class: "hover:text-blue-400 transition-colors" %>
   </h3>
+  
+  <div class="text-sm text-gray-300 mb-2">
+    <span class="inline-flex items-center gap-1">
+      <span>再生時間:</span>
+      <span class="text-blue-400"><%= item.duration %>分</span>
+    </span>
+  </div>
+  
+  <div class="text-sm text-gray-400 mb-4 line-clamp-2">
+    <%= truncate(item.audio_prompt, length: 80) %>
+  </div>
+  
   <div class="flex justify-between items-center mt-4">
     <div class="flex gap-2">
-      <%= link_to "Edit", edit_content_path(item), class: "text-sm text-blue-400 hover:text-blue-300" %>
-      <%= link_to "Delete", content_path(item), 
-          data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+      <%= link_to "編集", edit_content_path(item), class: "text-sm text-blue-400 hover:text-blue-300" %>
+      <%= link_to "削除", content_path(item), 
+          data: { turbo_method: :delete, turbo_confirm: "削除しますか？" },
           class: "text-sm text-red-400 hover:text-red-300" %>
     </div>
     <time class="text-sm text-gray-400">
