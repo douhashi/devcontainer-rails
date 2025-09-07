@@ -17,6 +17,15 @@ All developers are required to follow these standards to maintain project qualit
 - Follow Rails conventions (Convention over Configuration)
 - Use ViewComponent for view componentization
 
+## Code Evolution Principles
+
+### Backward Compatibility Suppression
+
+- Latest implementation is the single source of truth
+- Do not maintain backward compatibility code (increases complexity)
+- Remove unnecessary existing code when specifications change
+- Actively perform code deletion and reduction
+
 ## Rails Generator Usage
 
 When creating new files, utilize Rails' standard Generators. This automatically generates appropriate file structures and code that align with Rails conventions.
@@ -525,6 +534,58 @@ export default class extends Controller {
 - Use Tailwind color palette, avoid hardcoded color values
 
 ## Testing
+
+### Testing Strategy Principles
+
+- Follow the Test Pyramid approach (keep integration/system tests to a minimum)
+- Prohibit the use of mocks except for external integrations (prevents test-implementation divergence)
+- System tests are limited to frontend operations using custom JavaScript implementations only
+  - Do not create system tests for standard JavaScript alerts or simple page transitions
+- Actively refactor tests to maintain quality and clarity
+
+### Test Structure Guidelines
+
+```ruby
+# Model test example
+RSpec.describe User, type: :model do
+  describe 'validations' do
+    it { should validate_presence_of(:email) }
+    it { should validate_uniqueness_of(:email).case_insensitive }
+  end
+  
+  describe '#full_name' do
+    let(:user) { build(:user, first_name: 'John', last_name: 'Doe') }
+    
+    it 'returns the full name' do
+      expect(user.full_name).to eq('John Doe')
+    end
+  end
+end
+
+# Controller test example
+RSpec.describe SurveysController, type: :controller do
+  let(:user) { create(:user) }
+  before { sign_in user }
+  
+  describe 'GET #index' do
+    it 'returns successful response' do
+      get :index
+      expect(response).to have_http_status(:success)
+    end
+  end
+end
+
+# System test example (only for custom JS functionality)
+RSpec.describe 'Survey Form', type: :system do
+  it 'dynamically updates form based on user input' do
+    visit new_survey_path
+    
+    # Test custom JavaScript behavior
+    fill_in 'Dog Name', with: 'Buddy'
+    expect(page).to have_css('.breed-suggestions', visible: true)
+  end
+end
+```
 
 Detailed testing guidelines and strategies are documented in @docs/development/testing-strategy.md
 
