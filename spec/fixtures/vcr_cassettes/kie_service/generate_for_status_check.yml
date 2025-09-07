@@ -1,0 +1,141 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.kie.ai/api/v1/generate
+    body:
+      encoding: UTF-8
+      string: '{"prompt":"Test beat for status check","model":"v3.5","wait_audio":false,"callBackUrl":"https://lofi-bgm-not-exist-server.com/callback"}'
+    headers:
+      Authorization:
+      - Bearer <KIE_AI_API_KEY>
+      Content-Type:
+      - application/json
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Sun, 07 Sep 2025 14:00:17 GMT
+      Content-Type:
+      - application/json;charset=UTF-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Cf-Cache-Status:
+      - DYNAMIC
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=pFc3WWIoSXRCg2uY9t4K8KZyv30whdPZ88hK2BgRL1wsAdHuGk3qNag5OHK5OAlRez9uq9Vu7REXOi2HpmviFmF5kHYXw0d9kQ%3D%3D"}]}'
+      Set-Cookie:
+      - JSESSIONID=2D65F1F7540021031E768D9E34BE48B1; HttpOnly; Path=/
+      Cf-Ray:
+      - 97b6bb3f6a42d3ed-KIX
+    body:
+      encoding: ASCII-8BIT
+      string: '{"code":422,"msg":"customMode cannot be null","data":null}'
+  recorded_at: Sun, 07 Sep 2025 14:00:18 GMT
+- request:
+    method: post
+    uri: https://api.kie.ai/api/v1/generate
+    body:
+      encoding: UTF-8
+      string: '{"prompt":"Test beat for status check","model":"v3.5","wait_audio":false,"customMode":false,"callBackUrl":"https://lofi-bgm-not-exist-server.com/callback"}'
+    headers:
+      Authorization:
+      - Bearer <KIE_AI_API_KEY>
+      Content-Type:
+      - application/json
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Sun, 07 Sep 2025 14:00:56 GMT
+      Content-Type:
+      - application/json;charset=UTF-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Cf-Cache-Status:
+      - DYNAMIC
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=ELSHVaY855NuvFe0DjigG%2F%2FcYt4S27Uigv2%2F1q9MqPlKvBRvRy5JSFePWMwHFdFO6SBF4ZyJrlCOKerAFxpzftBGXrwLjFIjcQ%3D%3D"}]}'
+      Set-Cookie:
+      - JSESSIONID=2A862AE498D25BA28A3200C501FABD81; HttpOnly; Path=/
+      Cf-Ray:
+      - 97b6bc336f148cfe-KIX
+    body:
+      encoding: ASCII-8BIT
+      string: '{"code":422,"msg":"model error","data":null}'
+  recorded_at: Sun, 07 Sep 2025 14:00:57 GMT
+- request:
+    method: post
+    uri: https://api.kie.ai/api/v1/generate
+    body:
+      encoding: UTF-8
+      string: '{"prompt":"Test beat for status check","model":"V3_5","wait_audio":false,"customMode":false,"instrumental":false,"callBackUrl":"https://lofi-bgm-not-exist-server.com/callback"}'
+    headers:
+      Authorization:
+      - Bearer <KIE_AI_API_KEY>
+      Content-Type:
+      - application/json
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Sun, 07 Sep 2025 14:02:42 GMT
+      Content-Type:
+      - application/json;charset=UTF-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Cf-Cache-Status:
+      - DYNAMIC
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=UwXyqiLwF3TERcBr1nD6eTjeMkzaemNy5t%2FUsy%2F9sV2OT5WFMTrEzzK2WZe0cNORgUben08Z2oomyUhRCSf2STKk%2BcWpQg73Hg%3D%3D"}]}'
+      Set-Cookie:
+      - JSESSIONID=D2E0853807BC29DCBA01EFFEBCB0F3CA; HttpOnly; Path=/
+      Cf-Ray:
+      - 97b6beca4d0c85c7-HKG
+    body:
+      encoding: ASCII-8BIT
+      string: '{"code":200,"msg":"success","data":{"taskId":"888985c3fe5f0a48824bd9582723060f"}}'
+  recorded_at: Sun, 07 Sep 2025 14:02:43 GMT
+recorded_with: VCR 6.3.1

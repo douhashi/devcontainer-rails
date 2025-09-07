@@ -70,6 +70,8 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem "shoulda-matchers", "~> 6.0"
+  gem "webmock", "~> 3.24"
+  gem "vcr", "~> 6.3"
 end
 
 gem "dry-initializer", "~> 3.2"
@@ -81,3 +83,9 @@ gem "pundit", "~> 2.5"
 gem "enumerize", "~> 2.8"
 gem "shrine", "~> 3.6"
 gem "marcel", "~> 1.0"
+
+# API communication
+gem "httparty", "~> 0.22"
+
+# Environment variables management
+gem "dotenv-rails", "~> 3.1", groups: [ :development, :test ]

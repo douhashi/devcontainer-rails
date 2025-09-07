@@ -119,7 +119,7 @@ module Kie
               response: parsed_response
             )
           else
-            raise APIError.new(
+            raise ApiError.new(
               "API error: #{parsed_response['message'] || parsed_response['msg']}",
               code: parsed_response["code"],
               response: parsed_response
@@ -142,20 +142,20 @@ module Kie
         )
       when 400..499
         error_message = parse_error_message(response)
-        raise APIError.new(
+        raise ApiError.new(
           "Client error: #{error_message}",
           code: response.code,
           response: parse_response(response)
         )
       when 500..599
         error_message = parse_error_message(response)
-        raise APIError.new(
+        raise ApiError.new(
           "Server error: #{error_message}",
           code: response.code,
           response: parse_response(response)
         )
       else
-        raise APIError.new(
+        raise ApiError.new(
           "Unexpected response code: #{response.code}",
           code: response.code,
           response: parse_response(response)
@@ -168,7 +168,7 @@ module Kie
 
       JSON.parse(response.body)
     rescue JSON::ParserError => e
-      raise APIError, "Invalid JSON response: #{e.message}"
+      raise ApiError, "Invalid JSON response: #{e.message}"
     end
 
     def parse_error_message(response)

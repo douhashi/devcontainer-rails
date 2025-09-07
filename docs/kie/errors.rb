@@ -5,7 +5,7 @@ module Kie
 
   class ConfigurationError < Error; end
 
-  class APIError < Error
+  class ApiError < Error
     attr_reader :code, :response
 
     def initialize(message, code: nil, response: nil)
@@ -15,9 +15,9 @@ module Kie
     end
   end
 
-  class AuthenticationError < APIError; end
+  class AuthenticationError < ApiError; end
 
-  class RateLimitError < APIError; end
+  class RateLimitError < ApiError; end
 
   class NetworkError < Error; end
 
