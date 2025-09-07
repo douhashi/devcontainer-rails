@@ -17,4 +17,11 @@ VCR.configure do |config|
 
   # Ignore localhost requests (for Selenium/Capybara)
   config.ignore_localhost = true
+
+  # Ignore requests to Capybara server for system tests
+  config.ignore_request do |request|
+    # Ignore requests to Capybara server (any internal network)
+    uri = URI(request.uri)
+    uri.host =~ /^172\./ || uri.host =~ /^192\.168\./ || uri.host =~ /^10\./
+  end
 end

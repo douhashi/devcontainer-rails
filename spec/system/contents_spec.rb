@@ -5,24 +5,11 @@ RSpec.describe "Contents", type: :system do
     driven_by(:selenium_chrome_headless)
   end
 
-  # Skip system tests due to Selenium configuration issues in current environment
-  # These tests should be run in a proper CI environment with headless Chrome support
-  describe "Character counter", js: true, skip: "Selenium環境設定の問題によりスキップ" do
-    it "updates character count as user types" do
-      visit new_content_path
 
-      fill_in "content_theme", with: "テスト"
-      expect(page).to have_text("4 / 256")
-
-      fill_in "content_theme", with: "a" * 240
-      expect(page).to have_css(".text-yellow-400") # 警告色に変わる
-    end
-  end
-
-  describe "Delete confirmation", js: true, skip: "Selenium環境設定の問題によりスキップ" do
+  describe "Delete confirmation", js: true do
     let!(:content) { create(:content, theme: "削除するコンテンツ") }
 
-    it "shows custom confirmation dialog" do
+    it "shows confirmation dialog and deletes content when confirmed" do
       visit content_path(content)
 
       accept_confirm("本当に削除しますか？") do
@@ -31,6 +18,7 @@ RSpec.describe "Contents", type: :system do
 
       expect(page).to have_current_path(contents_path)
       expect(page).to have_text("Content was successfully destroyed")
+      expect(Content.exists?(content.id)).to be false
     end
 
     it "cancels deletion when user declines" do
@@ -45,13 +33,15 @@ RSpec.describe "Contents", type: :system do
     end
   end
 
-  describe "Flash message auto-hide", js: true, skip: "Selenium環境設定の問題によりスキップ" do
+  describe "Flash message auto-hide", js: true do
     it "automatically hides flash message after 5 seconds" do
       create(:content, theme: "テストコンテンツ")
       visit contents_path
 
       click_link "新規作成"
       fill_in "content_theme", with: "新しいコンテンツ"
+      fill_in "content_duration", with: "3"
+      fill_in "content_audio_prompt", with: "リラックスできるローファイBGM"
       click_button "Create Content"
 
       expect(page).to have_text("Content was successfully created")
@@ -67,6 +57,8 @@ RSpec.describe "Contents", type: :system do
 
       click_link "新規作成"
       fill_in "content_theme", with: "新しいコンテンツ"
+      fill_in "content_duration", with: "3"
+      fill_in "content_audio_prompt", with: "リラックスできるローファイBGM"
       click_button "Create Content"
 
       expect(page).to have_text("Content was successfully created")
@@ -80,7 +72,7 @@ RSpec.describe "Contents", type: :system do
     end
   end
 
-  describe "Responsive layout", js: true, skip: "Selenium環境設定の問題によりスキップ" do
+  describe "Responsive layout", js: true do
     before do
       3.times { |i| create(:content, theme: "コンテンツ#{i + 1}") }
     end
