@@ -79,3 +79,5 @@ gem "factory_bot_rails", "~> 6.5"
 
 gem "pundit", "~> 2.5"
 gem "enumerize", "~> 2.8"
+gem "shrine", "~> 3.6"
+gem "marcel", "~> 1.0"

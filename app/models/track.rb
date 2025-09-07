@@ -1,5 +1,6 @@
 class Track < ApplicationRecord
   extend Enumerize
+  include AudioUploader::Attachment(:audio)
 
   belongs_to :content
 
