@@ -28,9 +28,8 @@
     <%= form.number_field :duration, 
         class: "w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
         placeholder: "5",
-        min: 1,
-        max: 60 %>
-    <p class="text-xs text-gray-400">1分から60分の間で指定してください</p>
+        min: 1 %>
+    <p class="text-xs text-gray-400">1分以上で指定してください</p>
     <% if item.errors[:duration].any? %>
       <p class="mt-1 text-sm text-red-400">
         <%= item.errors[:duration].join(", ") %>

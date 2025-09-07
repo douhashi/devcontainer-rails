@@ -208,7 +208,7 @@ RSpec.describe "Contents", type: :request do
       end
 
       it "renders edit template with errors when duration is invalid" do
-        patch content_path(content), params: { content: { duration: 70 } }
+        patch content_path(content), params: { content: { duration: 0 } }
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")

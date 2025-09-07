@@ -16,6 +16,17 @@ RSpec.describe TrackQueueingService do
       expect(described_class.calculate_track_count(12)).to eq(7)
       expect(described_class.calculate_track_count(18)).to eq(8)
     end
+
+    it 'calculates correct track count for long duration content' do
+      # 120分: (120 / 6) + 5 = 20 + 5 = 25
+      expect(described_class.calculate_track_count(120)).to eq(25)
+      # 180分: (180 / 6) + 5 = 30 + 5 = 35
+      expect(described_class.calculate_track_count(180)).to eq(35)
+      # 300分: (300 / 6) + 5 = 50 + 5 = 55
+      expect(described_class.calculate_track_count(300)).to eq(55)
+      # 600分: (600 / 6) + 5 = 100 + 5 = 105
+      expect(described_class.calculate_track_count(600)).to eq(105)
+    end
   end
 
   describe '#initialize' do
@@ -108,6 +119,19 @@ RSpec.describe TrackQueueingService do
         end
 
         it 'raises ValidationError' do
+          expect { service.queue_tracks! }.to raise_error(
+            TrackQueueingService::ValidationError,
+            'Content would exceed maximum track limit (100)'
+          )
+        end
+      end
+
+      context 'when long duration content exceeds track limit' do
+        let(:long_content) { create(:content, duration: 600, audio_prompt: 'Long music') }
+        let(:service) { described_class.new(long_content) }
+
+        it 'raises ValidationError for 600 minutes content' do
+          # 600分の場合、105トラック必要で上限100を超える
           expect { service.queue_tracks! }.to raise_error(
             TrackQueueingService::ValidationError,
             'Content would exceed maximum track limit (100)'

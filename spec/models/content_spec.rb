@@ -33,10 +33,23 @@ RSpec.describe Content, type: :model do
       expect(content.errors[:duration]).to include('must be greater than 0')
     end
 
-    it 'validates duration is less than or equal to 60' do
-      content = Content.new(duration: 61)
-      expect(content).not_to be_valid
-      expect(content.errors[:duration]).to include('must be less than or equal to 60')
+    # 60分上限制限が撤廃されたため、61分以上も有効になる
+    it 'allows duration greater than 60' do
+      content = Content.new(duration: 61, theme: 'test', audio_prompt: 'test')
+      content.valid?
+      expect(content.errors[:duration]).to be_empty
+    end
+
+    it 'allows duration of 120 minutes' do
+      content = Content.new(duration: 120, theme: 'test', audio_prompt: 'test')
+      content.valid?
+      expect(content.errors[:duration]).to be_empty
+    end
+
+    it 'allows duration of 180 minutes' do
+      content = Content.new(duration: 180, theme: 'test', audio_prompt: 'test')
+      content.valid?
+      expect(content.errors[:duration]).to be_empty
     end
 
     it 'validates presence of audio_prompt' do
@@ -121,10 +134,24 @@ RSpec.describe Content, type: :model do
         expect(content.errors[:duration]).to include('must be greater than 0')
       end
 
-      it 'is invalid with duration greater than 60' do
+      it 'is valid with duration greater than 60' do
         content.duration = 61
-        expect(content).not_to be_valid
-        expect(content.errors[:duration]).to include('must be less than or equal to 60')
+        expect(content).to be_valid
+      end
+
+      it 'is valid with duration of 120' do
+        content.duration = 120
+        expect(content).to be_valid
+      end
+
+      it 'is valid with duration of 180' do
+        content.duration = 180
+        expect(content).to be_valid
+      end
+
+      it 'is valid with very long duration' do
+        content.duration = 600
+        expect(content).to be_valid
       end
 
       it 'is invalid without duration' do
