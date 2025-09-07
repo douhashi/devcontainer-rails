@@ -47,15 +47,19 @@ class GenerateTrackJob < ApplicationJob
     task_id = @track.metadata["task_id"]
     status_response = @service.get_task_status(task_id)
 
-    case status_response["status"]
+    # Normalize status to lowercase for comparison
+    normalized_status = status_response["status"].to_s.downcase
+
+    case normalized_status
     when "processing"
       handle_processing_status
-    when "completed"
+    when "completed", "success"
       handle_completed_status(status_response)
     when "failed"
       handle_failed_status(status_response)
     else
       Rails.logger.warn "Unknown task status: #{status_response['status']} for Track ##{@track.id}"
+      Rails.logger.warn "Full response: #{status_response.inspect}"
       handle_processing_status
     end
   end
@@ -64,10 +68,10 @@ class GenerateTrackJob < ApplicationJob
     polling_attempts = @track.metadata["polling_attempts"].to_i
 
     if polling_attempts >= MAX_POLLING_ATTEMPTS
-      @track.metadata["error"] = "Task timed out after maximum polling attempts"
+      @track.metadata["error"] = "音楽生成がタイムアウトしました（10分経過）。処理に時間がかかっています。"
       @track.status = :failed
       @track.save!
-      Rails.logger.error "Polling timeout for Track ##{@track.id}"
+      Rails.logger.error "Polling timeout for Track ##{@track.id} after #{polling_attempts} attempts"
       return true
     end
     false

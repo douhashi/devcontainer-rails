@@ -96,6 +96,28 @@ RSpec.describe GenerateTrackJob, type: :job do
             described_class.perform_now(track.id)
           }.not_to change { track.reload.status }
         end
+
+        it 'handles uppercase PROCESSING status' do
+          allow(kie_service).to receive(:get_task_status)
+            .with('task_123')
+            .and_return({ 'status' => 'PROCESSING' })
+
+          expect {
+            described_class.perform_now(track.id)
+          }.to have_enqueued_job(described_class)
+            .with(track.id)
+        end
+
+        it 'handles mixed case Processing status' do
+          allow(kie_service).to receive(:get_task_status)
+            .with('task_123')
+            .and_return({ 'status' => 'Processing' })
+
+          expect {
+            described_class.perform_now(track.id)
+          }.to have_enqueued_job(described_class)
+            .with(track.id)
+        end
       end
 
       context 'when task is completed' do
@@ -174,6 +196,46 @@ RSpec.describe GenerateTrackJob, type: :job do
             described_class.perform_now(track.id)
           }.not_to have_enqueued_job(described_class)
         end
+
+        context 'with uppercase SUCCESS status' do
+          before do
+            allow(kie_service).to receive(:get_task_status)
+              .with('task_123')
+              .and_return({
+                'status' => 'SUCCESS',
+                'output' => { 'audio_url' => audio_url }
+              })
+          end
+
+          it 'updates track status to completed' do
+            expect {
+              described_class.perform_now(track.id)
+            }.to change { track.reload.status }.from('processing').to('completed')
+          end
+
+          it 'stores audio_url in metadata' do
+            described_class.perform_now(track.id)
+
+            expect(track.reload.metadata['audio_url']).to eq(audio_url)
+          end
+        end
+
+        context 'with mixed case Success status' do
+          before do
+            allow(kie_service).to receive(:get_task_status)
+              .with('task_123')
+              .and_return({
+                'status' => 'Success',
+                'output' => { 'audio_url' => audio_url }
+              })
+          end
+
+          it 'updates track status to completed' do
+            expect {
+              described_class.perform_now(track.id)
+            }.to change { track.reload.status }.from('processing').to('completed')
+          end
+        end
       end
 
       context 'when task has failed' do
@@ -203,6 +265,70 @@ RSpec.describe GenerateTrackJob, type: :job do
             described_class.perform_now(track.id)
           }.not_to have_enqueued_job(described_class)
         end
+
+        context 'with uppercase FAILED status' do
+          before do
+            allow(kie_service).to receive(:get_task_status)
+              .with('task_123')
+              .and_return({
+                'status' => 'FAILED',
+                'error' => 'Generation failed: Insufficient credits'
+              })
+          end
+
+          it 'updates track status to failed' do
+            expect {
+              described_class.perform_now(track.id)
+            }.to change { track.reload.status }.from('processing').to('failed')
+          end
+
+          it 'stores error message in metadata' do
+            described_class.perform_now(track.id)
+
+            expect(track.reload.metadata['error']).to eq('Generation failed: Insufficient credits')
+          end
+        end
+      end
+    end
+
+    context 'when receiving unknown status' do
+      before do
+        track.update!(
+          status: :processing,
+          metadata: { 'task_id' => 'task_123', 'polling_attempts' => 5 }
+        )
+      end
+
+      it 'logs warning with unknown status value' do
+        allow(kie_service).to receive(:get_task_status)
+          .with('task_123')
+          .and_return({ 'status' => 'UNKNOWN_STATUS', 'extra_field' => 'some_value' })
+
+        expect(Rails.logger).to receive(:warn).with(/Unknown task status: UNKNOWN_STATUS/)
+        expect(Rails.logger).to receive(:warn).with(/Full response:.*UNKNOWN_STATUS/)
+
+        described_class.perform_now(track.id)
+      end
+
+      it 'continues polling when status is unknown' do
+        allow(kie_service).to receive(:get_task_status)
+          .with('task_123')
+          .and_return({ 'status' => 'PENDING' })
+
+        expect {
+          described_class.perform_now(track.id)
+        }.to have_enqueued_job(described_class)
+          .with(track.id)
+      end
+
+      it 'increments polling attempts for unknown status' do
+        allow(kie_service).to receive(:get_task_status)
+          .with('task_123')
+          .and_return({ 'status' => 'IN_QUEUE' })
+
+        expect {
+          described_class.perform_now(track.id)
+        }.to change { track.reload.metadata['polling_attempts'] }.from(5).to(6)
       end
     end
 
@@ -252,7 +378,7 @@ RSpec.describe GenerateTrackJob, type: :job do
       it 'stores timeout error in metadata' do
         described_class.perform_now(track.id)
 
-        expect(track.reload.metadata['error']).to eq('Task timed out after maximum polling attempts')
+        expect(track.reload.metadata['error']).to eq('音楽生成がタイムアウトしました（10分経過）。処理に時間がかかっています。')
       end
 
       it 'does not re-enqueue itself' do
