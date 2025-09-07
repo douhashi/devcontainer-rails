@@ -20,6 +20,53 @@ RSpec.describe "Contents", type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include("コンテンツがまだありません")
     end
+
+    it "includes status filter component when contents exist" do
+      create(:content)
+      get contents_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('data-controller="status-filter"')
+    end
+
+    it "includes status summary" do
+      create(:content, theme: "Test Content")
+      get contents_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("件のコンテンツ")
+    end
+
+    context "with status filter parameter" do
+      it "includes correct selected status in filter component when status parameter is provided" do
+        create(:content)
+        get contents_path, params: { status: 'completed' }
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('data-status-filter-selected-value="completed"')
+      end
+
+      it "defaults to 'all' status in filter component when no status parameter" do
+        create(:content)
+        get contents_path
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('data-status-filter-selected-value="all"')
+      end
+    end
+
+    context "with associated data" do
+      it "loads successfully with tracks and artwork" do
+        content = create(:content)
+        create(:track, content: content)
+        create(:artwork, content: content)
+
+        get contents_path
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include(content.theme)
+      end
+    end
   end
 
   describe "GET /contents/:id" do
@@ -34,6 +81,30 @@ RSpec.describe "Contents", type: :request do
       expect(response.body).to include("テスト用プロンプト")
       expect(response.body).to include("作成日時")
       expect(response.body).to include("更新日時")
+    end
+
+    it "displays enhanced status overview" do
+      get content_path(content)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("制作ステータス")
+      expect(response.body).to include("トラック進捗")
+    end
+
+    it "displays status badge" do
+      get content_path(content)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('data-status=')
+    end
+
+    it "loads successfully with associated data" do
+      create(:track, content: content)
+      create(:artwork, content: content)
+
+      get content_path(content)
+
+      expect(response).to have_http_status(:success)
     end
   end
 

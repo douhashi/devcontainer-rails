@@ -188,4 +188,155 @@ RSpec.describe Content, type: :model do
       expect { content.destroy }.to change(Artwork, :count).by(-1)
     end
   end
+
+  describe 'status-related methods' do
+    let(:content) { create(:content, duration: 12) }
+
+    describe '#required_track_count' do
+      it 'delegates to TrackQueueingService for calculation' do
+        expect(TrackQueueingService).to receive(:calculate_track_count).with(12).and_return(7)
+        expect(content.required_track_count).to eq(7)
+      end
+
+      context 'with various durations' do
+        it 'calculates correct count for 6 minutes' do
+          content.duration = 6
+          expect(content.required_track_count).to eq(6) # (6/6) + 5 = 6
+        end
+
+        it 'calculates correct count for 30 minutes' do
+          content.duration = 30
+          expect(content.required_track_count).to eq(10) # (30/6) + 5 = 10
+        end
+      end
+    end
+
+    describe '#track_progress' do
+      before do
+        create_list(:track, 3, content: content, status: :completed)
+        create_list(:track, 2, content: content, status: :pending)
+      end
+
+      it 'returns progress as hash with completed and total counts' do
+        progress = content.track_progress
+        expect(progress[:completed]).to eq(3)
+        expect(progress[:total]).to eq(content.required_track_count)
+        expect(progress[:percentage]).to eq((3.0 / content.required_track_count * 100).round(1))
+      end
+
+      context 'when no tracks exist' do
+        let(:content_no_tracks) { create(:content, duration: 12) }
+
+        it 'returns zero completed tracks' do
+          progress = content_no_tracks.track_progress
+          expect(progress[:completed]).to eq(0)
+          expect(progress[:total]).to eq(content_no_tracks.required_track_count)
+          expect(progress[:percentage]).to eq(0.0)
+        end
+      end
+    end
+
+    describe '#artwork_status' do
+      context 'when artwork exists' do
+        before { create(:artwork, content: content) }
+
+        it 'returns configured status' do
+          expect(content.artwork_status).to eq(:configured)
+        end
+      end
+
+      context 'when artwork does not exist' do
+        it 'returns not_configured status' do
+          expect(content.artwork_status).to eq(:not_configured)
+        end
+      end
+    end
+
+    describe '#completion_status' do
+      context 'when all tracks are completed and artwork is configured' do
+        before do
+          required_count = content.required_track_count
+          create_list(:track, required_count, content: content, status: :completed)
+          create(:artwork, content: content)
+        end
+
+        it 'returns completed status' do
+          expect(content.completion_status).to eq(:completed)
+        end
+      end
+
+      context 'when tracks are in progress' do
+        before do
+          create_list(:track, 2, content: content, status: :completed)
+          create_list(:track, 2, content: content, status: :processing)
+        end
+
+        it 'returns in_progress status' do
+          expect(content.completion_status).to eq(:in_progress)
+        end
+      end
+
+      context 'when some tracks have failed' do
+        before do
+          create_list(:track, 2, content: content, status: :completed)
+          create_list(:track, 1, content: content, status: :failed)
+        end
+
+        it 'returns needs_attention status' do
+          expect(content.completion_status).to eq(:needs_attention)
+        end
+      end
+
+      context 'when no tracks exist' do
+        it 'returns not_started status' do
+          expect(content.completion_status).to eq(:not_started)
+        end
+      end
+    end
+
+    describe '#next_actions' do
+      context 'when tracks need to be generated' do
+        it 'suggests generating tracks' do
+          actions = content.next_actions
+          expect(actions).to include('トラックを生成してください')
+        end
+      end
+
+      context 'when artwork is not configured' do
+        before do
+          required_count = content.required_track_count
+          create_list(:track, required_count, content: content, status: :completed)
+        end
+
+        it 'suggests setting artwork' do
+          actions = content.next_actions
+          expect(actions).to include('アートワークを設定してください')
+        end
+      end
+
+      context 'when there are failed tracks' do
+        before do
+          create_list(:track, 1, content: content, status: :failed)
+        end
+
+        it 'suggests retrying failed tracks' do
+          actions = content.next_actions
+          expect(actions).to include('失敗したトラックを再生成してください')
+        end
+      end
+
+      context 'when everything is complete' do
+        before do
+          required_count = content.required_track_count
+          create_list(:track, required_count, content: content, status: :completed)
+          create(:artwork, content: content)
+        end
+
+        it 'returns empty array' do
+          actions = content.next_actions
+          expect(actions).to be_empty
+        end
+      end
+    end
+  end
 end

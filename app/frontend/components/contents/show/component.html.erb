@@ -5,14 +5,66 @@
   </div>
 
   <div class="bg-gray-800 rounded-lg p-8">
-    <h1 class="text-3xl font-bold text-gray-100 mb-6">
-      <%= item.theme %>
-    </h1>
+    <!-- Header with title and status -->
+    <div class="flex justify-between items-start mb-6">
+      <h1 class="text-3xl font-bold text-gray-100 flex-grow">
+        <%= item.theme %>
+      </h1>
+      <div class="ml-4 flex-shrink-0">
+        <%= render StatusBadge::Component.new(status: completion_status) %>
+      </div>
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Status Overview -->
+    <div class="status-overview mb-8 p-6 bg-gray-900 rounded-lg">
+      <div class="flex items-center mb-4">
+        <span class="text-2xl mr-3"><%= status_icon %></span>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-200">制作ステータス</h2>
+          <p class="text-gray-400"><%= completion_message %></p>
+        </div>
+      </div>
+
+      <!-- Progress Circle and Stats -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="progress-circle">
+          <div class="flex items-center justify-center">
+            <%= render ProgressBar::Component.new(
+              percentage: track_progress[:percentage],
+              label: "トラック進捗",
+              variant: progress_variant,
+              size: :large
+            ) %>
+          </div>
+          <p class="text-center text-gray-400 mt-2">
+            <%= track_progress[:completed] %>/<%= track_progress[:total] %> 完了
+          </p>
+        </div>
+
+        <div class="track-status-breakdown">
+          <h3 class="text-md font-medium text-gray-300 mb-3">詳細ステータス</h3>
+          <div class="space-y-2">
+            <% track_status_items.each do |status_item| %>
+              <div class="track-status-item flex justify-between items-center p-2 bg-gray-800 rounded">
+                <div class="flex items-center">
+                  <span class="text-lg mr-2"><%= status_item[:icon] %></span>
+                  <span class="text-gray-300"><%= status_item[:label] %></span>
+                </div>
+                <span class="<%= status_item[:color] %> font-semibold">
+                  <%= status_item[:count] %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Basic Info -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <div>
         <p class="text-gray-400 text-sm mb-1">再生時間</p>
-        <p class="text-gray-200"><%= item.duration %>分</p>
+        <p class="text-gray-200 font-medium"><%= item.duration %>分</p>
       </div>
       <div>
         <p class="text-gray-400 text-sm mb-1">作成日時</p>
@@ -24,6 +76,7 @@
       </div>
     </div>
 
+    <!-- Audio Prompt -->
     <div class="mb-8">
       <p class="text-gray-400 text-sm mb-2">音楽生成プロンプト</p>
       <div class="bg-gray-900 rounded-lg p-4">
@@ -31,8 +84,26 @@
       </div>
     </div>
 
-    <!-- Artwork section -->
-    <%= render Artwork::Form::Component.new(content_record: item) %>
+    <!-- Artwork Section with Status -->
+    <div class="artwork-section mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-200">アートワーク</h2>
+        <div class="flex items-center gap-2">
+          <span class="<%= artwork_status == :configured ? 'text-green-400' : 'text-gray-400' %>">
+            <%= artwork_status == :configured ? '✓ 設定済み' : '○ 未設定' %>
+          </span>
+        </div>
+      </div>
+      
+      <% if artwork_preview_available? %>
+        <div class="mb-4 p-4 bg-gray-900 rounded-lg">
+          <img src="<%= item.artwork.image.url %>" alt="Content Artwork" 
+               class="max-w-xs rounded-lg shadow-lg" />
+        </div>
+      <% end %>
+      
+      <%= render Artwork::Form::Component.new(content_record: item) %>
+    </div>
 
     <!-- Track Generation section -->
     <div class="mb-8">
@@ -40,49 +111,46 @@
       <%= render TrackGenerationButtonComponent.new(content_record: item) %>
     </div>
 
-    <!-- Generated Tracks section -->
+    <!-- Detailed Progress (replaces the old tracks section) -->
     <% if item.tracks.any? %>
-    <div class="mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">生成されたBGM</h2>
-      <div class="bg-gray-900 rounded-lg p-4">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="text-center">
-            <p class="text-sm text-gray-400">待機中</p>
-            <p class="text-2xl font-bold text-yellow-400"><%= item.tracks.pending.count %></p>
-          </div>
-          <div class="text-center">
-            <p class="text-sm text-gray-400">生成中</p>
-            <p class="text-2xl font-bold text-blue-400"><%= item.tracks.processing.count %></p>
-          </div>
-          <div class="text-center">
-            <p class="text-sm text-gray-400">完了</p>
-            <p class="text-2xl font-bold text-green-400"><%= item.tracks.completed.count %></p>
-          </div>
-          <div class="text-center">
-            <p class="text-sm text-gray-400">失敗</p>
-            <p class="text-2xl font-bold text-red-400"><%= item.tracks.failed.count %></p>
-          </div>
-        </div>
-        <div class="mt-4 bg-gray-800 rounded-lg p-2">
-          <p class="text-sm text-gray-400 mb-1">進捗状況</p>
-          <% total_tracks = item.tracks.count %>
-          <% completed_tracks = item.tracks.completed.count %>
-          <% if total_tracks > 0 %>
-            <% progress_percentage = (completed_tracks.to_f / total_tracks * 100).round(1) %>
-            <div class="w-full bg-gray-700 rounded-full h-2">
-              <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                   style="width: <%= progress_percentage %>%"></div>
-            </div>
-            <p class="text-xs text-gray-400 mt-1"><%= progress_percentage %>% 完了 (<%= completed_tracks %>/<%= total_tracks %>)</p>
-          <% else %>
-            <div class="w-full bg-gray-700 rounded-full h-2"></div>
-            <p class="text-xs text-gray-400 mt-1">0% 完了 (0/0)</p>
-          <% end %>
-        </div>
+    <div class="detailed-progress mb-8">
+      <h2 class="text-xl font-bold text-gray-200 mb-4">トラック進捗の詳細</h2>
+      
+      <div class="bg-gray-900 rounded-lg p-6">
+        <%= render ProgressBar::Component.new(
+          percentage: track_progress[:percentage],
+          label: "全体の進捗状況",
+          variant: progress_variant
+        ) %>
       </div>
     </div>
     <% end %>
 
+    <!-- Next Actions -->
+    <% if next_actions.any? %>
+    <div class="next-actions mb-8 p-4 bg-blue-900 bg-opacity-20 border border-blue-500 rounded-lg">
+      <h3 class="text-lg font-semibold text-blue-300 mb-3">
+        💡 推奨アクション
+      </h3>
+      <ul class="space-y-2">
+        <% next_actions.each do |action| %>
+          <li class="flex items-center text-blue-200">
+            <span class="mr-2">→</span>
+            <%= action %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <% else %>
+    <div class="next-actions hidden mb-8 p-4 bg-green-900 bg-opacity-20 border border-green-500 rounded-lg">
+      <div class="flex items-center text-green-300">
+        <span class="text-xl mr-2">🎉</span>
+        <span>すべての作業が完了しました！</span>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Actions -->
     <div class="flex gap-4">
       <%= link_to "編集", edit_content_path(item), 
           class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>

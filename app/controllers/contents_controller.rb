@@ -1,11 +1,24 @@
 class ContentsController < ApplicationController
-  before_action :set_content, only: [ :show, :edit, :update, :destroy, :generate_tracks ]
+  before_action :set_content, only: [ :edit, :update, :destroy, :generate_tracks ]
 
   def index
-    @contents = Content.all
+    # N+1問題を防ぐためにincludesを使用
+    base_query = Content.includes(:tracks, :artwork).order(created_at: :desc)
+
+    # ステータスフィルタリング
+    if params[:status].present? && params[:status] != "all"
+      @filter_status = params[:status]
+      # フィルタリングは後でJavaScriptで行うため、全データを取得
+      @contents = base_query
+    else
+      @filter_status = "all"
+      @contents = base_query
+    end
   end
 
   def show
+    # 詳細画面では関連データも含めて取得
+    @content = Content.includes(:tracks, :artwork).find(params[:id])
   end
 
   def new
@@ -56,7 +69,7 @@ class ContentsController < ApplicationController
   private
 
   def set_content
-    @content = Content.find(params[:id])
+    @content = Content.includes(:tracks, :artwork).find(params[:id])
   end
 
   def content_params

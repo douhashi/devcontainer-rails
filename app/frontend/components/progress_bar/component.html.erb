@@ -1,0 +1,24 @@
+<div class="progress-bar-wrapper">
+  <% if label.present? %>
+    <div class="flex justify-between items-center mb-1">
+      <span class="text-sm font-medium text-gray-700"><%= label %></span>
+      <% if show_percentage %>
+        <span class="text-sm font-medium text-gray-700"><%= "#{percentage}%" %></span>
+      <% end %>
+    </div>
+  <% end %>
+  
+  <div class="<%= container_classes %>">
+    <div 
+      class="<%= bar_classes %>" 
+      style="<%= progress_style %>"
+      data-percentage="<%= percentage %>"
+    ></div>
+  </div>
+  
+  <% if label.blank? && show_percentage %>
+    <div class="text-center mt-1">
+      <span class="text-sm font-medium text-gray-700"><%= "#{percentage}%" %></span>
+    </div>
+  <% end %>
+</div>
