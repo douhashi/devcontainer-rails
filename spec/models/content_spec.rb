@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe Content, type: :model do
+  describe 'associations' do
+    it { is_expected.to have_many(:tracks).dependent(:destroy) }
+  end
+
   describe 'validations' do
     it 'validates presence of theme' do
       content = Content.new(theme: nil)
@@ -48,6 +52,16 @@ RSpec.describe Content, type: :model do
         expect(content).not_to be_valid
         expect(content.errors[:theme]).to include('is too long (maximum is 256 characters)')
       end
+    end
+  end
+
+  describe 'dependent destroy' do
+    let!(:content) { create(:content) }
+    let!(:track1) { create(:track, content: content) }
+    let!(:track2) { create(:track, content: content) }
+
+    it 'destroys associated tracks when content is destroyed' do
+      expect { content.destroy }.to change(Track, :count).by(-2)
     end
   end
 end

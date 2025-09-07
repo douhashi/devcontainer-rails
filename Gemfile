@@ -69,6 +69,7 @@ end
 group :test do
   gem "capybara"
   gem "selenium-webdriver"
+  gem "shoulda-matchers", "~> 6.0"
 end
 
 gem "dry-initializer", "~> 3.2"
@@ -77,3 +78,4 @@ gem "dry-initializer", "~> 3.2"
 gem "factory_bot_rails", "~> 6.5"
 
 gem "pundit", "~> 2.5"
+gem "enumerize", "~> 2.8"

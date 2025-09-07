@@ -115,6 +115,8 @@ GEM
     dry-cli (1.2.0)
     dry-initializer (3.2.0)
     ed25519 (1.4.0)
+    enumerize (2.8.1)
+      activesupport (>= 3.2)
     erb (5.0.2)
     erubi (1.13.1)
     erubis (2.7.0)
@@ -358,6 +360,8 @@ GEM
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
     sexp_processor (4.17.3)
+    shoulda-matchers (6.5.0)
+      activesupport (>= 5.2.0)
     solid_cable (3.0.12)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -454,6 +458,7 @@ DEPENDENCIES
   config
   debug
   dry-initializer (~> 3.2)
+  enumerize (~> 2.8)
   factory_bot_rails (~> 6.5)
   foreman
   html2haml
@@ -469,6 +474,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rails-omakase
   selenium-webdriver
+  shoulda-matchers (~> 6.0)
   solid_cable
   solid_cache
   solid_queue
