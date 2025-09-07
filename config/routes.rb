@@ -6,6 +6,12 @@ Rails.application.routes.draw do
       post :generate_tracks
       post :generate_single_track
     end
+    resources :tracks do
+      collection do
+        post :generate_single
+        post :generate_bulk
+      end
+    end
     resources :artworks, except: [ :index, :show, :edit, :new ]
     resource :artwork, only: [ :destroy ]
   end

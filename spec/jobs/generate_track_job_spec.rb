@@ -6,6 +6,8 @@ RSpec.describe GenerateTrackJob, type: :job do
 
   before do
     allow(KieService).to receive(:new).and_return(kie_service)
+    # Mock ApplicationController.render to avoid turbo_frame_tag error
+    allow(ApplicationController).to receive(:render).and_return("<html>mock</html>")
   end
 
   describe '#perform' do

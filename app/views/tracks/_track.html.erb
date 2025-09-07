@@ -1,0 +1,43 @@
+<%= turbo_frame_tag "track_#{track.id}" do %>
+  <div class="p-4 hover:bg-gray-800 transition-colors">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <div class="flex-shrink-0">
+          <span class="text-lg text-gray-400">#<%= local_assigns[:track_counter] || track.content.tracks.index(track) + 1 %></span>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 mb-1">
+            <%= render TrackStatus::Component.new(track: track) %>
+            <% if track.duration.present? %>
+              <span class="text-sm text-gray-400">
+                🎵 <%= track.formatted_duration %>
+              </span>
+            <% end %>
+          </div>
+          <p class="text-sm text-gray-400">作成: <%= track.created_at.strftime("%Y/%m/%d %H:%M") %></p>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <% if track.status.completed? && track.audio.present? %>
+          <audio controls class="h-8">
+            <source src="<%= track.audio.url %>" type="audio/mpeg">
+            お使いのブラウザはaudio要素をサポートしていません。
+          </audio>
+        <% elsif track.status.failed? %>
+          <span class="text-red-400 text-sm">
+            ❌ エラー: <%= track.metadata['error']&.truncate(50) %>
+          </span>
+        <% elsif track.status.processing? %>
+          <span class="text-blue-400 text-sm">
+            ⚙️ 処理中...
+          </span>
+        <% else %>
+          <span class="text-yellow-400 text-sm">
+            ⏳ 待機中
+          </span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,8 +1,14 @@
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8" 
+     data-turbo-stream-source="content_<%= item.id %>_tracks"
+     data-turbo-stream-notifications="content_<%= item.id %>_notifications">
+  
   <div class="mb-6">
     <%= link_to "← 一覧に戻る", contents_path, 
         class: "text-blue-400 hover:text-blue-300 transition-colors" %>
   </div>
+  
+  <!-- Toast notification container -->
+  <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
   <div class="bg-gray-800 rounded-lg p-8">
     <!-- Header with title and status -->
@@ -105,13 +111,18 @@
       <%= render Artwork::Form::Component.new(content_record: item) %>
     </div>
 
+    <!-- Track Counter -->
+    <div class="mb-6">
+      <%= render TrackCounter::Component.new(content_record: item) %>
+    </div>
+    
     <!-- Track Generation section -->
     <div class="mb-8">
       <h2 class="text-xl font-bold text-gray-200 mb-4">BGM生成</h2>
-      <div class="flex gap-4">
-        <%= render TrackGenerationButtonComponent.new(content_record: item) %>
-        <%= render SingleTrackGenerationButton::Component.new(content_record: item) %>
-      </div>
+      <%= render TrackGenerationControls::Component.new(
+        content_record: item,
+        can_generate_more: item.tracks.count < 100
+      ) %>
     </div>
 
     <!-- Track List -->

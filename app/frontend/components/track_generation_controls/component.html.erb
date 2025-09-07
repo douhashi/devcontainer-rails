@@ -1,0 +1,52 @@
+<div class="generation-controls bg-white rounded-lg shadow p-6">
+  <h3 class="text-lg font-semibold text-gray-900 mb-4">Track生成コントロール</h3>
+  
+  <div class="flex flex-col sm:flex-row gap-4">
+    <%= button_to single_generation_path,
+                  method: :post,
+                  class: single_button_classes,
+                  disabled: !can_generate_more,
+                  data: { turbo_method: "post" } do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <span>1件生成</span>
+      <span class="text-xs opacity-75">(テスト用)</span>
+    <% end %>
+    
+    <%= button_to bulk_generation_path,
+                  method: :post,
+                  class: bulk_button_classes,
+                  disabled: !can_generate_more,
+                  data: { 
+                    turbo_method: "post",
+                    turbo_confirm: "複数のTrackを一括生成します。よろしいですか？"
+                  } do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      <span>一括生成</span>
+      <span class="text-xs opacity-75">(最大10件)</span>
+    <% end %>
+  </div>
+  
+  <% unless can_generate_more %>
+    <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-sm text-red-600 font-medium flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        生成上限に達しました
+      </p>
+      <p class="text-xs text-red-500 mt-1 ml-6">
+        これ以上のTrack生成はできません。
+      </p>
+    </div>
+  <% end %>
+  
+  <div class="mt-4 text-xs text-gray-500">
+    <p>• 1件生成: 1つのTrackを即座に生成します</p>
+    <p>• 一括生成: 複数のTrackを順次生成します（最大10件）</p>
+  </div>
+</div>
+

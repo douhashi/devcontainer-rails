@@ -118,6 +118,7 @@ RSpec.describe Track, type: :model do
     end
 
     it 'does not enqueue job if status is not pending' do
+      allow(ApplicationController).to receive(:render).and_return("<html>mock</html>")
       track.update!(status: :processing)
 
       expect {
@@ -130,6 +131,7 @@ RSpec.describe Track, type: :model do
     end
 
     it 'returns false when job is not enqueued' do
+      allow(ApplicationController).to receive(:render).and_return("<html>mock</html>")
       track.update!(status: :completed)
       expect(track.generate_audio!).to be false
     end

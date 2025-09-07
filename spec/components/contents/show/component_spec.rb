@@ -31,6 +31,26 @@ RSpec.describe Contents::Show::Component, type: :component do
         '<div>Track Generation Button</div>'.html_safe
       end
     end)
+
+    stub_const('TrackCounter::Component', Class.new(ApplicationViewComponent) do
+      def initialize(content_record:, current_count: nil, max_count: 100)
+        @content_record = content_record
+      end
+
+      def call
+        '<div>Track Counter</div>'.html_safe
+      end
+    end)
+
+    stub_const('TrackGenerationControls::Component', Class.new(ApplicationViewComponent) do
+      def initialize(content_record:, can_generate_more: true)
+        @content_record = content_record
+      end
+
+      def call
+        '<div>Track Generation Controls</div>'.html_safe
+      end
+    end)
   end
 
   describe 'rendering' do
