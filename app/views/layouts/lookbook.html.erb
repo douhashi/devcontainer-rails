@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <title><%= content_for(:title) || Settings.app.name %></title>
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta content="yes" name="mobile-web-app-capable" />
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag "application" %>
+    <%= vite_stylesheet_tag "application" %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon.png" type="apple-touch-icon" />
+    <%= stylesheet_link_tag :app %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+
+</html>
+

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$1" = "production" ]; then
+  PROCFILE=Procfile.prod
+else
+  PROCFILE=Procfile.dev
+fi
+bundle exec foreman start -f "$PROCFILE"

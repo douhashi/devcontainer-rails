@@ -1,0 +1,14 @@
+{
+    // exclude files
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/CVS": true,
+        "**/.ruby-lsp": true,
+        "**/.bundle": true,
+        "**/.vite": true,
+    }
+}

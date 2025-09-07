@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  scan_ruby:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .tool-versions
+          bundler-cache: true
+
+      - name: Scan for common Rails security vulnerabilities using static analysis
+        run: bin/brakeman --no-pager
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .tool-versions
+          bundler-cache: true
+      - name: Lint code for consistent style
+        run: bin/rubocop -f github
+  test:
+    services:
+      selenium:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
+        options: >-
+          --shm-size 2g
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:4444/status"
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 3
+    runs-on: ubuntu-latest
+    env:
+        RAILS_ENV: test
+    # services: PostgreSQL no longer required; using SQLite3 for test database
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .tool-versions
+          bundler-cache: true
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .tool-versions
+      - run: npm ci
+
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Setup queue database
+        run: bin/rails db:create:queue db:migrate:queue
+
+      - name: Run tests
+        run: bin/rails db:schema:load && bin/rails spec

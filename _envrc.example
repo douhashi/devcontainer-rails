@@ -1,0 +1,7 @@
+export SELENIUM_URL=http://selenium:4444/
+
+# DEPLOY
+export KAMAL_REGISTRY_USERNAME=registry-user
+export KAMAL_REGISTRY_PASSWORD=registry-password
+export VITE_RUBY_HOST="0.0.0.0"
+export RAILS_MASTER_KEY=rails-master-key-here

@@ -1,0 +1,30 @@
+# 最小限の設定ファイルサンプル
+
+github:
+  # Issue/PR監視間隔（デフォルト: 20s）
+  poll_interval: 20s
+  # status:lgtmラベルが付いたPRを自動マージする機能の有効/無効
+  # デフォルト: true（有効）
+  # auto_merge_lgtm: true
+  # 処理中のIssueがない場合に自動的に次のIssueをplanフェーズに移行させる機能の有効/無効
+  # デフォルト: false（無効）
+  # auto_plan_issue: false
+  auto_plan_issue: true
+
+tmux:
+  session_prefix: "osoba-"
+
+claude:
+  phases:
+    plan:
+      args: ["--dangerously-skip-permissions"]
+      prompt: "/osoba:plan {{issue-number}}"
+    implement:
+      args: ["--dangerously-skip-permissions"]
+      prompt: "/osoba:implement {{issue-number}}"
+    review:
+      args: ["--dangerously-skip-permissions"]
+      prompt: "/osoba:review {{issue-number}}"
+    revise:
+      args: ["--dangerously-skip-permissions"]
+      prompt: "/osoba:revise {{issue-number}}"
