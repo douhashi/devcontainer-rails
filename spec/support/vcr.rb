@@ -22,6 +22,8 @@ VCR.configure do |config|
   config.ignore_request do |request|
     # Ignore requests to Capybara server (any internal network)
     uri = URI(request.uri)
-    uri.host =~ /^172\./ || uri.host =~ /^192\.168\./ || uri.host =~ /^10\./
+    uri.host =~ /^172\./ || uri.host =~ /^192\.168\./ || uri.host =~ /^10\./ ||
+    # Ignore Selenium server requests (for system tests)
+    uri.host == 'selenium' || uri.host == 'chrome' || uri.host == 'firefox'
   end
 end

@@ -1,0 +1,65 @@
+<div class="p-6 hover:bg-gray-750 transition-colors" id="track_<%= track.id %>">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center space-x-6">
+      <div class="flex-shrink-0">
+        <span class="text-lg font-mono text-gray-400">
+          #<%= track.id %>
+        </span>
+      </div>
+      
+      <div class="flex-grow">
+        <div class="flex items-center space-x-3 mb-2">
+          <%= render TrackStatus::Component.new(track: track) %>
+          <% if track.metadata_title.present? %>
+            <h3 class="text-lg font-medium text-white">
+              <%= track.metadata_title %>
+            </h3>
+          <% end %>
+        </div>
+        
+        <div class="flex items-center space-x-4 text-sm text-gray-400">
+          <span class="flex items-center">
+            📁 <%= link_to track.content.theme.truncate(40), content_path(track.content), 
+                        class: "text-blue-400 hover:text-blue-300 transition-colors" %>
+          </span>
+          <% if track.duration.present? %>
+            <span class="flex items-center">
+              🎵 <%= track.formatted_duration %>
+            </span>
+          <% end %>
+          <span class="flex items-center">
+            📅 <%= track.created_at.strftime("%Y/%m/%d %H:%M") %>
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <% if track.status.completed? && track.audio.present? %>
+        <audio controls class="h-8">
+          <source src="<%= track.audio.url %>" type="audio/mpeg">
+          お使いのブラウザはaudio要素をサポートしていません。
+        </audio>
+      <% elsif track.status.failed? %>
+        <div class="text-red-400 text-sm max-w-xs">
+          <div class="flex items-center">
+            <span class="mr-2">❌</span>
+            <span class="truncate">
+              エラー: <%= track.metadata&.dig('error')&.truncate(50) || '不明なエラー' %>
+            </span>
+          </div>
+        </div>
+      <% elsif track.status.processing? %>
+        <div class="flex items-center text-blue-400 text-sm">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
+          <span>処理中...</span>
+        </div>
+      <% else %>
+        <div class="flex items-center text-yellow-400 text-sm">
+          <div class="h-4 w-4 bg-yellow-400 rounded-full mr-2 animate-pulse"></div>
+          <span>待機中</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

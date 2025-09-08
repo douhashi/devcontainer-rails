@@ -1,5 +1,12 @@
 class TracksController < ApplicationController
-  before_action :set_content
+  before_action :set_content, except: [ :index ]
+
+  def index
+    @tracks = Track.includes(:content)
+                   .recent
+                   .page(params[:page])
+                   .per(30)
+  end
 
   def generate_single
     # Deprecated: Use MusicGenerationQueueingService instead

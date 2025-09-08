@@ -89,3 +89,6 @@ gem "httparty", "~> 0.22"
 
 # Environment variables management
 gem "dotenv-rails", "~> 3.1", groups: [ :development, :test ]
+
+# Pagination
+gem "kaminari", "~> 1.2"

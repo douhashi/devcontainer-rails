@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   resource :sample, only: [ :show ]
+
+  # Independent tracks listing (not nested under contents)
+  resources :tracks, only: [ :index ]
+
   resources :contents do
     member do
       post :generate_tracks
