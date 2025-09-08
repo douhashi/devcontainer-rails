@@ -13,7 +13,7 @@ module AudioGenerationButton
       return false unless content_record.artwork.present?
 
       # Check if we have enough completed tracks with duration information
-      completed_tracks_count = content_record.tracks.completed.where.not(duration: nil).count
+      completed_tracks_count = content_record.tracks.completed.where.not(duration_sec: nil).count
       completed_tracks_count >= 2
     end
 
@@ -85,7 +85,7 @@ module AudioGenerationButton
         errors << "アートワークの設定が必要です"
       end
 
-      completed_tracks_count = content_record.tracks.completed.where.not(duration: nil).count
+      completed_tracks_count = content_record.tracks.completed.where.not(duration_sec: nil).count
       if completed_tracks_count < 2
         errors << "最低2つの完成したトラックが必要です（現在: #{completed_tracks_count}個）"
       end

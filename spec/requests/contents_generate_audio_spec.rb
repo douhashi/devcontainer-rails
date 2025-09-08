@@ -1,10 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe "Contents generate_audio", type: :request do
-  let(:content) { create(:content, duration: 10) }
+  let(:content) { create(:content, duration_min: 10) }
   let!(:artwork) { create(:artwork, content: content) }
-  let!(:completed_track1) { create(:track, content: content, status: :completed, duration: 180) }
-  let!(:completed_track2) { create(:track, content: content, status: :completed, duration: 150) }
+  let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
+  let!(:completed_track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
 
   describe "POST /contents/:id/generate_audio" do
     context "with valid prerequisites" do
@@ -49,9 +49,9 @@ RSpec.describe "Contents generate_audio", type: :request do
 
     context "when prerequisites not met" do
       context "without artwork" do
-        let(:content_no_artwork) { create(:content, duration: 10) }
-        let!(:track1) { create(:track, content: content_no_artwork, status: :completed, duration: 180) }
-        let!(:track2) { create(:track, content: content_no_artwork, status: :completed, duration: 150) }
+        let(:content_no_artwork) { create(:content, duration_min: 10) }
+        let!(:track1) { create(:track, content: content_no_artwork, status: :completed, duration_sec: 180) }
+        let!(:track2) { create(:track, content: content_no_artwork, status: :completed, duration_sec: 150) }
 
         it "returns error message" do
           post generate_audio_content_path(content_no_artwork)
@@ -68,7 +68,7 @@ RSpec.describe "Contents generate_audio", type: :request do
       end
 
       context "without completed tracks" do
-        let(:content_no_tracks) { create(:content, duration: 10) }
+        let(:content_no_tracks) { create(:content, duration_min: 10) }
         let!(:artwork) { create(:artwork, content: content_no_tracks) }
 
         it "returns error message" do
@@ -80,9 +80,9 @@ RSpec.describe "Contents generate_audio", type: :request do
       end
 
       context "with insufficient completed tracks" do
-        let(:content_few_tracks) { create(:content, duration: 10) }
+        let(:content_few_tracks) { create(:content, duration_min: 10) }
         let!(:artwork) { create(:artwork, content: content_few_tracks) }
-        let!(:single_track) { create(:track, content: content_few_tracks, status: :completed, duration: 180) }
+        let!(:single_track) { create(:track, content: content_few_tracks, status: :completed, duration_sec: 180) }
 
         it "returns error message" do
           post generate_audio_content_path(content_few_tracks)

@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :content do
     theme { 'レコード、古いスピーカー、ランプの明かり' }
-    duration { 5 }
+    duration_min { 5 }
     audio_prompt { 'リラックスできる穏やかなローファイ音楽、ビンテージな雰囲気' }
 
     trait :cafe_theme do
@@ -30,19 +30,19 @@ FactoryBot.define do
     end
 
     trait :short_duration do
-      duration { 1 }
+      duration_min { 1 }
     end
 
     trait :medium_duration do
-      duration { 10 }
+      duration_min { 10 }
     end
 
     trait :long_duration do
-      duration { 30 }
+      duration_min { 30 }
     end
 
     trait :max_duration do
-      duration { 60 }
+      duration_min { 60 }
     end
   end
 end

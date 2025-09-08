@@ -21,7 +21,7 @@ FactoryBot.define do
     end
 
     trait :with_metadata do
-      metadata { { selected_tracks: [ 1, 2, 3 ], total_duration: 180, tracks_used: 3 } }
+      metadata { { selected_tracks: [ 1, 2, 3 ], total_duration_min: 180, tracks_used: 3 } }
     end
   end
 end

@@ -22,34 +22,34 @@ RSpec.describe Content, type: :model do
     end
 
     it 'validates presence of duration' do
-      content = Content.new(duration: nil)
+      content = Content.new(duration_min: nil)
       expect(content).not_to be_valid
-      expect(content.errors[:duration]).to include("can't be blank")
+      expect(content.errors[:duration_min]).to include("can't be blank")
     end
 
     it 'validates duration is greater than 0' do
-      content = Content.new(duration: 0)
+      content = Content.new(duration_min: 0)
       expect(content).not_to be_valid
-      expect(content.errors[:duration]).to include('must be greater than 0')
+      expect(content.errors[:duration_min]).to include('must be greater than 0')
     end
 
     # 60分上限制限が撤廃されたため、61分以上も有効になる
     it 'allows duration greater than 60' do
-      content = Content.new(duration: 61, theme: 'test', audio_prompt: 'test')
+      content = Content.new(duration_min: 61, theme: 'test', audio_prompt: 'test')
       content.valid?
-      expect(content.errors[:duration]).to be_empty
+      expect(content.errors[:duration_min]).to be_empty
     end
 
     it 'allows duration of 120 minutes' do
-      content = Content.new(duration: 120, theme: 'test', audio_prompt: 'test')
+      content = Content.new(duration_min: 120, theme: 'test', audio_prompt: 'test')
       content.valid?
-      expect(content.errors[:duration]).to be_empty
+      expect(content.errors[:duration_min]).to be_empty
     end
 
     it 'allows duration of 180 minutes' do
-      content = Content.new(duration: 180, theme: 'test', audio_prompt: 'test')
+      content = Content.new(duration_min: 180, theme: 'test', audio_prompt: 'test')
       content.valid?
-      expect(content.errors[:duration]).to be_empty
+      expect(content.errors[:duration_min]).to be_empty
     end
 
     it 'validates presence of audio_prompt' do
@@ -106,58 +106,58 @@ RSpec.describe Content, type: :model do
 
     context 'with valid duration' do
       it 'is valid with duration of 1' do
-        content.duration = 1
+        content.duration_min = 1
         expect(content).to be_valid
       end
 
       it 'is valid with duration of 30' do
-        content.duration = 30
+        content.duration_min = 30
         expect(content).to be_valid
       end
 
       it 'is valid with duration of 60' do
-        content.duration = 60
+        content.duration_min = 60
         expect(content).to be_valid
       end
     end
 
     context 'with invalid duration' do
       it 'is invalid with duration of 0' do
-        content.duration = 0
+        content.duration_min = 0
         expect(content).not_to be_valid
-        expect(content.errors[:duration]).to include('must be greater than 0')
+        expect(content.errors[:duration_min]).to include('must be greater than 0')
       end
 
       it 'is invalid with negative duration' do
-        content.duration = -1
+        content.duration_min = -1
         expect(content).not_to be_valid
-        expect(content.errors[:duration]).to include('must be greater than 0')
+        expect(content.errors[:duration_min]).to include('must be greater than 0')
       end
 
       it 'is valid with duration greater than 60' do
-        content.duration = 61
+        content.duration_min = 61
         expect(content).to be_valid
       end
 
       it 'is valid with duration of 120' do
-        content.duration = 120
+        content.duration_min = 120
         expect(content).to be_valid
       end
 
       it 'is valid with duration of 180' do
-        content.duration = 180
+        content.duration_min = 180
         expect(content).to be_valid
       end
 
       it 'is valid with very long duration' do
-        content.duration = 600
+        content.duration_min = 600
         expect(content).to be_valid
       end
 
       it 'is invalid without duration' do
-        content.duration = nil
+        content.duration_min = nil
         expect(content).not_to be_valid
-        expect(content.errors[:duration]).to include("can't be blank")
+        expect(content.errors[:duration_min]).to include("can't be blank")
       end
     end
   end
@@ -219,7 +219,7 @@ RSpec.describe Content, type: :model do
   end
 
   describe 'status-related methods' do
-    let(:content) { create(:content, duration: 12) }
+    let(:content) { create(:content, duration_min: 12) }
 
     describe '#required_track_count' do
       it 'delegates to MusicGenerationQueueingService for calculation' do
@@ -231,13 +231,13 @@ RSpec.describe Content, type: :model do
 
       context 'with various durations' do
         it 'calculates correct count for 6 minutes' do
-          content.duration = 6
+          content.duration_min = 6
           # 6 minutes = 1 music generation (minimum) * 2 tracks = 2 tracks
           expect(content.required_track_count).to eq(2)
         end
 
         it 'calculates correct count for 30 minutes' do
-          content.duration = 30 * 60  # 30 minutes in seconds
+          content.duration_min = 30  # 30 minutes
           # 30 minutes = 1800 seconds
           # Each generation produces 2 tracks × 240 seconds = 480 seconds
           # 1800 / 480 = 3.75 → 4 generations (rounded up)
@@ -261,7 +261,7 @@ RSpec.describe Content, type: :model do
       end
 
       context 'when no tracks exist' do
-        let(:content_no_tracks) { create(:content, duration: 12) }
+        let(:content_no_tracks) { create(:content, duration_min: 12) }
 
         it 'returns zero completed tracks' do
           progress = content_no_tracks.track_progress
@@ -377,7 +377,7 @@ RSpec.describe Content, type: :model do
   end
 
   describe '#music_generation_progress' do
-    let(:content) { create(:content, duration: 1200) } # 20 minutes = 3 music generations
+    let(:content) { create(:content, duration_min: 20) } # 20 minutes = 3 music generations
 
     context 'when music generations exist' do
       before do
@@ -436,13 +436,13 @@ RSpec.describe Content, type: :model do
     let(:content) { create(:content) }
 
     it 'calculates correct count for various durations' do
-      content.duration = 480 # 8 minutes = 1 generation
+      content.duration_min = 8 # 8 minutes = 1 generation
       expect(content.required_music_generation_count).to eq(1)
 
-      content.duration = 960 # 16 minutes = 2 generations
+      content.duration_min = 16 # 16 minutes = 2 generations
       expect(content.required_music_generation_count).to eq(2)
 
-      content.duration = 1200 # 20 minutes = 3 generations
+      content.duration_min = 20 # 20 minutes = 3 generations
       expect(content.required_music_generation_count).to eq(3)
     end
   end

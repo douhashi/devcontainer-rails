@@ -18,7 +18,7 @@ class TrackGenerationButtonComponent < ViewComponent::Base
   end
 
   def disability_reason
-    return "動画の長さが設定されていません" if content_record.duration.blank?
+    return "動画の長さが設定されていません" if content_record.duration_min.blank?
     return "音楽生成プロンプトが設定されていません" if content_record.audio_prompt.blank?
     return "BGM生成処理中です" if processing_tracks?
     return "トラック数の上限に達しています" if would_exceed_limit?

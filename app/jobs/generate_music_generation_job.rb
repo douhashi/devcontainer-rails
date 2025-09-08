@@ -106,7 +106,7 @@ class GenerateMusicGenerationJob < ApplicationJob
       content: @music_generation.content,
       variant_index: variant_index,
       status: :processing,
-      duration: music_data[:duration]&.to_i,
+      duration_sec: music_data[:duration]&.to_i,
       metadata: {
         "music_title" => music_data[:title],
         "music_tags" => music_data[:tags],

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe TrackGenerationButtonComponent, type: :component do
-  let(:content) { create(:content, theme: "Test Theme", duration: 10, audio_prompt: "Test prompt") }
+  let(:content) { create(:content, theme: "Test Theme", duration_min: 10, audio_prompt: "Test prompt") }
 
   describe 'rendering' do
     context 'when content is valid for generation' do
@@ -10,9 +10,9 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
 
         expect(rendered).to have_css('button[data-controller="track-generation"]')
         expect(rendered).to have_css('button:not([disabled])')
-        expect(rendered).to have_text('BGM生成開始（1回の生成で2曲）')
-        expect(rendered).to have_css('[data-track-generation-music-generation-count-value="1"]')
-        expect(rendered).to have_css('[data-track-generation-track-count-value="2"]')
+        expect(rendered).to have_text('BGM生成開始（2回の生成で4曲）')
+        expect(rendered).to have_css('[data-track-generation-music-generation-count-value="2"]')
+        expect(rendered).to have_css('[data-track-generation-track-count-value="4"]')
         expect(rendered).to have_css('[data-track-generation-url-value]')
       end
 
@@ -20,12 +20,12 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
         rendered = render_inline(described_class.new(content_record: content))
 
         expect(rendered).to have_css('[data-track-generation-confirmation-message-value]')
-        expect(rendered.to_html).to include('1回の音楽生成で2曲のトラックを作成します')
+        expect(rendered.to_html).to include('2回の音楽生成で4曲のトラックを作成します')
       end
     end
 
     context 'when content has no duration' do
-      let(:invalid_content) { Content.new(theme: 'test', duration: nil, audio_prompt: 'test') }
+      let(:invalid_content) { Content.new(theme: 'test', duration_min: nil, audio_prompt: 'test') }
 
       it 'renders disabled button with error message' do
         rendered = render_inline(described_class.new(content_record: invalid_content))
@@ -38,13 +38,13 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     end
 
     context 'when content has no audio_prompt' do
-      let(:invalid_content) { Content.new(theme: 'test', duration: 10, audio_prompt: nil) }
+      let(:invalid_content) { Content.new(theme: 'test', duration_min: 10, audio_prompt: nil) }
 
       it 'renders disabled button with error message' do
         rendered = render_inline(described_class.new(content_record: invalid_content))
 
         expect(rendered).to have_css('button[disabled]')
-        expect(rendered).to have_text('BGM生成開始（1回の生成で2曲）')
+        expect(rendered).to have_text('BGM生成開始（2回の生成で4曲）')
         expect(rendered).to have_text('音楽生成プロンプトが設定されていません')
         expect(rendered).not_to have_css('[data-controller="track-generation"]')
       end
@@ -74,7 +74,7 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
         rendered = render_inline(described_class.new(content_record: content))
 
         expect(rendered).to have_css('button[disabled]')
-        expect(rendered).to have_text('BGM生成開始（1回の生成で2曲）')
+        expect(rendered).to have_text('BGM生成開始（2回の生成で4曲）')
         expect(rendered).to have_text('トラック数の上限に達しています')
         expect(rendered).not_to have_css('[data-controller="track-generation"]')
       end
@@ -84,8 +84,8 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
   describe '#track_count' do
     it 'calculates track count correctly' do
       component = described_class.new(content_record: content)
-      # 10 seconds = 1 music generation * 2 tracks = 2 tracks
-      expect(component.track_count).to eq(2)
+      # 10 minutes = 2 music generation * 2 tracks = 4 tracks
+      expect(component.track_count).to eq(4)
     end
   end
 
@@ -97,13 +97,13 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     end
 
     it 'returns false when duration is missing' do
-      invalid_content = Content.new(theme: 'test', duration: nil, audio_prompt: 'test')
+      invalid_content = Content.new(theme: 'test', duration_min: nil, audio_prompt: 'test')
       component = described_class.new(content_record: invalid_content)
       expect(component.can_generate?).to be false
     end
 
     it 'returns false when audio_prompt is missing' do
-      invalid_content = Content.new(theme: 'test', duration: 10, audio_prompt: nil)
+      invalid_content = Content.new(theme: 'test', duration_min: 10, audio_prompt: nil)
       component = described_class.new(content_record: invalid_content)
       expect(component.can_generate?).to be false
     end
@@ -127,13 +127,13 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     end
 
     it 'returns duration error when duration is missing' do
-      invalid_content = Content.new(theme: 'test', duration: nil, audio_prompt: 'test')
+      invalid_content = Content.new(theme: 'test', duration_min: nil, audio_prompt: 'test')
       component = described_class.new(content_record: invalid_content)
       expect(component.disability_reason).to eq('動画の長さが設定されていません')
     end
 
     it 'returns audio_prompt error when audio_prompt is missing' do
-      invalid_content = Content.new(theme: 'test', duration: 10, audio_prompt: nil)
+      invalid_content = Content.new(theme: 'test', duration_min: 10, audio_prompt: nil)
       component = described_class.new(content_record: invalid_content)
       expect(component.disability_reason).to eq('音楽生成プロンプトが設定されていません')
     end
@@ -153,8 +153,8 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     let(:component) { described_class.new(content_record: content) }
 
     it 'returns text with generation count and track count' do
-      # 10 seconds duration = 1 music generation, 2 tracks
-      expect(component.button_text).to eq('BGM生成開始（1回の生成で2曲）')
+      # 10 minutes duration = 2 music generation, 4 tracks
+      expect(component.button_text).to eq('BGM生成開始（2回の生成で4曲）')
     end
 
     it 'returns processing text when processing tracks exist' do
@@ -163,10 +163,10 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     end
 
     context 'with longer duration' do
-      let(:content) { create(:content, duration: 1200) } # 20 minutes = 3 generations, 6 tracks
+      let(:content) { create(:content, duration_min: 1200) } # 20 minutes = 150 generations, 300 tracks
 
       it 'shows correct generation and track counts' do
-        expect(component.button_text).to eq('BGM生成開始（3回の生成で6曲）')
+        expect(component.button_text).to eq('BGM生成開始（150回の生成で300曲）')
       end
     end
   end
@@ -174,16 +174,16 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
   describe '#music_generation_count' do
     it 'calculates music generation count correctly' do
       component = described_class.new(content_record: content)
-      # 10 seconds = 1 music generation
-      expect(component.music_generation_count).to eq(1)
+      # 10 minutes = 2 music generation
+      expect(component.music_generation_count).to eq(2)
     end
 
     context 'with longer duration' do
-      let(:content) { create(:content, duration: 1200) } # 20 minutes
+      let(:content) { create(:content, duration_min: 1200) } # 20 minutes
 
       it 'calculates correct generation count' do
         component = described_class.new(content_record: content)
-        expect(component.music_generation_count).to eq(3)
+        expect(component.music_generation_count).to eq(150)
       end
     end
   end

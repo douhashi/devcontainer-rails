@@ -22,7 +22,7 @@
             📁 <%= link_to track.content.theme.truncate(40), content_path(track.content), 
                         class: "text-blue-400 hover:text-blue-300 transition-colors" %>
           </span>
-          <% if track.duration.present? %>
+          <% if track.duration_sec.present? %>
             <span class="flex items-center">
               🎵 <%= track.formatted_duration %>
             </span>

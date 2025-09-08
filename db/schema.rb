@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_08_010343) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_08_112409) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -33,7 +33,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_010343) do
     t.string "theme", limit: 256, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "duration", default: 3, null: false
+    t.integer "duration_min", default: 3, null: false
     t.text "audio_prompt", null: false
     t.index [ "theme" ], name: "index_contents_on_theme"
   end
@@ -61,7 +61,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_010343) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.json "audio_data"
-    t.integer "duration"
+    t.integer "duration_sec"
     t.integer "music_generation_id"
     t.integer "variant_index"
     t.index [ "content_id" ], name: "index_tracks_on_content_id"

@@ -177,7 +177,7 @@ RSpec.describe "Tracks", type: :request do
   end
 
   describe "POST /contents/:content_id/tracks/generate_single" do
-    let(:content) { create(:content, duration: 600) }
+    let(:content) { create(:content, duration_min: 600) }
 
     it "creates exactly one music generation" do
       expect {
@@ -242,7 +242,7 @@ RSpec.describe "Tracks", type: :request do
   end
 
   describe "POST /contents/:content_id/tracks/generate_bulk" do
-    let(:content) { create(:content, duration: 600) }
+    let(:content) { create(:content, duration_min: 600) }
 
     it "creates exactly 5 music generations" do
       expect {

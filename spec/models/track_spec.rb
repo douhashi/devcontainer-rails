@@ -41,29 +41,29 @@ RSpec.describe Track, type: :model do
       let(:track) { build(:track, content: create(:content)) }
 
       it 'validates numericality of duration' do
-        track.duration = 'invalid'
+        track.duration_sec = 'invalid'
         expect(track).to be_invalid
-        expect(track.errors[:duration]).to include('is not a number')
+        expect(track.errors[:duration_sec]).to include('is not a number')
       end
 
       it 'allows positive integers' do
-        track.duration = 180
+        track.duration_sec = 180
         expect(track).to be_valid
       end
 
       it 'allows nil values' do
-        track.duration = nil
+        track.duration_sec = nil
         expect(track).to be_valid
       end
 
       it 'does not allow zero or negative values' do
-        track.duration = 0
+        track.duration_sec = 0
         expect(track).to be_invalid
-        expect(track.errors[:duration]).to include('must be greater than 0')
+        expect(track.errors[:duration_sec]).to include('must be greater than 0')
 
-        track.duration = -10
+        track.duration_sec = -10
         expect(track).to be_invalid
-        expect(track.errors[:duration]).to include('must be greater than 0')
+        expect(track.errors[:duration_sec]).to include('must be greater than 0')
       end
     end
   end
@@ -141,29 +141,29 @@ RSpec.describe Track, type: :model do
 
     context 'when duration is nil' do
       it 'returns "未取得"' do
-        track.duration = nil
+        track.duration_sec = nil
         expect(track.formatted_duration).to eq('未取得')
       end
     end
 
     context 'when duration is present' do
       it 'formats duration as "M:SS" for durations under an hour' do
-        track.duration = 185
+        track.duration_sec = 185
         expect(track.formatted_duration).to eq('3:05')
       end
 
       it 'formats duration as "H:MM:SS" for durations over an hour' do
-        track.duration = 3665
+        track.duration_sec = 3665
         expect(track.formatted_duration).to eq('1:01:05')
       end
 
       it 'handles zero correctly' do
-        track.duration = 0
+        track.duration_sec = 0
         expect(track.formatted_duration).to eq('0:00')
       end
 
       it 'handles single digit minutes and seconds' do
-        track.duration = 67
+        track.duration_sec = 67
         expect(track.formatted_duration).to eq('1:07')
       end
     end

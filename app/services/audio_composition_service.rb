@@ -8,13 +8,13 @@ class AudioCompositionService
   end
 
   def select_tracks
-    target_duration = content.duration * 60 # Convert minutes to seconds
+    target_duration = content.duration_min * 60 # Convert minutes to seconds
     tracks = available_tracks
 
     raise InsufficientTracksError, "No completed tracks available" if tracks.empty?
 
     # Pre-calculate if we have enough total duration
-    total_available_duration = tracks.sum(:duration)
+    total_available_duration = tracks.sum(:duration_sec)
     if total_available_duration < target_duration
       raise InsufficientTracksError, "Insufficient total track duration: #{total_available_duration}s available, #{target_duration}s needed"
     end
@@ -24,7 +24,7 @@ class AudioCompositionService
 
     # More efficient selection algorithm for large datasets
     # Convert to array once to avoid multiple DB calls
-    track_array = tracks.pluck(:id, :duration).map { |id, duration| { id: id, duration: duration } }
+    track_array = tracks.pluck(:id, :duration_sec).map { |id, duration_sec| { id: id, duration: duration_sec } }
 
     # Shuffle for random selection
     track_array.shuffle!
@@ -60,6 +60,6 @@ class AudioCompositionService
   private
 
   def available_tracks
-    @available_tracks ||= content.tracks.completed.where.not(duration: nil)
+    @available_tracks ||= content.tracks.completed.where.not(duration_sec: nil)
   end
 end

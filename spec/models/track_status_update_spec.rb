@@ -86,7 +86,7 @@ RSpec.describe Track, type: :model do
       context "when non-status attributes change" do
         it "does not broadcast" do
           expect(ActionCable.server).not_to receive(:broadcast)
-          track.update!(duration: 120)
+          track.update!(duration_sec: 120)
         end
       end
     end

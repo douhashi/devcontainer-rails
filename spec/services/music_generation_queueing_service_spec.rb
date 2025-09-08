@@ -1,27 +1,29 @@
 require 'rails_helper'
 
 RSpec.describe MusicGenerationQueueingService do
-  let(:content) { create(:content, duration: 600) } # 10 minutes
+  let(:content) { create(:content, duration_min: 10) } # 10 minutes
   let(:service) { described_class.new(content) }
 
   describe '.calculate_music_generation_count' do
     it 'calculates the correct number of music generations needed' do
       # Each music generation creates 2 tracks (240 seconds each = 480 seconds total)
-      # 600 seconds / 480 seconds = 1.25 -> 2 generations needed
-      expect(described_class.calculate_music_generation_count(600)).to eq(2)
+      # 10 minutes = 600 seconds / 480 seconds = 1.25 -> 2 generations needed
+      expect(described_class.calculate_music_generation_count(10)).to eq(2)
     end
 
     it 'rounds up when duration is not evenly divisible' do
-      expect(described_class.calculate_music_generation_count(500)).to eq(2)
+      # 8.33 minutes = 500 seconds / 480 seconds = 1.04 -> 2 generations needed
+      expect(described_class.calculate_music_generation_count(8.33)).to eq(2)
     end
 
     it 'returns 1 for short durations' do
-      expect(described_class.calculate_music_generation_count(100)).to eq(1)
+      # 1.67 minutes = 100 seconds / 480 seconds = 0.21 -> 1 generation needed (minimum)
+      expect(described_class.calculate_music_generation_count(1.67)).to eq(1)
     end
 
     it 'handles large durations' do
-      # 3600 seconds / 480 seconds = 7.5 -> 8 generations
-      expect(described_class.calculate_music_generation_count(3600)).to eq(8)
+      # 60 minutes = 3600 seconds / 480 seconds = 7.5 -> 8 generations
+      expect(described_class.calculate_music_generation_count(60)).to eq(8)
     end
   end
 

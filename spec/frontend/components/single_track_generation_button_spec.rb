@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe SingleTrackGenerationButton::Component, type: :component do
-  let(:content) { create(:content, duration: 10, audio_prompt: 'Test prompt') }
+  let(:content) { create(:content, duration_min: 10, audio_prompt: 'Test prompt') }
   subject(:component) { described_class.new(content_record: content) }
 
   describe '#initialize' do
@@ -18,7 +18,7 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
     end
 
     context 'when duration is missing' do
-      let(:content) { build(:content, duration: nil, audio_prompt: 'Test prompt') }
+      let(:content) { build(:content, duration_min: nil, audio_prompt: 'Test prompt') }
 
       it 'returns false' do
         expect(component.can_generate?).to be false
@@ -26,7 +26,7 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
     end
 
     context 'when audio_prompt is missing' do
-      let(:content) { build(:content, duration: 10, audio_prompt: nil) }
+      let(:content) { build(:content, duration_min: 10, audio_prompt: nil) }
 
       it 'returns false' do
         expect(component.can_generate?).to be false
@@ -72,7 +72,7 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
     end
 
     context 'when duration is missing' do
-      let(:content) { build(:content, duration: nil, audio_prompt: 'Test prompt') }
+      let(:content) { build(:content, duration_min: nil, audio_prompt: 'Test prompt') }
 
       it 'returns appropriate message' do
         expect(component.disability_reason).to eq("動画の長さが設定されていません")
@@ -80,7 +80,7 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
     end
 
     context 'when audio_prompt is missing' do
-      let(:content) { build(:content, duration: 10, audio_prompt: nil) }
+      let(:content) { build(:content, duration_min: 10, audio_prompt: nil) }
 
       it 'returns appropriate message' do
         expect(component.disability_reason).to eq("音楽生成プロンプトが設定されていません")

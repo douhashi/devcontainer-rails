@@ -6,7 +6,7 @@ class Content < ApplicationRecord
   has_one :video, dependent: :destroy
 
   validates :theme, presence: true, length: { maximum: 256 }
-  validates :duration, presence: true, numericality: { greater_than: 0 }
+  validates :duration_min, presence: true, numericality: { greater_than: 0 }
   validates :audio_prompt, presence: true, length: { maximum: 1000 }
 
   # Ransack configuration
@@ -17,7 +17,7 @@ class Content < ApplicationRecord
   def required_track_count
     # Use MusicGenerationQueueingService to calculate based on music generations
     # Each generation produces 2 tracks
-    MusicGenerationQueueingService.calculate_music_generation_count(duration) * 2
+    MusicGenerationQueueingService.calculate_music_generation_count(duration_min) * 2
   end
 
   def track_progress
@@ -45,7 +45,7 @@ class Content < ApplicationRecord
   end
 
   def required_music_generation_count
-    MusicGenerationQueueingService.calculate_music_generation_count(duration)
+    MusicGenerationQueueingService.calculate_music_generation_count(duration_min)
   end
 
   def artwork_status

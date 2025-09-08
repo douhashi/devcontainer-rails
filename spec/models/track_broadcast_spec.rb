@@ -25,7 +25,7 @@ RSpec.describe Track, type: :model do
       context "when other attributes change" do
         it "does not call broadcast" do
           expect(track).not_to receive(:broadcast_status_update)
-          track.update!(duration: 120)
+          track.update!(duration_sec: 120)
         end
       end
     end

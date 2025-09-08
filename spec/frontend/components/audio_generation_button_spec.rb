@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe AudioGenerationButton::Component, type: :component do
-  let(:content) { create(:content, duration: 10) }
+  let(:content) { create(:content, duration_min: 10) }
   let(:component) { described_class.new(content_record: content) }
 
   describe 'initialization' do
@@ -19,8 +19,8 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
   describe 'private methods' do
     let!(:artwork) { create(:artwork, content: content) }
-    let!(:completed_track1) { create(:track, content: content, status: :completed, duration: 180) }
-    let!(:completed_track2) { create(:track, content: content, status: :completed, duration: 150) }
+    let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
+    let!(:completed_track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
 
     describe '#can_generate_audio?' do
       context 'with all prerequisites' do

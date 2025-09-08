@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Contents::Index::Component, type: :component do
-  let(:content1) { create(:content, theme: 'Study Music', duration: 12) }
-  let(:content2) { create(:content, theme: 'Work Music', duration: 30) }
+  let(:content1) { create(:content, theme: 'Study Music', duration_min: 12) }
+  let(:content2) { create(:content, theme: 'Work Music', duration_min: 30) }
   let(:contents) { [ content1, content2 ] }
   let(:component) { described_class.new(contents: contents, filter_status: filter_status) }
   let(:filter_status) { nil }

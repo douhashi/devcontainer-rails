@@ -6,7 +6,12 @@ class MusicGenerationQueueingService
     @content = content
   end
 
-  def self.calculate_music_generation_count(duration_seconds)
+  def self.calculate_music_generation_count(duration_minutes)
+    return 0 if duration_minutes.nil? || duration_minutes <= 0
+
+    # Convert duration from minutes to seconds
+    duration_seconds = duration_minutes * 60
+
     # Each generation produces 2 tracks of ~240 seconds each = 480 seconds total
     total_duration_per_generation = AVERAGE_TRACK_DURATION * TRACKS_PER_GENERATION
 
@@ -43,7 +48,7 @@ class MusicGenerationQueueingService
   end
 
   def required_music_generation_count
-    self.class.calculate_music_generation_count(@content.duration)
+    self.class.calculate_music_generation_count(@content.duration_min)
   end
 
   def existing_music_generation_count

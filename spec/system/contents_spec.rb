@@ -40,7 +40,7 @@ RSpec.describe "Contents", type: :system do
 
       click_link "新規作成"
       fill_in "content_theme", with: "新しいコンテンツ"
-      fill_in "content_duration", with: "3"
+      fill_in "content_duration_min", with: "3"
       fill_in "content_audio_prompt", with: "リラックスできるローファイBGM"
       click_button "Create Content"
 
@@ -57,7 +57,7 @@ RSpec.describe "Contents", type: :system do
 
       click_link "新規作成"
       fill_in "content_theme", with: "新しいコンテンツ"
-      fill_in "content_duration", with: "3"
+      fill_in "content_duration_min", with: "3"
       fill_in "content_audio_prompt", with: "リラックスできるローファイBGM"
       click_button "Create Content"
 

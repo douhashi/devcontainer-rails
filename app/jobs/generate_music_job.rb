@@ -157,7 +157,7 @@ class GenerateMusicJob < ApplicationJob
       track.metadata["audio_id"] = music_data[:audio_id] if music_data[:audio_id].present?
 
       if music_data[:duration].present?
-        track.duration = music_data[:duration].to_i
+        track.duration_sec = music_data[:duration].to_i
       else
         analyze_and_store_duration(track, audio_path)
       end
@@ -175,7 +175,7 @@ class GenerateMusicJob < ApplicationJob
   def analyze_and_store_duration(track, audio_path)
     analysis_service = AudioAnalysisService.new
     duration = analysis_service.analyze_duration(audio_path)
-    track.duration = duration
+    track.duration_sec = duration
 
     Rails.logger.info "Analyzed duration for Track ##{track.id}: #{duration} seconds"
   rescue StandardError => e

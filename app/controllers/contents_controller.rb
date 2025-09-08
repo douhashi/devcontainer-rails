@@ -56,7 +56,7 @@ class ContentsController < ApplicationController
 
     begin
       music_generations = service.queue_tracks!
-      track_count = TrackQueueingService.calculate_track_count(@content.duration)
+      track_count = TrackQueueingService.calculate_track_count(@content.duration_min)
 
       Rails.logger.info "Generated #{music_generations.count} music generations for Content ##{@content.id} (expecting #{track_count} tracks)"
       redirect_to @content, notice: "#{track_count} tracks were queued for generation."
@@ -118,7 +118,7 @@ class ContentsController < ApplicationController
   end
 
   def content_params
-    params.require(:content).permit(:theme, :duration, :audio_prompt)
+    params.require(:content).permit(:theme, :duration_min, :audio_prompt)
   end
 
   def audio_generation_prerequisites_met?
@@ -126,7 +126,7 @@ class ContentsController < ApplicationController
     return false unless @content.artwork.present?
 
     # Check if we have enough completed tracks with duration information
-    completed_tracks_count = @content.tracks.completed.where.not(duration: nil).count
+    completed_tracks_count = @content.tracks.completed.where.not(duration_sec: nil).count
     completed_tracks_count >= 2 # Minimum tracks required for audio generation
   end
 
@@ -141,7 +141,7 @@ class ContentsController < ApplicationController
       errors << "Artwork must be configured"
     end
 
-    completed_tracks_count = @content.tracks.completed.where.not(duration: nil).count
+    completed_tracks_count = @content.tracks.completed.where.not(duration_sec: nil).count
     if completed_tracks_count < 2
       errors << "At least 2 completed tracks with duration information are required"
     end

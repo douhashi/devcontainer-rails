@@ -16,7 +16,7 @@
       </div>
     <% end %>
     
-    <% if track.duration.present? %>
+    <% if track.duration_sec.present? %>
       <div class="flex">
         <span class="font-medium text-gray-600 w-32">再生時間:</span>
         <span class="text-gray-900"><%= track.formatted_duration %></span>

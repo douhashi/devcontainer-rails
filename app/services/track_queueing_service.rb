@@ -19,7 +19,7 @@ class TrackQueueingService
   def queue_tracks!
     validate!
 
-    track_count = self.class.calculate_track_count(content.duration)
+    track_count = self.class.calculate_track_count(content.duration_min)
     music_generation_count = (track_count.to_f / TRACKS_PER_MUSIC_GENERATION).ceil
     music_generations = []
 
@@ -62,18 +62,18 @@ class TrackQueueingService
   private
 
   def validate!
-    raise ValidationError, "Content duration is required" if content.duration.blank?
+    raise ValidationError, "Content duration is required" if content.duration_min.blank?
     raise ValidationError, "Content audio_prompt is required" if content.audio_prompt.blank?
     raise ValidationError, "Content already has tracks being generated" if processing_tracks?
 
-    track_count = self.class.calculate_track_count(content.duration)
+    track_count = self.class.calculate_track_count(content.duration_min)
     if would_exceed_limit?(track_count)
       raise ValidationError, "Content would exceed maximum track limit (#{MAX_TRACKS_PER_CONTENT})"
     end
   end
 
   def validate_single_track!
-    raise ValidationError, "Content duration is required" if content.duration.blank?
+    raise ValidationError, "Content duration is required" if content.duration_min.blank?
     raise ValidationError, "Content audio_prompt is required" if content.audio_prompt.blank?
     raise ValidationError, "Content already has tracks being generated" if processing_tracks?
 

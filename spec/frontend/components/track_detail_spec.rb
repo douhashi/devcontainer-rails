@@ -44,7 +44,7 @@ describe TrackDetail::Component, type: :view_component do
   describe 'rendering' do
     context 'with full metadata' do
       before do
-        track.update!(duration: 240)
+        track.update!(duration_sec: 240)
       end
 
       it 'renders all metadata fields' do

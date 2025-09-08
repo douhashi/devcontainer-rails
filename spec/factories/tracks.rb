@@ -14,7 +14,7 @@ FactoryBot.define do
 
     trait :completed do
       status { :completed }
-      duration { 180 }
+      duration_sec { 180 }
       metadata do
         {
           "kie_response" => {
@@ -54,15 +54,15 @@ FactoryBot.define do
     end
 
     trait :with_short_duration do
-      duration { 90 }
+      duration_sec { 90 }
     end
 
     trait :with_long_duration do
-      duration { 300 }
+      duration_sec { 300 }
     end
 
     trait :with_very_long_duration do
-      duration { 3665 } # Over 1 hour
+      duration_sec { 3665 } # Over 1 hour
     end
   end
 end

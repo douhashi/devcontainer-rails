@@ -9,7 +9,7 @@ class Track < ApplicationRecord
 
   validates :content, presence: true
   validates :status, presence: true
-  validates :duration, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :duration_sec, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :variant_index, inclusion: { in: [ 0, 1 ] }, allow_nil: true
 
   scope :recent, -> { order(created_at: :desc) }
@@ -49,9 +49,9 @@ class Track < ApplicationRecord
   end
 
   def formatted_duration
-    return "未取得" if duration.nil?
+    return "未取得" if duration_sec.nil?
 
-    total_seconds = duration
+    total_seconds = duration_sec
     hours = total_seconds / 3600
     minutes = (total_seconds % 3600) / 60
     seconds = total_seconds % 60

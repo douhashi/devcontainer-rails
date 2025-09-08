@@ -1,12 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe AudioCompositionService do
-  let(:content) { create(:content, duration: 10) }
-  let!(:completed_track1) { create(:track, content: content, status: :completed, duration: 180) }
-  let!(:completed_track2) { create(:track, content: content, status: :completed, duration: 150) }
-  let!(:completed_track3) { create(:track, content: content, status: :completed, duration: 200) }
-  let!(:completed_track4) { create(:track, content: content, status: :completed, duration: 120) }
-  let!(:completed_track5) { create(:track, content: content, status: :completed, duration: 190) }
+  let(:content) { create(:content, duration_min: 10) }
+  let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
+  let!(:completed_track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
+  let!(:completed_track3) { create(:track, content: content, status: :completed, duration_sec: 200) }
+  let!(:completed_track4) { create(:track, content: content, status: :completed, duration_sec: 120) }
+  let!(:completed_track5) { create(:track, content: content, status: :completed, duration_sec: 190) }
   let!(:pending_track) { create(:track, content: content, status: :pending) }
   let!(:failed_track) { create(:track, content: content, status: :failed) }
 
@@ -25,7 +25,7 @@ RSpec.describe AudioCompositionService do
 
         expect(result).to be_a(Hash)
         expect(result[:selected_tracks]).to be_an(Array)
-        expect(result[:total_duration]).to be >= content.duration * 60
+        expect(result[:total_duration]).to be >= content.duration_min * 60
         expect(result[:tracks_used]).to be > 0
       end
 
@@ -46,15 +46,15 @@ RSpec.describe AudioCompositionService do
 
       it 'meets minimum duration requirement' do
         result = service.select_tracks
-        target_duration = content.duration * 60
+        target_duration = content.duration_min * 60
 
         expect(result[:total_duration]).to be >= target_duration
       end
     end
 
     context 'with insufficient completed tracks' do
-      let(:content_with_few_tracks) { create(:content, duration: 60) }
-      let!(:single_track) { create(:track, content: content_with_few_tracks, status: :completed, duration: 120) }
+      let(:content_with_few_tracks) { create(:content, duration_min: 60) }
+      let!(:single_track) { create(:track, content: content_with_few_tracks, status: :completed, duration_sec: 120) }
       let(:service_with_few_tracks) { described_class.new(content_with_few_tracks) }
 
       it 'raises error when not enough tracks' do
@@ -65,7 +65,7 @@ RSpec.describe AudioCompositionService do
     end
 
     context 'with no completed tracks' do
-      let(:content_no_tracks) { create(:content, duration: 10) }
+      let(:content_no_tracks) { create(:content, duration_min: 10) }
       let(:service_no_tracks) { described_class.new(content_no_tracks) }
 
       it 'raises error when no completed tracks' do

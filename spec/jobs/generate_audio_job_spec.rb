@@ -1,11 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe GenerateAudioJob do
-  let(:content) { create(:content, duration: 10) }
+  let(:content) { create(:content, duration_min: 10) }
   let(:audio) { create(:audio, content: content, status: :pending) }
-  let(:track1) { create(:track, content: content, status: :completed, duration: 180) }
-  let(:track2) { create(:track, content: content, status: :completed, duration: 150) }
-  let(:track3) { create(:track, content: content, status: :completed, duration: 200) }
+  let(:track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
+  let(:track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
+  let(:track3) { create(:track, content: content, status: :completed, duration_sec: 200) }
 
   let(:job) { described_class.new }
 
@@ -92,9 +92,9 @@ RSpec.describe GenerateAudioJob do
         selected_tracks = [ track1, track2 ]
         composition_result = {
           selected_tracks: selected_tracks,
-          total_duration: 330,
+          total_duration_min: 330,
           tracks_used: 2,
-          target_duration: 600
+          target_duration_min: 600
         }
 
         allow(AudioCompositionService).to receive(:new).with(content).and_return(composition_service)
@@ -111,11 +111,11 @@ RSpec.describe GenerateAudioJob do
         audio.reload
         expect(audio.processing?).to be true
         expect(audio.metadata['tracks_used']).to eq(2)
-        expect(audio.metadata['total_duration']).to eq(330)
+        expect(audio.metadata['total_duration_min']).to eq(330)
       end
 
       context 'when insufficient tracks' do
-        let(:empty_content) { create(:content, duration: 60) }
+        let(:empty_content) { create(:content, duration_min: 60) }
         let(:empty_audio) { create(:audio, content: empty_content, status: :pending) }
 
         before do
@@ -147,9 +147,9 @@ RSpec.describe GenerateAudioJob do
           selected_tracks = [ track1, track2 ]
           composition_result = {
             selected_tracks: selected_tracks,
-            total_duration: 330,
+            total_duration_min: 330,
             tracks_used: 2,
-            target_duration: 600
+            target_duration_min: 600
           }
 
           allow(AudioCompositionService).to receive(:new).and_return(composition_service)

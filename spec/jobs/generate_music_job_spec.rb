@@ -139,12 +139,12 @@ RSpec.describe GenerateMusicJob, type: :job do
           expect(tracks[0].variant_index).to eq(0)
           expect(tracks[0].metadata["music_title"]).to eq("Track 1")
           expect(tracks[0].metadata["audio_id"]).to eq("audio-1")
-          expect(tracks[0].duration).to eq(180)
+          expect(tracks[0].duration_sec).to eq(180)
 
           expect(tracks[1].variant_index).to eq(1)
           expect(tracks[1].metadata["music_title"]).to eq("Track 2")
           expect(tracks[1].metadata["audio_id"]).to eq("audio-2")
-          expect(tracks[1].duration).to eq(185)
+          expect(tracks[1].duration_sec).to eq(185)
         end
       end
 

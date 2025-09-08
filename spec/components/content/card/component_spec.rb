@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Content::Card::Component, type: :component do
-  let(:content) { create(:content, theme: 'LoFi Study Music', duration: 12, audio_prompt: 'Chill beats for studying') }
+  let(:content) { create(:content, theme: 'LoFi Study Music', duration_min: 12, audio_prompt: 'Chill beats for studying') }
   let(:component) { described_class.new(item: content) }
 
   before do

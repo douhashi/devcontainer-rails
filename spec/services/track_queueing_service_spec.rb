@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe TrackQueueingService do
   include ActiveJob::TestHelper
-  let(:content) { create(:content, duration: 10, audio_prompt: 'Custom lo-fi beat') }
+  let(:content) { create(:content, duration_min: 10, audio_prompt: 'Custom lo-fi beat') }
 
   describe '.calculate_track_count' do
     it 'calculates correct track count based on duration formula' do
@@ -83,7 +83,7 @@ RSpec.describe TrackQueueingService do
 
       context 'with different durations' do
         it 'creates correct number of music generations for 6 duration' do
-          content.update!(duration: 6)
+          content.update!(duration_min: 6)
           # 6 tracks needed, ceil(6/2) = 3 MusicGeneration
           expect {
             service.queue_tracks!
@@ -91,7 +91,7 @@ RSpec.describe TrackQueueingService do
         end
 
         it 'creates correct number of music generations for 120 duration' do
-          content.update!(duration: 120)
+          content.update!(duration_min: 120)
           # 25 tracks needed, ceil(25/2) = 13 MusicGeneration
           expect {
             service.queue_tracks!
@@ -102,7 +102,7 @@ RSpec.describe TrackQueueingService do
 
     context 'when validation fails' do
       context 'when duration is missing' do
-        let(:invalid_content) { Content.new(theme: 'test', duration: nil, audio_prompt: 'test') }
+        let(:invalid_content) { Content.new(theme: 'test', duration_min: nil, audio_prompt: 'test') }
         let(:service) { described_class.new(invalid_content) }
 
         it 'raises ValidationError' do
@@ -114,7 +114,7 @@ RSpec.describe TrackQueueingService do
       end
 
       context 'when audio_prompt is missing' do
-        let(:invalid_content) { Content.new(theme: 'test', duration: 10, audio_prompt: nil) }
+        let(:invalid_content) { Content.new(theme: 'test', duration_min: 10, audio_prompt: nil) }
         let(:service) { described_class.new(invalid_content) }
 
         it 'raises ValidationError' do
@@ -152,7 +152,7 @@ RSpec.describe TrackQueueingService do
       end
 
       context 'when long duration content exceeds track limit' do
-        let(:long_content) { create(:content, duration: 600, audio_prompt: 'Long music') }
+        let(:long_content) { create(:content, duration_min: 600, audio_prompt: 'Long music') }
         let(:service) { described_class.new(long_content) }
 
         it 'raises ValidationError for 600 minutes content' do
@@ -174,7 +174,7 @@ RSpec.describe TrackQueueingService do
     end
 
     it 'validates duration presence' do
-      invalid_content = Content.new(theme: 'test', duration: nil, audio_prompt: 'test')
+      invalid_content = Content.new(theme: 'test', duration_min: nil, audio_prompt: 'test')
       service = described_class.new(invalid_content)
 
       expect { service.send(:validate!) }.to raise_error(
@@ -184,7 +184,7 @@ RSpec.describe TrackQueueingService do
     end
 
     it 'validates audio_prompt presence' do
-      invalid_content = Content.new(theme: 'test', duration: 10, audio_prompt: nil)
+      invalid_content = Content.new(theme: 'test', duration_min: 10, audio_prompt: nil)
       service = described_class.new(invalid_content)
 
       expect { service.send(:validate!) }.to raise_error(
@@ -302,7 +302,7 @@ RSpec.describe TrackQueueingService do
 
     context 'when validation fails' do
       context 'when duration is missing' do
-        let(:invalid_content) { Content.new(theme: 'test', duration: nil, audio_prompt: 'test') }
+        let(:invalid_content) { Content.new(theme: 'test', duration_min: nil, audio_prompt: 'test') }
         let(:service) { described_class.new(invalid_content) }
 
         it 'raises ValidationError' do
@@ -314,7 +314,7 @@ RSpec.describe TrackQueueingService do
       end
 
       context 'when audio_prompt is missing' do
-        let(:invalid_content) { Content.new(theme: 'test', duration: 10, audio_prompt: nil) }
+        let(:invalid_content) { Content.new(theme: 'test', duration_min: 10, audio_prompt: nil) }
         let(:service) { described_class.new(invalid_content) }
 
         it 'raises ValidationError' do

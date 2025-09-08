@@ -70,7 +70,7 @@ RSpec.describe "Contents", type: :request do
   end
 
   describe "GET /contents/:id" do
-    let(:content) { create(:content, theme: "テストテーマ", duration: 10, audio_prompt: "テスト用プロンプト") }
+    let(:content) { create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト") }
 
     it "displays content details including new fields" do
       get content_path(content)
@@ -124,7 +124,7 @@ RSpec.describe "Contents", type: :request do
           post contents_path, params: {
             content: {
               theme: "新しいテーマ",
-              duration: 5,
+              duration_min: 5,
               audio_prompt: "リラックスできるBGMを生成してください"
             }
           }
@@ -136,28 +136,28 @@ RSpec.describe "Contents", type: :request do
 
         content = Content.last
         expect(content.theme).to eq("新しいテーマ")
-        expect(content.duration).to eq(5)
+        expect(content.duration_min).to eq(5)
         expect(content.audio_prompt).to eq("リラックスできるBGMを生成してください")
       end
     end
 
     context "with invalid params" do
       it "renders new template with errors when theme is blank" do
-        post contents_path, params: { content: { theme: "", duration: 5, audio_prompt: "test" } }
+        post contents_path, params: { content: { theme: "", duration_min: 5, audio_prompt: "test" } }
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")
       end
 
       it "renders new template with errors when duration is invalid" do
-        post contents_path, params: { content: { theme: "test", duration: 0, audio_prompt: "test" } }
+        post contents_path, params: { content: { theme: "test", duration_min: 0, audio_prompt: "test" } }
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")
       end
 
       it "renders new template with errors when audio_prompt is blank" do
-        post contents_path, params: { content: { theme: "test", duration: 5, audio_prompt: "" } }
+        post contents_path, params: { content: { theme: "test", duration_min: 5, audio_prompt: "" } }
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")
@@ -178,14 +178,14 @@ RSpec.describe "Contents", type: :request do
   end
 
   describe "PATCH /contents/:id" do
-    let(:content) { create(:content, theme: "古いテーマ", duration: 3, audio_prompt: "古いプロンプト") }
+    let(:content) { create(:content, theme: "古いテーマ", duration_min: 3, audio_prompt: "古いプロンプト") }
 
     context "with valid params" do
       it "updates the content with all fields" do
         patch content_path(content), params: {
           content: {
             theme: "更新されたテーマ",
-            duration: 10,
+            duration_min: 10,
             audio_prompt: "更新されたプロンプト"
           }
         }
@@ -208,7 +208,7 @@ RSpec.describe "Contents", type: :request do
       end
 
       it "renders edit template with errors when duration is invalid" do
-        patch content_path(content), params: { content: { duration: 0 } }
+        patch content_path(content), params: { content: { duration_min: 0 } }
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")
@@ -231,7 +231,7 @@ RSpec.describe "Contents", type: :request do
   end
 
   describe "POST /contents/:id/generate_tracks" do
-    let(:content) { create(:content, theme: "テストテーマ", duration: 10, audio_prompt: "テスト用プロンプト") }
+    let(:content) { create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト") }
 
     context "with valid content" do
       it "generates tracks successfully" do
@@ -291,7 +291,7 @@ RSpec.describe "Contents", type: :request do
   end
 
   describe "POST /contents/:id/generate_single_track" do
-    let(:content) { create(:content, theme: "テストテーマ", duration: 10, audio_prompt: "テスト用プロンプト") }
+    let(:content) { create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト") }
 
     context "with valid content" do
       it "generates a music generation successfully" do
