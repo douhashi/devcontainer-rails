@@ -1,0 +1,25 @@
+<div class="space-y-4 p-4 bg-gray-800">
+  <h3 class="text-lg font-semibold text-white mb-4">TrackStatusBadge::Component - All Statuses</h3>
+  
+  <div class="space-y-3">
+    <div class="flex items-center space-x-3">
+      <span class="text-gray-300 w-20">Pending:</span>
+      <%= render TrackStatusBadge::Component.new(track: build(:track, :pending)) %>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <span class="text-gray-300 w-20">Processing:</span>
+      <%= render TrackStatusBadge::Component.new(track: build(:track, :processing)) %>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <span class="text-gray-300 w-20">Completed:</span>
+      <%= render TrackStatusBadge::Component.new(track: build(:track, :completed)) %>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <span class="text-gray-300 w-20">Failed:</span>
+      <%= render TrackStatusBadge::Component.new(track: build(:track, :failed)) %>
+    </div>
+  </div>
+</div>

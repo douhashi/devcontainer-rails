@@ -50,28 +50,7 @@
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <% case track.status %>
-                <% when "pending" %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600 text-gray-200">
-                    待機中
-                  </span>
-                <% when "processing" %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-600 text-yellow-200">
-                    処理中
-                  </span>
-                <% when "completed" %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-600 text-green-200">
-                    完了
-                  </span>
-                <% when "failed" %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-600 text-red-200">
-                    失敗
-                  </span>
-                <% else %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600 text-gray-200">
-                    <%= track.status %>
-                  </span>
-                <% end %>
+                <%= render TrackStatusBadge::Component.new(track: track) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                 <%= l(track.created_at, format: :short) %>
