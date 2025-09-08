@@ -110,5 +110,26 @@ module AudioGenerationButton
 
       content_record.audio.audio&.url
     end
+
+    def tooltip_text
+      errors = prerequisite_errors
+      return nil if errors.empty?
+
+      errors.join(" / ")
+    end
+
+    def button_attributes
+      {
+        disabled: disabled?,
+        title: disabled? ? tooltip_text : nil,
+        class: button_classes,
+        data: {
+          controller: "audio-generation",
+          action: "click->audio-generation#generate",
+          audio_generation_content_id_value: content_record.id,
+          turbo_confirm: (audio_status == "completed" ? "既存の音源を置き換えます。よろしいですか？" : nil)
+        }
+      }
+    end
   end
 end

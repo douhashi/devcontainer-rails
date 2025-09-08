@@ -64,51 +64,19 @@
     </div>
   <% end %>
 
-  <!-- Prerequisites Check -->
-  <% unless can_generate_video? %>
-    <div class="mb-4 p-4 bg-yellow-900 bg-opacity-20 border border-yellow-500 rounded-lg">
-      <div class="flex items-center mb-2">
-        <span class="text-yellow-400 text-lg mr-2">⚠️</span>
-        <h4 class="text-yellow-400 font-medium">動画生成の前提条件</h4>
-      </div>
-      <ul class="text-yellow-200 text-sm space-y-1">
-        <% prerequisite_errors.each do |error| %>
-          <li class="flex items-start">
-            <span class="mr-2 mt-0.5">•</span>
-            <%= error %>
-          </li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
   <!-- Generation Button -->
   <div class="flex items-center gap-4">
-    <% if can_generate_video? %>
-      <%= button_to content_video_path(content_record), 
-            method: :post,
-            class: button_classes,
-            disabled: disabled?,
-            data: {
-              controller: "video-generation",
-              action: "click->video-generation#generate",
-              video_generation_content_id_value: content_record.id,
-              turbo_confirm: (video_status == 'completed' ? "既存の動画を置き換えます。よろしいですか？" : nil)
-            } do %>
-        <span class="mr-2"><%= status_icon %></span>
-        <%= button_text %>
-        <% if processing? %>
-          <svg class="animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        <% end %>
+    <%= button_to content_video_path(content_record), 
+          method: :post,
+          **button_attributes do %>
+      <span class="mr-2"><%= status_icon %></span>
+      <%= button_text %>
+      <% if processing? %>
+        <svg class="animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       <% end %>
-    <% else %>
-      <button disabled class="<%= button_classes %>">
-        <span class="mr-2">🚫</span>
-        <%= button_text %>
-      </button>
     <% end %>
 
     <!-- Delete Button (if video exists) -->
@@ -123,15 +91,6 @@
         削除
       <% end %>
     <% end %>
-
-    <!-- Help Text -->
-    <div class="text-sm text-gray-400">
-      <% if can_generate_video? %>
-        音源とアートワークから YouTube 最適化動画を生成します
-      <% else %>
-        上記の条件を満たしてから動画生成を実行してください
-      <% end %>
-    </div>
   </div>
 </div>
 

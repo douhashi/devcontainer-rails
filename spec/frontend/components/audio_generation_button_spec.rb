@@ -128,5 +128,43 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
         end
       end
     end
+
+    describe '#tooltip_text' do
+      context 'when prerequisites are not met' do
+        let(:component_without_prereqs) { described_class.new(content_record: create(:content)) }
+
+        it 'returns concatenated error messages' do
+          tooltip = component_without_prereqs.send(:tooltip_text)
+          expect(tooltip).to include('完成したトラックが必要です')
+        end
+      end
+
+      context 'when all prerequisites are met' do
+        it 'returns nil' do
+          tooltip = component.send(:tooltip_text)
+          expect(tooltip).to be_nil
+        end
+      end
+    end
+
+    describe '#button_attributes' do
+      context 'when disabled' do
+        let(:component_without_prereqs) { described_class.new(content_record: create(:content)) }
+
+        it 'includes disabled attribute and tooltip' do
+          attrs = component_without_prereqs.send(:button_attributes)
+          expect(attrs[:disabled]).to be true
+          expect(attrs[:title]).to be_present
+        end
+      end
+
+      context 'when enabled' do
+        it 'does not include disabled attribute' do
+          attrs = component.send(:button_attributes)
+          expect(attrs[:disabled]).to be false
+          expect(attrs[:title]).to be_nil
+        end
+      end
+    end
   end
 end

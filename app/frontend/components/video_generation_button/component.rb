@@ -111,4 +111,25 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     remaining_seconds = seconds % 60
     "#{minutes}:#{remaining_seconds.to_s.rjust(2, '0')}"
   end
+
+  def tooltip_text
+    errors = prerequisite_errors
+    return nil if errors.empty?
+
+    errors.join(" / ")
+  end
+
+  def button_attributes
+    {
+      disabled: disabled?,
+      title: disabled? ? tooltip_text : nil,
+      class: button_classes,
+      data: {
+        controller: "video-generation",
+        action: "click->video-generation#generate",
+        video_generation_content_id_value: content_record.id,
+        turbo_confirm: (video_status == "completed" ? "既存の動画を置き換えます。よろしいですか？" : nil)
+      }
+    }
+  end
 end
