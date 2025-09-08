@@ -58,14 +58,14 @@ RSpec.describe Contents::Show::Component, type: :component do
 
     it 'renders content details and navigation' do
       expect(subject.text).to include('Study Music')
-      expect(subject.text).to include('12分')
+      expect(subject.text).to include('12 分')  # スペースが追加されたため
       expect(subject.text).to include('Chill beats for studying')
       expect(subject.text).to include('一覧に戻る')
     end
 
-    it 'displays enhanced status summary' do
-      expect(subject.css('.status-overview')).to be_present
-      expect(subject.text).to include('制作ステータス')
+    it 'does not display complex status summary section' do
+      expect(subject.css('.status-overview')).not_to be_present
+      expect(subject.text).not_to include('制作ステータス')
     end
 
     it 'shows track list when tracks exist' do
@@ -92,6 +92,19 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(subject.css('[data-status="in_progress"]')).to be_present
     end
 
+    it 'displays theme prominently' do
+      expect(subject.css('h1').text).to include('Study Music')
+    end
+
+    it 'displays audio prompt clearly' do
+      expect(subject.css('.bg-gray-900').text).to include('Chill beats for studying')
+    end
+
+    it 'shows creation and update dates' do
+      expect(subject.text).to include('作成日時')
+      expect(subject.text).to include('更新日時')
+    end
+
     context 'with completed content' do
       before do
         allow(content).to receive(:track_progress).and_return({ completed: 7, total: 7, percentage: 100.0 })
@@ -105,14 +118,14 @@ RSpec.describe Contents::Show::Component, type: :component do
         expect(result.css('[data-status="completed"]')).to be_present
       end
 
-      it 'shows success message when completed' do
+      it 'does not show complex status message' do
         result = render_inline(component)
-        expect(result.text).to include('すべての作業が完了しました')
+        expect(result.text).not_to include('すべての作業が完了しました！この楽曲は準備完了です。')
       end
 
-      it 'hides next actions when everything is complete' do
+      it 'does not show next actions when everything is complete' do
         result = render_inline(component)
-        expect(result.css('.next-actions.hidden')).to be_present
+        expect(result.css('.next-actions')).not_to be_present
       end
     end
 
@@ -128,33 +141,21 @@ RSpec.describe Contents::Show::Component, type: :component do
     end
   end
 
-  describe 'progress visualization' do
+  describe 'simplified interface' do
     subject { render_inline(component) }
 
-    it 'renders circular progress chart' do
-      expect(subject.css('.progress-circle')).to be_present
+    it 'does not render complex progress charts' do
+      expect(subject.css('.progress-circle')).not_to be_present
     end
 
-    it 'shows track status breakdown with icons' do
-      expect(subject.css('.track-status-item')).to be_present
+    it 'does not show detailed track status breakdown' do
+      expect(subject.css('.track-status-item')).not_to be_present
     end
 
-    context 'with MusicGeneration progress' do
-      before do
-        allow(content).to receive(:music_generation_progress).and_return({
-          completed: 1,
-          total: 2,
-          percentage: 50.0
-        })
-      end
-
-      it 'shows both MusicGeneration and Track progress' do
-        result = render_inline(component)
-        expect(result.text).to include('生成回数')
-        expect(result.text).to include('1/2回')
-        expect(result.text).to include('トラック数')
-        expect(result.text).to include('3/7曲')
-      end
+    it 'does not show progress bars' do
+      expect(subject.text).not_to include('生成回数')
+      expect(subject.text).not_to include('トラック数')
+      expect(subject.text).not_to include('3/7曲')
     end
   end
 

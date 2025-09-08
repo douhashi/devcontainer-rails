@@ -77,18 +77,18 @@ RSpec.describe "Contents", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("テストテーマ")
-      expect(response.body).to include("10分")
+      expect(response.body).to include("10 分")  # スペースが追加された
       expect(response.body).to include("テスト用プロンプト")
       expect(response.body).to include("作成日時")
       expect(response.body).to include("更新日時")
     end
 
-    it "displays enhanced status overview" do
+    it "does not display complex status overview" do
       get content_path(content)
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("制作ステータス")
-      expect(response.body).to include("トラック進捗")
+      expect(response.body).not_to include("制作ステータス")
+      expect(response.body).not_to include("トラック進捗")
     end
 
     it "displays status badge" do
@@ -194,7 +194,7 @@ RSpec.describe "Contents", type: :request do
         follow_redirect!
         expect(response.body).to include("Content was successfully updated")
         expect(response.body).to include("更新されたテーマ")
-        expect(response.body).to include("10分")
+        expect(response.body).to include("10 分")
         expect(response.body).to include("更新されたプロンプト")
       end
     end
