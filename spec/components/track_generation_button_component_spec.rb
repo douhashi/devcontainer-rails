@@ -10,9 +10,9 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
 
         expect(rendered).to have_css('button[data-controller="track-generation"]')
         expect(rendered).to have_css('button:not([disabled])')
-        expect(rendered).to have_text('BGM生成開始（2回の生成で4曲）')
-        expect(rendered).to have_css('[data-track-generation-music-generation-count-value="2"]')
-        expect(rendered).to have_css('[data-track-generation-track-count-value="4"]')
+        expect(rendered).to have_text('BGM生成開始（7回の生成で14曲）')
+        expect(rendered).to have_css('[data-track-generation-music-generation-count-value="7"]')
+        expect(rendered).to have_css('[data-track-generation-track-count-value="14"]')
         expect(rendered).to have_css('[data-track-generation-url-value]')
       end
 
@@ -20,7 +20,7 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
         rendered = render_inline(described_class.new(content_record: content))
 
         expect(rendered).to have_css('[data-track-generation-confirmation-message-value]')
-        expect(rendered.to_html).to include('2回の音楽生成で4曲のトラックを作成します')
+        expect(rendered.to_html).to include('7回の音楽生成で14曲のトラックを作成します')
       end
     end
 
@@ -44,7 +44,7 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
         rendered = render_inline(described_class.new(content_record: invalid_content))
 
         expect(rendered).to have_css('button[disabled]')
-        expect(rendered).to have_text('BGM生成開始（2回の生成で4曲）')
+        expect(rendered).to have_text('BGM生成開始（7回の生成で14曲）')
         expect(rendered).to have_text('音楽生成プロンプトが設定されていません')
         expect(rendered).not_to have_css('[data-controller="track-generation"]')
       end
@@ -74,7 +74,7 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
         rendered = render_inline(described_class.new(content_record: content))
 
         expect(rendered).to have_css('button[disabled]')
-        expect(rendered).to have_text('BGM生成開始（2回の生成で4曲）')
+        expect(rendered).to have_text('BGM生成開始（7回の生成で14曲）')
         expect(rendered).to have_text('トラック数の上限に達しています')
         expect(rendered).not_to have_css('[data-controller="track-generation"]')
       end
@@ -84,8 +84,8 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
   describe '#track_count' do
     it 'calculates track count correctly' do
       component = described_class.new(content_record: content)
-      # 10 minutes = 2 music generation * 2 tracks = 4 tracks
-      expect(component.track_count).to eq(4)
+      # 10 minutes = 7 music generation * 2 tracks = 14 tracks with new formula
+      expect(component.track_count).to eq(14)
     end
   end
 
@@ -153,8 +153,8 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     let(:component) { described_class.new(content_record: content) }
 
     it 'returns text with generation count and track count' do
-      # 10 minutes duration = 2 music generation, 4 tracks
-      expect(component.button_text).to eq('BGM生成開始（2回の生成で4曲）')
+      # 10 minutes duration = 7 music generation, 14 tracks with new formula
+      expect(component.button_text).to eq('BGM生成開始（7回の生成で14曲）')
     end
 
     it 'returns processing text when processing tracks exist' do
@@ -163,10 +163,10 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     end
 
     context 'with longer duration' do
-      let(:content) { create(:content, duration_min: 1200) } # 20 minutes = 150 generations, 300 tracks
+      let(:content) { create(:content, duration_min: 1200) } # 1200 minutes = 205 generations, 410 tracks with new formula
 
       it 'shows correct generation and track counts' do
-        expect(component.button_text).to eq('BGM生成開始（150回の生成で300曲）')
+        expect(component.button_text).to eq('BGM生成開始（205回の生成で410曲）')
       end
     end
   end
@@ -174,16 +174,17 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
   describe '#music_generation_count' do
     it 'calculates music generation count correctly' do
       component = described_class.new(content_record: content)
-      # 10 minutes = 2 music generation
-      expect(component.music_generation_count).to eq(2)
+      # 10 minutes = 7 music generation with new formula
+      expect(component.music_generation_count).to eq(7)
     end
 
     context 'with longer duration' do
-      let(:content) { create(:content, duration_min: 1200) } # 20 minutes
+      let(:content) { create(:content, duration_min: 1200) } # 1200 minutes
 
       it 'calculates correct generation count' do
         component = described_class.new(content_record: content)
-        expect(component.music_generation_count).to eq(150)
+        # 1200 minutes = (1200 / 6) + 5 = 200 + 5 = 205 generations with new formula
+        expect(component.music_generation_count).to eq(205)
       end
     end
   end

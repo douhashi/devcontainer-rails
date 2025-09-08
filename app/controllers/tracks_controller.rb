@@ -20,9 +20,10 @@ class TracksController < ApplicationController
 
   def generate_bulk
     service = MusicGenerationQueueingService.new(@content)
-    music_generations = service.queue_bulk_generation!(5)
+    recommended_count = service.required_music_generation_count
+    music_generations = service.queue_bulk_generation!(recommended_count)
 
-    flash[:success] = "音楽生成を開始しました（5件）"
+    flash[:success] = "音楽生成を開始しました（#{music_generations.size}件）"
     redirect_to content_path(@content)
   end
 

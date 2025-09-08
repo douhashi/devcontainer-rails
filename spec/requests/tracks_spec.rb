@@ -430,11 +430,12 @@ RSpec.describe "Tracks", type: :request do
 
   describe "POST /contents/:content_id/tracks/generate_bulk" do
     let(:content) { create(:content, duration_min: 600) }
+    let(:expected_generation_count) { 105 } # (600 / 6) + 5 = 105 with new formula
 
-    it "creates exactly 5 music generations" do
+    it "creates calculated number of music generations" do
       expect {
         post generate_bulk_content_tracks_path(content)
-      }.to change(MusicGeneration, :count).by(5)
+      }.to change(MusicGeneration, :count).by(expected_generation_count)
     end
 
     it "redirects to content path with success message" do
@@ -442,13 +443,14 @@ RSpec.describe "Tracks", type: :request do
 
       expect(response).to redirect_to(content_path(content))
       follow_redirect!
-      expect(response.body).to include("音楽生成を開始しました（5件）")
+      expect(response.body).to include("音楽生成を開始しました（#{expected_generation_count}件）")
     end
 
     it "creates music generations with correct attributes" do
       post generate_bulk_content_tracks_path(content)
 
-      music_generations = content.music_generations.order(:created_at).last(5)
+      music_generations = content.music_generations.order(:created_at).last(expected_generation_count)
+      expect(music_generations.size).to eq(expected_generation_count)
       music_generations.each do |mg|
         expect(mg.status).to eq('pending')
         expect(mg.prompt).to eq(content.audio_prompt)
@@ -456,10 +458,10 @@ RSpec.describe "Tracks", type: :request do
       end
     end
 
-    it "enqueues GenerateMusicGenerationJob 5 times" do
+    it "enqueues GenerateMusicGenerationJob for calculated number of times" do
       expect {
         post generate_bulk_content_tracks_path(content)
-      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(5).times
+      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(expected_generation_count).times
     end
 
     context "when music generations already exist" do
@@ -467,10 +469,10 @@ RSpec.describe "Tracks", type: :request do
         create_list(:music_generation, 10, content: content)
       end
 
-      it "still creates 5 new music generations" do
+      it "still creates calculated number of new music generations" do
         expect {
           post generate_bulk_content_tracks_path(content)
-        }.to change(MusicGeneration, :count).by(5)
+        }.to change(MusicGeneration, :count).by(expected_generation_count)
       end
     end
 
@@ -479,18 +481,18 @@ RSpec.describe "Tracks", type: :request do
         create_list(:track, 100, content: content)
       end
 
-      it "still creates 5 new music generations" do
+      it "still creates calculated number of new music generations" do
         expect {
           post generate_bulk_content_tracks_path(content)
-        }.to change(MusicGeneration, :count).by(5)
+        }.to change(MusicGeneration, :count).by(expected_generation_count)
       end
     end
 
     context "when called multiple times" do
-      it "creates 5 music generations each time" do
+      it "creates calculated number of music generations each time" do
         expect {
           3.times { post generate_bulk_content_tracks_path(content) }
-        }.to change(MusicGeneration, :count).by(15)
+        }.to change(MusicGeneration, :count).by(expected_generation_count * 3)
       end
     end
   end

@@ -5,25 +5,39 @@ RSpec.describe MusicGenerationQueueingService do
   let(:service) { described_class.new(content) }
 
   describe '.calculate_music_generation_count' do
-    it 'calculates the correct number of music generations needed' do
-      # Each music generation creates 2 tracks (240 seconds each = 480 seconds total)
-      # 10 minutes = 600 seconds / 480 seconds = 1.25 -> 2 generations needed
-      expect(described_class.calculate_music_generation_count(10)).to eq(2)
+    it 'calculates the correct number of music generations needed using new formula' do
+      # New formula: (duration_min / (3*2)) + 5
+      # 10 minutes: (10 / 6) + 5 = 1.67 + 5 = 6.67 -> 7 generations needed
+      expect(described_class.calculate_music_generation_count(10)).to eq(7)
     end
 
-    it 'rounds up when duration is not evenly divisible' do
-      # 8.33 minutes = 500 seconds / 480 seconds = 1.04 -> 2 generations needed
-      expect(described_class.calculate_music_generation_count(8.33)).to eq(2)
+    it 'returns correct count for 6 minutes (edge case)' do
+      # 6 minutes: (6 / 6) + 5 = 1 + 5 = 6 generations needed
+      expect(described_class.calculate_music_generation_count(6)).to eq(6)
     end
 
-    it 'returns 1 for short durations' do
-      # 1.67 minutes = 100 seconds / 480 seconds = 0.21 -> 1 generation needed (minimum)
-      expect(described_class.calculate_music_generation_count(1.67)).to eq(1)
+    it 'returns correct count for 60 minutes' do
+      # 60 minutes: (60 / 6) + 5 = 10 + 5 = 15 generations needed
+      expect(described_class.calculate_music_generation_count(60)).to eq(15)
     end
 
-    it 'handles large durations' do
-      # 60 minutes = 3600 seconds / 480 seconds = 7.5 -> 8 generations
-      expect(described_class.calculate_music_generation_count(60)).to eq(8)
+    it 'returns correct count for 120 minutes' do
+      # 120 minutes: (120 / 6) + 5 = 20 + 5 = 25 generations needed
+      expect(described_class.calculate_music_generation_count(120)).to eq(25)
+    end
+
+    it 'handles small durations with buffer' do
+      # 1 minute: (1 / 6) + 5 = 0.17 + 5 = 5.17 -> 6 generations needed (minimum with buffer)
+      expect(described_class.calculate_music_generation_count(1)).to eq(6)
+    end
+
+    it 'returns 0 for nil duration' do
+      expect(described_class.calculate_music_generation_count(nil)).to eq(0)
+    end
+
+    it 'returns 0 for zero or negative duration' do
+      expect(described_class.calculate_music_generation_count(0)).to eq(0)
+      expect(described_class.calculate_music_generation_count(-5)).to eq(0)
     end
   end
 
@@ -31,7 +45,7 @@ RSpec.describe MusicGenerationQueueingService do
     it 'creates the correct number of MusicGeneration records' do
       expect {
         service.queue_music_generations!
-      }.to change(MusicGeneration, :count).by(2)
+      }.to change(MusicGeneration, :count).by(7)
     end
 
     it 'creates music generations with correct attributes' do
@@ -50,13 +64,13 @@ RSpec.describe MusicGenerationQueueingService do
     it 'enqueues GenerateMusicGenerationJob for each music generation' do
       expect {
         service.queue_music_generations!
-      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(2).times
+      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(7).times
     end
 
     it 'returns the created music generations' do
       result = service.queue_music_generations!
       expect(result).to be_an(Array)
-      expect(result.size).to eq(2)
+      expect(result.size).to eq(7)
       expect(result.all? { |mg| mg.is_a?(MusicGeneration) }).to be true
     end
 
@@ -68,13 +82,13 @@ RSpec.describe MusicGenerationQueueingService do
       it 'creates additional music generations to meet the requirement' do
         expect {
           service.queue_music_generations!
-        }.to change(MusicGeneration, :count).by(1)
+        }.to change(MusicGeneration, :count).by(6)
       end
     end
 
     context 'when sufficient music generations already exist' do
       before do
-        create_list(:music_generation, 2, content: content)
+        create_list(:music_generation, 7, content: content)
       end
 
       it 'does not create additional music generations' do
@@ -92,7 +106,7 @@ RSpec.describe MusicGenerationQueueingService do
 
   describe '#required_music_generation_count' do
     it 'returns the calculated count based on content duration' do
-      expect(service.required_music_generation_count).to eq(2)
+      expect(service.required_music_generation_count).to eq(7)
     end
   end
 
@@ -167,10 +181,10 @@ RSpec.describe MusicGenerationQueueingService do
       }.to change(MusicGeneration, :count).by(5)
     end
 
-    it 'defaults to 5 generations when no count is specified' do
+    it 'defaults to calculated recommended count when no count is specified' do
       expect {
         service.queue_bulk_generation!
-      }.to change(MusicGeneration, :count).by(5)
+      }.to change(MusicGeneration, :count).by(7) # 10 minutes = 7 generations with new formula
     end
 
     it 'creates music generations with correct attributes' do

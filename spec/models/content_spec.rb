@@ -223,26 +223,23 @@ RSpec.describe Content, type: :model do
 
     describe '#required_track_count' do
       it 'delegates to MusicGenerationQueueingService for calculation' do
-        # MusicGenerationQueueingService returns music generation count
+        # MusicGenerationQueueingService returns music generation count using new formula
         # Each music generation produces 2 tracks
-        expect(MusicGenerationQueueingService).to receive(:calculate_music_generation_count).with(12).and_return(3)
-        expect(content.required_track_count).to eq(6) # 3 generations * 2 tracks = 6
+        # 12 minutes: (12 / 6) + 5 = 2 + 5 = 7 generations * 2 tracks = 14 tracks
+        expect(content.required_track_count).to eq(14)
       end
 
       context 'with various durations' do
         it 'calculates correct count for 6 minutes' do
           content.duration_min = 6
-          # 6 minutes = 1 music generation (minimum) * 2 tracks = 2 tracks
-          expect(content.required_track_count).to eq(2)
+          # 6 minutes: (6 / 6) + 5 = 1 + 5 = 6 generations * 2 tracks = 12 tracks
+          expect(content.required_track_count).to eq(12)
         end
 
         it 'calculates correct count for 30 minutes' do
-          content.duration_min = 30  # 30 minutes
-          # 30 minutes = 1800 seconds
-          # Each generation produces 2 tracks × 240 seconds = 480 seconds
-          # 1800 / 480 = 3.75 → 4 generations (rounded up)
-          # 4 generations × 2 tracks = 8 tracks
-          expect(content.required_track_count).to eq(8)
+          content.duration_min = 30
+          # 30 minutes: (30 / 6) + 5 = 5 + 5 = 10 generations * 2 tracks = 20 tracks
+          expect(content.required_track_count).to eq(20)
         end
       end
     end
@@ -377,20 +374,20 @@ RSpec.describe Content, type: :model do
   end
 
   describe '#music_generation_progress' do
-    let(:content) { create(:content, duration_min: 20) } # 20 minutes = 3 music generations
+    let(:content) { create(:content, duration_min: 20) } # 20 minutes = 9 music generations with new formula
 
     context 'when music generations exist' do
       before do
-        # Create 2 completed and 1 pending music generation
-        create_list(:music_generation, 2, content: content, status: :completed)
-        create(:music_generation, content: content, status: :pending)
+        # Create 5 completed and 3 pending music generation
+        create_list(:music_generation, 5, content: content, status: :completed)
+        create_list(:music_generation, 3, content: content, status: :pending)
       end
 
       it 'returns correct progress information' do
         progress = content.music_generation_progress
-        expect(progress[:completed]).to eq(2)
-        expect(progress[:total]).to eq(3)
-        expect(progress[:percentage]).to eq(66.7)
+        expect(progress[:completed]).to eq(5)
+        expect(progress[:total]).to eq(9)
+        expect(progress[:percentage]).to eq(55.6)
       end
     end
 
@@ -398,20 +395,20 @@ RSpec.describe Content, type: :model do
       it 'returns zero progress' do
         progress = content.music_generation_progress
         expect(progress[:completed]).to eq(0)
-        expect(progress[:total]).to eq(3)
+        expect(progress[:total]).to eq(9)
         expect(progress[:percentage]).to eq(0.0)
       end
     end
 
     context 'when all music generations are completed' do
       before do
-        create_list(:music_generation, 3, content: content, status: :completed)
+        create_list(:music_generation, 9, content: content, status: :completed)
       end
 
       it 'returns 100% progress' do
         progress = content.music_generation_progress
-        expect(progress[:completed]).to eq(3)
-        expect(progress[:total]).to eq(3)
+        expect(progress[:completed]).to eq(9)
+        expect(progress[:total]).to eq(9)
         expect(progress[:percentage]).to eq(100.0)
       end
     end
@@ -426,8 +423,8 @@ RSpec.describe Content, type: :model do
       it 'only counts completed generations' do
         progress = content.music_generation_progress
         expect(progress[:completed]).to eq(1)
-        expect(progress[:total]).to eq(3)
-        expect(progress[:percentage]).to eq(33.3)
+        expect(progress[:total]).to eq(9)
+        expect(progress[:percentage]).to eq(11.1)
       end
     end
   end
@@ -435,15 +432,18 @@ RSpec.describe Content, type: :model do
   describe '#required_music_generation_count' do
     let(:content) { create(:content) }
 
-    it 'calculates correct count for various durations' do
-      content.duration_min = 8 # 8 minutes = 1 generation
-      expect(content.required_music_generation_count).to eq(1)
+    it 'calculates correct count for various durations using new formula' do
+      content.duration_min = 6 # 6 minutes: (6 / 6) + 5 = 1 + 5 = 6 generations
+      expect(content.required_music_generation_count).to eq(6)
 
-      content.duration_min = 16 # 16 minutes = 2 generations
-      expect(content.required_music_generation_count).to eq(2)
+      content.duration_min = 12 # 12 minutes: (12 / 6) + 5 = 2 + 5 = 7 generations
+      expect(content.required_music_generation_count).to eq(7)
 
-      content.duration_min = 20 # 20 minutes = 3 generations
-      expect(content.required_music_generation_count).to eq(3)
+      content.duration_min = 20 # 20 minutes: (20 / 6) + 5 = 3.33 + 5 = 8.33 -> 9 generations
+      expect(content.required_music_generation_count).to eq(9)
+
+      content.duration_min = 60 # 60 minutes: (60 / 6) + 5 = 10 + 5 = 15 generations
+      expect(content.required_music_generation_count).to eq(15)
     end
   end
 

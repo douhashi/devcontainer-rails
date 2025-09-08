@@ -1,6 +1,7 @@
 class MusicGenerationQueueingService
-  AVERAGE_TRACK_DURATION = 240 # seconds per track (4 minutes)
+  AVERAGE_TRACK_DURATION_MIN = 3 # 3 minutes per track
   TRACKS_PER_GENERATION = 2 # KIE API returns 2 tracks per generation
+  BUFFER_GENERATIONS = 5 # Additional generations as buffer
 
   def initialize(content)
     @content = content
@@ -9,19 +10,16 @@ class MusicGenerationQueueingService
   def self.calculate_music_generation_count(duration_minutes)
     return 0 if duration_minutes.nil? || duration_minutes <= 0
 
-    # Convert duration from minutes to seconds
-    duration_seconds = duration_minutes * 60
-
-    # Each generation produces 2 tracks of ~240 seconds each = 480 seconds total
-    total_duration_per_generation = AVERAGE_TRACK_DURATION * TRACKS_PER_GENERATION
-
-    # Calculate required generations (round up)
-    (duration_seconds.to_f / total_duration_per_generation).ceil
+    # New calculation formula: (duration_min / (3*2)) + 5
+    # 3 minutes per track * 2 tracks per generation = 6 minutes per generation
+    # Plus 5 generations as buffer
+    ((duration_minutes.to_f / (AVERAGE_TRACK_DURATION_MIN * TRACKS_PER_GENERATION)) + BUFFER_GENERATIONS).ceil
   end
 
   def queue_music_generations!
     generations_to_create = required_music_generation_count - existing_music_generation_count
 
+    # No longer enforce limits - allow generation beyond recommended count
     return [] if generations_to_create <= 0
 
     created_generations = []
@@ -37,7 +35,9 @@ class MusicGenerationQueueingService
     create_music_generation
   end
 
-  def queue_bulk_generation!(count = 5)
+  def queue_bulk_generation!(count = nil)
+    # Use calculated count as default instead of fixed 5
+    count ||= required_music_generation_count
     created_generations = []
 
     count.times do
