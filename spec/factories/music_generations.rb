@@ -4,7 +4,7 @@ FactoryBot.define do
     task_id { SecureRandom.hex(16) }
     status { :pending }
     prompt { "Create a lo-fi hip hop beat with a mellow mood" }
-    generation_model { "chirp-v3-5" }
+    generation_model { "V4_5PLUS" }
     api_response { nil }
 
     trait :processing do

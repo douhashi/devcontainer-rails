@@ -40,7 +40,7 @@ RSpec.describe MusicGenerationQueueingService do
       music_generations.each do |mg|
         expect(mg.status).to eq('pending')
         expect(mg.prompt).to eq(content.audio_prompt)
-        expect(mg.generation_model).to eq('chirp-v3-5')
+        expect(mg.generation_model).to eq('V4_5PLUS')
         expect(mg.task_id).to be_present
       end
     end

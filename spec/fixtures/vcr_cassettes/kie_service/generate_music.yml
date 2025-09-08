@@ -138,4 +138,56 @@ http_interactions:
       encoding: ASCII-8BIT
       string: '{"code":200,"msg":"success","data":{"taskId":"87fe2c4054ebbff558a017e5fabf73fc"}}'
   recorded_at: Sun, 07 Sep 2025 14:02:40 GMT
+- request:
+    method: post
+    uri: https://api.kie.ai/api/v1/generate
+    body:
+      encoding: UTF-8
+      string: '{"prompt":"Relaxing lo-fi hip hop beat with soft piano","model":"V4_5PLUS","wait_audio":false,"customMode":false,"instrumental":true,"callBackUrl":"https://lofi-bgm-not-exist-server.com/callback"}'
+    headers:
+      Authorization:
+      - Bearer <KIE_AI_API_KEY>
+      Content-Type:
+      - application/json
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Mon, 08 Sep 2025 01:07:59 GMT
+      Content-Type:
+      - application/json;charset=utf-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Origin:
+      - "*"
+      Vary:
+      - Access-Control-Request-Headers
+      Cf-Cache-Status:
+      - DYNAMIC
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=8h5vxsDZPJxzPd14f6kU8v%2F0JDOmiBHdpzm5jfYs2%2BKaLQ1LrUyOpbe344yaC9iv%2BMw9GqBw3vNquxNMooyUe4GEIitFlv10pQ%3D%3D"}]}'
+      Set-Cookie:
+      - JSESSIONID=057D3BCCA8D900542B914004A55557EE; HttpOnly; Path=/
+      Cf-Ray:
+      - 97ba8d577e7ffcb0-KIX
+    body:
+      encoding: ASCII-8BIT
+      string: '{"code":200,"msg":"success","data":{"taskId":"87fe2c4054ebbff558a017e5fabf73fd"}}'
+  recorded_at: Mon, 08 Sep 2025 01:08:01 GMT
 recorded_with: VCR 6.3.1

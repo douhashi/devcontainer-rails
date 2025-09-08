@@ -36,6 +36,60 @@ RSpec.describe KieService do
       expect(result).to match(/^[a-f0-9-]+$/)
     end
 
+    context 'default parameters' do
+      it 'uses V4_5PLUS as the default model' do
+        expect(service).to receive(:with_retry) do |&block|
+          expect(service).to receive(:make_request) do |method, path, options|
+            body = JSON.parse(options[:body])
+            expect(body['model']).to eq('V4_5PLUS')
+            { 'data' => { 'taskId' => 'test-task-id' } }
+          end
+          block.call
+        end
+
+        service.generate_music(prompt: prompt)
+      end
+
+      it 'uses instrumental=true as the default' do
+        expect(service).to receive(:with_retry) do |&block|
+          expect(service).to receive(:make_request) do |method, path, options|
+            body = JSON.parse(options[:body])
+            expect(body['instrumental']).to eq(true)
+            { 'data' => { 'taskId' => 'test-task-id' } }
+          end
+          block.call
+        end
+
+        service.generate_music(prompt: prompt)
+      end
+
+      it 'allows overriding the default model' do
+        expect(service).to receive(:with_retry) do |&block|
+          expect(service).to receive(:make_request) do |method, path, options|
+            body = JSON.parse(options[:body])
+            expect(body['model']).to eq('V3_5')
+            { 'data' => { 'taskId' => 'test-task-id' } }
+          end
+          block.call
+        end
+
+        service.generate_music(prompt: prompt, model: 'V3_5')
+      end
+
+      it 'allows overriding the instrumental parameter' do
+        expect(service).to receive(:with_retry) do |&block|
+          expect(service).to receive(:make_request) do |method, path, options|
+            body = JSON.parse(options[:body])
+            expect(body['instrumental']).to eq(false)
+            { 'data' => { 'taskId' => 'test-task-id' } }
+          end
+          block.call
+        end
+
+        service.generate_music(prompt: prompt, instrumental: false)
+      end
+    end
+
     context 'when prompt is blank' do
       it 'raises an ArgumentError' do
         expect { service.generate_music(prompt: '') }.to raise_error(ArgumentError, 'Prompt cannot be blank')

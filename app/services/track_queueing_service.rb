@@ -44,7 +44,7 @@ class TrackQueueingService
       music_generation = content.music_generations.create!(
         task_id: "pending-#{SecureRandom.uuid}",
         prompt: content.audio_prompt,
-        generation_model: "V3_5",
+        generation_model: "V4_5PLUS",
         status: :pending
       )
       GenerateMusicJob.perform_later(music_generation.id)

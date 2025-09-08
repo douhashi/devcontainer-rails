@@ -26,7 +26,7 @@ class MusicGenerationQueueingService
         task_id: "pending_#{SecureRandom.hex(16)}",
         status: :pending,
         prompt: @content.audio_prompt,
-        generation_model: "chirp-v3-5"
+        generation_model: "V4_5PLUS"
       )
 
       GenerateMusicGenerationJob.perform_later(music_generation.id)

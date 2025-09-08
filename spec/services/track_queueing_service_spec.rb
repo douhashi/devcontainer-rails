@@ -244,7 +244,7 @@ RSpec.describe TrackQueueingService do
 
         music_generation = content.music_generations.last
         expect(music_generation.prompt).to eq(content.audio_prompt)
-        expect(music_generation.generation_model).to eq("V3_5")
+        expect(music_generation.generation_model).to eq("V4_5PLUS")
         expect(music_generation.status.pending?).to be true
       end
 
@@ -262,7 +262,7 @@ RSpec.describe TrackQueueingService do
           content: content,
           status: 'pending',
           prompt: content.audio_prompt,
-          generation_model: "V3_5"
+          generation_model: "V4_5PLUS"
         )
       end
 

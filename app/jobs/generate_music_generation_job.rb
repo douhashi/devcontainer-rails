@@ -27,13 +27,24 @@ class GenerateMusicGenerationJob < ApplicationJob
   private
 
   def generate_music
-    task_id = @kie_service.generate_music(
+    # Use generation_model from music_generation if set, otherwise use default
+    model = @music_generation.generation_model.presence || KieService::DEFAULT_MODEL
+
+    # Prepare request parameters
+    request_params = {
       prompt: @music_generation.prompt,
-      model: "V3_5",
+      model: model,
       instrumental: true,
       wait_audio: false
-    )
+    }
 
+    # Save request parameters
+    @music_generation.update!(request_params: request_params)
+
+    # Call KieService to generate music
+    task_id = @kie_service.generate_music(**request_params.symbolize_keys)
+
+    # Update task_id
     @music_generation.update!(task_id: task_id)
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_08_002807) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_08_010343) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -48,6 +48,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_002807) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.json "metadata", default: {}, null: false
+    t.json "request_params", default: {}
     t.index [ "content_id" ], name: "index_music_generations_on_content_id"
     t.index [ "status" ], name: "index_music_generations_on_status"
     t.index [ "task_id" ], name: "index_music_generations_on_task_id"

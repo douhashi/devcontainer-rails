@@ -4,7 +4,7 @@ class KieService
   base_uri "https://api.kie.ai"
   default_timeout 30
 
-  DEFAULT_MODEL = "V3_5"
+  DEFAULT_MODEL = "V4_5PLUS"
   DEFAULT_CALLBACK_URL = "https://lofi-bgm-not-exist-server.com/callback"
   MAX_PROMPT_LENGTH = 3000
   MAX_RETRIES = 3
@@ -18,7 +18,7 @@ class KieService
     end
   end
 
-  def generate_music(prompt:, model: DEFAULT_MODEL, style: nil, wait_audio: false, custom_mode: false, instrumental: false, **options)
+  def generate_music(prompt:, model: DEFAULT_MODEL, style: nil, wait_audio: false, custom_mode: false, instrumental: true, **options)
     validate_prompt(prompt)
 
     # Apply default callBackUrl if not provided

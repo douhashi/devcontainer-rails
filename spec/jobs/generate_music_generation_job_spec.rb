@@ -128,6 +128,24 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
         tracks = music_generation.reload.tracks
         expect(tracks.all? { |t| t.status == 'completed' }).to be true
       end
+
+      it 'saves request parameters to music_generation' do
+        GenerateMusicGenerationJob.perform_now(music_generation.id)
+        expect(music_generation.reload.request_params).to eq({
+          'prompt' => music_generation.prompt,
+          'model' => 'V4_5PLUS',
+          'instrumental' => true,
+          'wait_audio' => false
+        })
+      end
+
+      it 'uses the generation_model from music_generation if present' do
+        music_generation.update!(generation_model: 'V3_5')
+        expect(kie_service).to receive(:generate_music).with(
+          hash_including(model: 'V3_5')
+        ).and_return(task_id)
+        GenerateMusicGenerationJob.perform_now(music_generation.id)
+      end
     end
 
     context 'when generation fails' do
