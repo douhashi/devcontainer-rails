@@ -175,4 +175,136 @@ RSpec.describe "Tracks", type: :request do
       end
     end
   end
+
+  describe "POST /contents/:content_id/tracks/generate_single" do
+    let(:content) { create(:content, duration: 600) }
+
+    it "creates exactly one music generation" do
+      expect {
+        post generate_single_content_tracks_path(content)
+      }.to change(MusicGeneration, :count).by(1)
+    end
+
+    it "redirects to content path with success message" do
+      post generate_single_content_tracks_path(content)
+
+      expect(response).to redirect_to(content_path(content))
+      follow_redirect!
+      expect(response.body).to include("音楽生成を開始しました（1件）")
+    end
+
+    it "creates music generation with correct attributes" do
+      post generate_single_content_tracks_path(content)
+
+      music_generation = content.music_generations.last
+      expect(music_generation.status).to eq('pending')
+      expect(music_generation.prompt).to eq(content.audio_prompt)
+      expect(music_generation.generation_model).to eq('V4_5PLUS')
+    end
+
+    it "enqueues GenerateMusicGenerationJob" do
+      expect {
+        post generate_single_content_tracks_path(content)
+      }.to have_enqueued_job(GenerateMusicGenerationJob)
+    end
+
+    context "when music generations already exist" do
+      before do
+        create_list(:music_generation, 5, content: content)
+      end
+
+      it "still creates a new music generation" do
+        expect {
+          post generate_single_content_tracks_path(content)
+        }.to change(MusicGeneration, :count).by(1)
+      end
+    end
+
+    context "when tracks already exist" do
+      before do
+        create_list(:track, 100, content: content)
+      end
+
+      it "still creates a new music generation" do
+        expect {
+          post generate_single_content_tracks_path(content)
+        }.to change(MusicGeneration, :count).by(1)
+      end
+    end
+
+    context "when called multiple times" do
+      it "creates multiple music generations" do
+        expect {
+          3.times { post generate_single_content_tracks_path(content) }
+        }.to change(MusicGeneration, :count).by(3)
+      end
+    end
+  end
+
+  describe "POST /contents/:content_id/tracks/generate_bulk" do
+    let(:content) { create(:content, duration: 600) }
+
+    it "creates exactly 5 music generations" do
+      expect {
+        post generate_bulk_content_tracks_path(content)
+      }.to change(MusicGeneration, :count).by(5)
+    end
+
+    it "redirects to content path with success message" do
+      post generate_bulk_content_tracks_path(content)
+
+      expect(response).to redirect_to(content_path(content))
+      follow_redirect!
+      expect(response.body).to include("音楽生成を開始しました（5件）")
+    end
+
+    it "creates music generations with correct attributes" do
+      post generate_bulk_content_tracks_path(content)
+
+      music_generations = content.music_generations.order(:created_at).last(5)
+      music_generations.each do |mg|
+        expect(mg.status).to eq('pending')
+        expect(mg.prompt).to eq(content.audio_prompt)
+        expect(mg.generation_model).to eq('V4_5PLUS')
+      end
+    end
+
+    it "enqueues GenerateMusicGenerationJob 5 times" do
+      expect {
+        post generate_bulk_content_tracks_path(content)
+      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(5).times
+    end
+
+    context "when music generations already exist" do
+      before do
+        create_list(:music_generation, 10, content: content)
+      end
+
+      it "still creates 5 new music generations" do
+        expect {
+          post generate_bulk_content_tracks_path(content)
+        }.to change(MusicGeneration, :count).by(5)
+      end
+    end
+
+    context "when tracks already exist" do
+      before do
+        create_list(:track, 100, content: content)
+      end
+
+      it "still creates 5 new music generations" do
+        expect {
+          post generate_bulk_content_tracks_path(content)
+        }.to change(MusicGeneration, :count).by(5)
+      end
+    end
+
+    context "when called multiple times" do
+      it "creates 5 music generations each time" do
+        expect {
+          3.times { post generate_bulk_content_tracks_path(content) }
+        }.to change(MusicGeneration, :count).by(15)
+      end
+    end
+  end
 end

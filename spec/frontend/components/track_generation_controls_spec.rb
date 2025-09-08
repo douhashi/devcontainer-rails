@@ -38,11 +38,12 @@ RSpec.describe TrackGenerationControls::Component, type: :component do
     context "when generation is not allowed" do
       let(:can_generate) { false }
 
-      it "displays disabled buttons" do
+      it "displays enabled buttons (restriction removed)" do
         render_inline(component)
 
-        expect(page).to have_css("button[disabled]", count: 2)
-        expect(page).to have_text("生成上限に達しました")
+        # Buttons are now always enabled, regardless of can_generate_more parameter
+        expect(page).not_to have_css("button[disabled]")
+        expect(page).not_to have_text("生成上限に達しました")
       end
     end
   end

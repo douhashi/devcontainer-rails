@@ -104,4 +104,121 @@ RSpec.describe MusicGenerationQueueingService do
       expect(service.existing_music_generation_count).to eq(3)
     end
   end
+
+  describe '#queue_single_generation!' do
+    it 'creates exactly one MusicGeneration record' do
+      expect {
+        service.queue_single_generation!
+      }.to change(MusicGeneration, :count).by(1)
+    end
+
+    it 'creates music generation with correct attributes' do
+      music_generation = service.queue_single_generation!
+
+      expect(music_generation.status).to eq('pending')
+      expect(music_generation.prompt).to eq(content.audio_prompt)
+      expect(music_generation.generation_model).to eq('V4_5PLUS')
+      expect(music_generation.task_id).to be_present
+    end
+
+    it 'enqueues GenerateMusicGenerationJob' do
+      expect {
+        service.queue_single_generation!
+      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(:once)
+    end
+
+    it 'returns the created music generation' do
+      result = service.queue_single_generation!
+      expect(result).to be_a(MusicGeneration)
+      expect(result).to be_persisted
+    end
+
+    context 'when music generations already exist' do
+      before do
+        create_list(:music_generation, 10, content: content)
+      end
+
+      it 'still creates a new music generation' do
+        expect {
+          service.queue_single_generation!
+        }.to change(MusicGeneration, :count).by(1)
+      end
+    end
+
+    context 'when tracks already exist' do
+      before do
+        create_list(:track, 100, content: content)
+      end
+
+      it 'still creates a new music generation' do
+        expect {
+          service.queue_single_generation!
+        }.to change(MusicGeneration, :count).by(1)
+      end
+    end
+  end
+
+  describe '#queue_bulk_generation!' do
+    it 'creates the specified number of MusicGeneration records' do
+      expect {
+        service.queue_bulk_generation!(5)
+      }.to change(MusicGeneration, :count).by(5)
+    end
+
+    it 'defaults to 5 generations when no count is specified' do
+      expect {
+        service.queue_bulk_generation!
+      }.to change(MusicGeneration, :count).by(5)
+    end
+
+    it 'creates music generations with correct attributes' do
+      music_generations = service.queue_bulk_generation!(3)
+
+      expect(music_generations.size).to eq(3)
+      music_generations.each do |mg|
+        expect(mg.status).to eq('pending')
+        expect(mg.prompt).to eq(content.audio_prompt)
+        expect(mg.generation_model).to eq('V4_5PLUS')
+        expect(mg.task_id).to be_present
+      end
+    end
+
+    it 'enqueues GenerateMusicGenerationJob for each music generation' do
+      expect {
+        service.queue_bulk_generation!(3)
+      }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(3).times
+    end
+
+    it 'returns an array of created music generations' do
+      result = service.queue_bulk_generation!(3)
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(3)
+      expect(result.all? { |mg| mg.is_a?(MusicGeneration) }).to be true
+      expect(result.all?(&:persisted?)).to be true
+    end
+
+    context 'when music generations already exist' do
+      before do
+        create_list(:music_generation, 10, content: content)
+      end
+
+      it 'still creates the specified number of new music generations' do
+        expect {
+          service.queue_bulk_generation!(5)
+        }.to change(MusicGeneration, :count).by(5)
+      end
+    end
+
+    context 'when tracks already exist' do
+      before do
+        create_list(:track, 100, content: content)
+      end
+
+      it 'still creates the specified number of new music generations' do
+        expect {
+          service.queue_bulk_generation!(5)
+        }.to change(MusicGeneration, :count).by(5)
+      end
+    end
+  end
 end

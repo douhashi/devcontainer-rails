@@ -22,15 +22,21 @@ class MusicGenerationQueueingService
     created_generations = []
 
     generations_to_create.times do
-      music_generation = @content.music_generations.create!(
-        task_id: "pending_#{SecureRandom.hex(16)}",
-        status: :pending,
-        prompt: @content.audio_prompt,
-        generation_model: "V4_5PLUS"
-      )
+      created_generations << create_music_generation
+    end
 
-      GenerateMusicGenerationJob.perform_later(music_generation.id)
-      created_generations << music_generation
+    created_generations
+  end
+
+  def queue_single_generation!
+    create_music_generation
+  end
+
+  def queue_bulk_generation!(count = 5)
+    created_generations = []
+
+    count.times do
+      created_generations << create_music_generation
     end
 
     created_generations
@@ -42,5 +48,19 @@ class MusicGenerationQueueingService
 
   def existing_music_generation_count
     @content.music_generations.count
+  end
+
+  private
+
+  def create_music_generation
+    music_generation = @content.music_generations.create!(
+      task_id: "pending_#{SecureRandom.hex(16)}",
+      status: :pending,
+      prompt: @content.audio_prompt,
+      generation_model: "V4_5PLUS"
+    )
+
+    GenerateMusicGenerationJob.perform_later(music_generation.id)
+    music_generation
   end
 end
