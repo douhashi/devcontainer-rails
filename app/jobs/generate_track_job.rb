@@ -29,6 +29,7 @@ class GenerateTrackJob < ApplicationJob
 
   def start_generation
     ActiveRecord::Base.transaction do
+      Rails.logger.info "GenerateTrackJob: Updating Track ##{@track.id} status from #{@track.status} to processing"
       @track.status = :processing
 
       prompt = @track.content&.audio_prompt.presence || SAMPLE_PROMPT
@@ -46,7 +47,8 @@ class GenerateTrackJob < ApplicationJob
 
       @track.save!
 
-      Rails.logger.info "Started music generation for Track ##{@track.id} with task_id: #{task_id}, prompt: #{prompt.truncate(100)}"
+      Rails.logger.info "GenerateTrackJob: Successfully updated Track ##{@track.id} to processing status"
+      Rails.logger.info "GenerateTrackJob: Started music generation for Track ##{@track.id} with task_id: #{task_id}, prompt: #{prompt.truncate(100)}"
     end
 
     self.class.set(wait: POLLING_INTERVAL).perform_later(@track.id)

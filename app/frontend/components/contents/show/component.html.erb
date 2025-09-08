@@ -1,6 +1,5 @@
 <div class="container mx-auto px-4 py-8" 
-     data-turbo-stream-source="content_<%= item.id %>_tracks"
-     data-turbo-stream-notifications="content_<%= item.id %>_notifications">
+     data-turbo-stream-source="/cable?channel=TrackStatusChannel&content_id=<%= item.id %>">
   
   <div class="mb-6">
     <%= link_to "← 一覧に戻る", contents_path, 

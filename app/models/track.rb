@@ -76,6 +76,8 @@ class Track < ApplicationRecord
     # Skip broadcasting in test environment to avoid rendering issues
     return if Rails.env.test?
 
+    Rails.logger.info "Track ##{id}: Broadcasting status update to content_#{content_id}_tracks"
+
     ActionCable.server.broadcast(
       "content_#{content_id}_tracks",
       {
@@ -87,6 +89,8 @@ class Track < ApplicationRecord
         )
       }
     )
+
+    Rails.logger.info "Track ##{id}: Successfully broadcasted status update for status: #{status}"
   end
 
   def broadcast_completion_notification
@@ -114,7 +118,12 @@ class Track < ApplicationRecord
   private
 
   def broadcast_status_update_if_changed
-    broadcast_status_update if saved_change_to_status?
+    if saved_change_to_status?
+      Rails.logger.info "Track ##{id}: Status changed from #{saved_change_to_status[0]} to #{saved_change_to_status[1]}"
+      broadcast_status_update
+    else
+      Rails.logger.debug "Track ##{id}: No status change detected, skipping broadcast"
+    end
   end
 
   def broadcast_completion_notification_if_finished
