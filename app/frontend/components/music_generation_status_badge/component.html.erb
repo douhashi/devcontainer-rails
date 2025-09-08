@@ -1,0 +1,9 @@
+<span class="<%= status_classes %>" aria-label="<%= aria_label %>">
+  <% if show_progress_indicator? %>
+    <span class="animate-pulse">
+      <%= status_text %>
+    </span>
+  <% else %>
+    <%= status_text %>
+  <% end %>
+</span>

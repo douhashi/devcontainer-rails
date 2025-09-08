@@ -17,8 +17,8 @@ class ContentsController < ApplicationController
   end
 
   def show
-    # 詳細画面では関連データも含めて取得
-    @content = Content.includes(:tracks, :artwork).find(params[:id])
+    # 詳細画面では関連データも含めて取得（N+1問題対策）
+    @content = Content.includes(music_generations: :tracks, artwork: {}).find(params[:id])
   end
 
   def new

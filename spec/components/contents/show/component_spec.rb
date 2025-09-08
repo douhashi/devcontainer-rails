@@ -68,12 +68,10 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(subject.text).not_to include('制作ステータス')
     end
 
-    it 'shows track list when tracks exist' do
-      # Simulate that content has tracks
-      allow(content.tracks).to receive(:any?).and_return(true)
+    it 'shows music generation list' do
       result = render_inline(component)
-      expect(result.css('.tracks-section')).to be_present
-      expect(result.text).to include('トラック一覧')
+      expect(result.css('.music-generations-section')).to be_present
+      expect(result.text).to include('音楽生成リクエスト')
     end
 
     it 'displays artwork status with preview' do
