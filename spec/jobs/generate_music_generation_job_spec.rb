@@ -250,6 +250,208 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
     end
   end
 
+  describe '#poll_for_completion' do
+    let(:task_id) { 'test-task-id-uppercase' }
+    let(:job) { described_class.new }
+    let(:music_generation) { create(:music_generation, content: content, status: :processing, task_id: task_id) }
+
+    before do
+      job.instance_variable_set(:@music_generation, music_generation)
+      job.instance_variable_set(:@kie_service, kie_service)
+    end
+
+    context 'with uppercase SUCCESS status from KIE API' do
+      let(:api_response_success) do
+        {
+          'taskId' => task_id,
+          'status' => 'SUCCESS',
+          'response' => {
+            'sunoData' => [
+              {
+                'audioUrl' => 'https://example.com/audio1.mp3',
+                'title' => 'Track 1',
+                'tags' => 'lo-fi,chill',
+                'duration' => 120.0,
+                'modelName' => 'V4_5PLUS',
+                'prompt' => '[Verse] Test prompt 1',
+                'audioId' => 'audio-id-1'
+              }
+            ]
+          }
+        }
+      end
+
+      before do
+        allow(kie_service).to receive(:get_task_status).and_return(api_response_success)
+      end
+
+      it 'recognizes uppercase SUCCESS status and completes polling' do
+        expect { job.send(:poll_for_completion) }.not_to raise_error
+        expect(job.instance_variable_get(:@task_data)).to eq(api_response_success)
+      end
+    end
+
+    context 'with uppercase PENDING status from KIE API' do
+      let(:api_response_pending) { { 'taskId' => task_id, 'status' => 'PENDING' } }
+      let(:api_response_success) do
+        {
+          'taskId' => task_id,
+          'status' => 'SUCCESS',
+          'response' => { 'sunoData' => [] }
+        }
+      end
+
+      before do
+        call_count = 0
+        allow(kie_service).to receive(:get_task_status) do
+          call_count += 1
+          call_count == 1 ? api_response_pending : api_response_success
+        end
+      end
+
+      it 'continues polling when status is PENDING and completes on SUCCESS' do
+        expect { job.send(:poll_for_completion) }.not_to raise_error
+        expect(job.instance_variable_get(:@task_data)).to eq(api_response_success)
+      end
+    end
+
+    context 'with uppercase error statuses from KIE API' do
+      context 'CREATE_TASK_FAILED status' do
+        let(:api_response_error) do
+          {
+            'taskId' => task_id,
+            'status' => 'CREATE_TASK_FAILED',
+            'error' => 'Task creation failed due to invalid parameters'
+          }
+        end
+
+        before do
+          allow(kie_service).to receive(:get_task_status).and_return(api_response_error)
+        end
+
+        it 'raises TaskFailedError for CREATE_TASK_FAILED status' do
+          expect { job.send(:poll_for_completion) }.to raise_error(Kie::Errors::TaskFailedError, 'Task creation failed due to invalid parameters')
+        end
+      end
+
+      context 'GENERATE_AUDIO_FAILED status' do
+        let(:api_response_error) do
+          {
+            'taskId' => task_id,
+            'status' => 'GENERATE_AUDIO_FAILED',
+            'error' => 'Audio generation failed'
+          }
+        end
+
+        before do
+          allow(kie_service).to receive(:get_task_status).and_return(api_response_error)
+        end
+
+        it 'raises TaskFailedError for GENERATE_AUDIO_FAILED status' do
+          expect { job.send(:poll_for_completion) }.to raise_error(Kie::Errors::TaskFailedError, 'Audio generation failed')
+        end
+      end
+
+      context 'SENSITIVE_WORD_ERROR status' do
+        let(:api_response_error) do
+          {
+            'taskId' => task_id,
+            'status' => 'SENSITIVE_WORD_ERROR',
+            'error' => 'Content contains sensitive words'
+          }
+        end
+
+        before do
+          allow(kie_service).to receive(:get_task_status).and_return(api_response_error)
+        end
+
+        it 'raises TaskFailedError for SENSITIVE_WORD_ERROR status' do
+          expect { job.send(:poll_for_completion) }.to raise_error(Kie::Errors::TaskFailedError, 'Content contains sensitive words')
+        end
+      end
+    end
+
+    context 'with partial completion statuses' do
+      context 'FIRST_SUCCESS status' do
+        let(:api_response_first) do
+          {
+            'taskId' => task_id,
+            'status' => 'FIRST_SUCCESS',
+            'response' => { 'sunoData' => [ { 'audioUrl' => 'https://example.com/audio1.mp3' } ] }
+          }
+        end
+        let(:api_response_success) do
+          {
+            'taskId' => task_id,
+            'status' => 'SUCCESS',
+            'response' => { 'sunoData' => [] }
+          }
+        end
+
+        before do
+          call_count = 0
+          allow(kie_service).to receive(:get_task_status) do
+            call_count += 1
+            call_count == 1 ? api_response_first : api_response_success
+          end
+        end
+
+        it 'continues polling when status is FIRST_SUCCESS and completes on SUCCESS' do
+          expect { job.send(:poll_for_completion) }.not_to raise_error
+          expect(job.instance_variable_get(:@task_data)).to eq(api_response_success)
+        end
+      end
+
+      context 'TEXT_SUCCESS status' do
+        let(:api_response_text) do
+          {
+            'taskId' => task_id,
+            'status' => 'TEXT_SUCCESS'
+          }
+        end
+        let(:api_response_success) do
+          {
+            'taskId' => task_id,
+            'status' => 'SUCCESS',
+            'response' => { 'sunoData' => [] }
+          }
+        end
+
+        before do
+          call_count = 0
+          allow(kie_service).to receive(:get_task_status) do
+            call_count += 1
+            call_count == 1 ? api_response_text : api_response_success
+          end
+        end
+
+        it 'continues polling when status is TEXT_SUCCESS and completes on SUCCESS' do
+          expect { job.send(:poll_for_completion) }.not_to raise_error
+          expect(job.instance_variable_get(:@task_data)).to eq(api_response_success)
+        end
+      end
+    end
+
+    context 'backward compatibility with lowercase statuses' do
+      let(:api_response_lowercase_success) do
+        {
+          'taskId' => task_id,
+          'status' => 'completed',
+          'response' => { 'sunoData' => [] }
+        }
+      end
+
+      before do
+        allow(kie_service).to receive(:get_task_status).and_return(api_response_lowercase_success)
+      end
+
+      it 'still works with lowercase completed status for backward compatibility' do
+        expect { job.send(:poll_for_completion) }.not_to raise_error
+        expect(job.instance_variable_get(:@task_data)).to eq(api_response_lowercase_success)
+      end
+    end
+  end
+
   describe '#calculate_polling_interval' do
     subject(:job) { described_class.new }
 

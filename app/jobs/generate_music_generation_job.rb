@@ -55,12 +55,40 @@ class GenerateMusicGenerationJob < ApplicationJob
       attempts += 1
       task_data = @kie_service.get_task_status(@music_generation.task_id)
 
-      if task_data && task_data["status"].in?([ "completed", "success" ])
-        @task_data = task_data
-        break
-      elsif task_data && task_data["status"] == "failed"
-        raise Kie::Errors::TaskFailedError, task_data["error"] || "Generation failed"
-      elsif attempts >= MAX_POLLING_ATTEMPTS
+      if task_data
+        status = task_data["status"]
+        normalized_status = status.to_s.downcase
+
+        # Log the received status for debugging
+        Rails.logger.debug "Received status: '#{status}' (normalized: '#{normalized_status}') on attempt #{attempts}"
+
+        # Check for completion (SUCCESS or legacy completed/success)
+        if normalized_status.in?([ "success", "completed" ])
+          @task_data = task_data
+          Rails.logger.info "Music generation completed with status: #{status}"
+          break
+        # Check for KIE API specific error statuses
+        elsif normalized_status.in?([ "create_task_failed", "generate_audio_failed", "sensitive_word_error" ])
+          error_message = task_data["error"] || "Generation failed: #{status}"
+          Rails.logger.error "Music generation failed with status: #{status}, error: #{error_message}"
+          raise Kie::Errors::TaskFailedError, error_message
+        # Check for legacy failed status
+        elsif normalized_status == "failed"
+          error_message = task_data["error"] || "Generation failed"
+          Rails.logger.error "Music generation failed with legacy status: #{status}, error: #{error_message}"
+          raise Kie::Errors::TaskFailedError, error_message
+        # Continue polling for pending and partial completion statuses
+        elsif normalized_status.in?([ "pending", "first_success", "text_success" ])
+          Rails.logger.debug "Continuing polling - status: #{status}"
+        else
+          Rails.logger.warn "Unknown status received from KIE API: '#{status}' - continuing polling"
+        end
+      else
+        Rails.logger.warn "Received nil task_data from KIE API on attempt #{attempts}"
+      end
+
+      if attempts >= MAX_POLLING_ATTEMPTS
+        Rails.logger.error "Polling timeout exceeded after #{attempts} attempts"
         raise Kie::Errors::TimeoutError, "Polling timeout exceeded"
       end
 
