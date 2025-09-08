@@ -9,6 +9,8 @@ class GenerateTrackJob < ApplicationJob
   retry_on Kie::Errors::RateLimitError, wait: :exponentially_longer, attempts: 5
 
   def perform(track_id)
+    Rails.logger.warn "GenerateTrackJob is deprecated. Use GenerateMusicGenerationJob instead."
+
     @track = Track.find(track_id)
     @service = KieService.new
 

@@ -445,6 +445,8 @@ RSpec.describe GenerateTrackJob, type: :job do
           .with('task_123')
           .and_return({ 'status' => 'UNKNOWN_STATUS', 'extra_field' => 'some_value' })
 
+        # Allow deprecation warning to be logged
+        allow(Rails.logger).to receive(:warn).with("GenerateTrackJob is deprecated. Use GenerateMusicGenerationJob instead.")
         expect(Rails.logger).to receive(:warn).with(/Unknown task status: UNKNOWN_STATUS/)
         expect(Rails.logger).to receive(:warn).with(/Full response:.*UNKNOWN_STATUS/)
 

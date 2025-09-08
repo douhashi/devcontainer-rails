@@ -1,5 +1,6 @@
 class Content < ApplicationRecord
   has_many :tracks, dependent: :destroy
+  has_many :music_generations, dependent: :destroy
   has_one :artwork, dependent: :destroy
   has_one :audio, dependent: :destroy
   has_one :video, dependent: :destroy
@@ -9,7 +10,9 @@ class Content < ApplicationRecord
   validates :audio_prompt, presence: true, length: { maximum: 1000 }
 
   def required_track_count
-    TrackQueueingService.calculate_track_count(duration)
+    # Use MusicGenerationQueueingService to calculate based on music generations
+    # Each generation produces 2 tracks
+    MusicGenerationQueueingService.calculate_music_generation_count(duration) * 2
   end
 
   def track_progress

@@ -190,6 +190,129 @@ RSpec.describe KieService do
     end
   end
 
+  describe '#extract_all_music_data' do
+    context 'with valid response structure (sunoData format)' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => [
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_123.mp3',
+                'title' => 'Relaxing Lo-fi Beat',
+                'tags' => 'lo-fi,chill,study',
+                'duration' => 240.0,
+                'modelName' => 'chirp-v3-5',
+                'prompt' => '[Verse]\nSoft beats in the night...',
+                'audioId' => '4ed5f074-07d7-42e6-83d6-0b1db3dd0064'
+              },
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_456.mp3',
+                'title' => 'Alternative Version',
+                'tags' => 'lo-fi,chill,study',
+                'duration' => 245.0,
+                'modelName' => 'chirp-v3-5',
+                'prompt' => '[Verse]\nAlternative beats...',
+                'audioId' => '5ed5f074-07d7-42e6-83d6-0b1db3dd0065'
+              }
+            ]
+          }
+        }
+      end
+
+      it 'extracts all music data from the response' do
+        result = service.extract_all_music_data(response_data)
+
+        expect(result).to be_an(Array)
+        expect(result.size).to eq(2)
+
+        expect(result[0]).to eq({
+          audio_url: 'https://api.kie.ai/downloads/audio_123.mp3',
+          title: 'Relaxing Lo-fi Beat',
+          tags: 'lo-fi,chill,study',
+          duration: 240.0,
+          model_name: 'chirp-v3-5',
+          generated_prompt: '[Verse]\nSoft beats in the night...',
+          audio_id: '4ed5f074-07d7-42e6-83d6-0b1db3dd0064'
+        })
+
+        expect(result[1]).to eq({
+          audio_url: 'https://api.kie.ai/downloads/audio_456.mp3',
+          title: 'Alternative Version',
+          tags: 'lo-fi,chill,study',
+          duration: 245.0,
+          model_name: 'chirp-v3-5',
+          generated_prompt: '[Verse]\nAlternative beats...',
+          audio_id: '5ed5f074-07d7-42e6-83d6-0b1db3dd0065'
+        })
+      end
+    end
+
+    context 'with missing sunoData' do
+      let(:response_data) do
+        {
+          'response' => {}
+        }
+      end
+
+      it 'returns an empty array' do
+        result = service.extract_all_music_data(response_data)
+        expect(result).to eq([])
+      end
+    end
+
+    context 'with empty sunoData array' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => []
+          }
+        }
+      end
+
+      it 'returns an empty array' do
+        result = service.extract_all_music_data(response_data)
+        expect(result).to eq([])
+      end
+    end
+
+    context 'with nil response' do
+      it 'returns an empty array' do
+        result = service.extract_all_music_data(nil)
+        expect(result).to eq([])
+      end
+    end
+
+    context 'with items missing required audioUrl' do
+      let(:response_data) do
+        {
+          'response' => {
+            'sunoData' => [
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_123.mp3',
+                'title' => 'Valid Item'
+              },
+              {
+                'title' => 'Missing Audio URL'
+              },
+              {
+                'audioUrl' => 'https://api.kie.ai/downloads/audio_789.mp3',
+                'title' => 'Another Valid Item'
+              }
+            ]
+          }
+        }
+      end
+
+      it 'filters out items without audioUrl' do
+        result = service.extract_all_music_data(response_data)
+
+        expect(result.size).to eq(2)
+        expect(result[0][:title]).to eq('Valid Item')
+        expect(result[1][:title]).to eq('Another Valid Item')
+      end
+    end
+  end
+
   describe '#extract_music_data' do
     context 'with valid response structure (sunoData format)' do
       let(:response_data) do

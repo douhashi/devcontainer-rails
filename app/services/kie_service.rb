@@ -126,6 +126,34 @@ class KieService
     }
   end
 
+  def extract_all_music_data(task_data)
+    return [] unless task_data.is_a?(Hash)
+
+    # Extract sunoData from response structure
+    suno_data = task_data.dig("response", "sunoData")
+    return [] unless suno_data.is_a?(Array)
+
+    # Extract metadata for all music variants
+    suno_data.filter_map do |music|
+      next unless music.is_a?(Hash)
+
+      # Audio URL is required
+      audio_url = music["audioUrl"]
+      next if audio_url.nil? || audio_url.to_s.strip.empty?
+
+      # Extract music metadata with extended fields
+      {
+        audio_url: audio_url,
+        title: music["title"],
+        tags: music["tags"],
+        duration: music["duration"],
+        model_name: music["modelName"],
+        generated_prompt: music["prompt"],
+        audio_id: music["audioId"]
+      }
+    end
+  end
+
   private
 
   attr_reader :api_key

@@ -10,6 +10,7 @@ A modern Rails 8 application template with best practices and essential configur
 - Solid Queue for background jobs
 - Foreman for process management
 - Structured documentation system
+- MusicGeneration model for efficient API management (NEW)
 
 ## Getting Started
 
@@ -53,9 +54,27 @@ For command-line usage, use the provided scripts:
 
 These scripts wrap the devcontainer CLI commands for easier management of the development environment.
 
+## Architecture Improvements
+
+### MusicGeneration Model
+
+The MusicGeneration model optimizes KIE API usage by fully utilizing the API response:
+
+- **Before**: 1 API call → 1 Track (wasting the 2nd track in response)
+- **After**: 1 API call → 1 MusicGeneration → 2 Tracks
+
+Benefits:
+- 50% reduction in API calls
+- Better error handling and retry logic
+- Clear separation between API management and track creation
+- Foundation for future batch processing optimizations
+
+For migration details, see [Migration Strategy](docs/migration_strategy.md).
+
 ## Documentation
 
 Project documentation is organized under `docs/`:
 - `business/` - Business documents
 - `development/` - Development guides
-- `operations/` - Operational documents# Force CI re-run
+- `operations/` - Operational documents
+- `migration_strategy.md` - MusicGeneration migration plan# Force CI re-run

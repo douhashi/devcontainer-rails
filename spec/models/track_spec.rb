@@ -3,11 +3,39 @@ require 'rails_helper'
 RSpec.describe Track, type: :model do
   describe 'associations' do
     it { should belong_to(:content) }
+    it { should belong_to(:music_generation).optional }
   end
 
   describe 'validations' do
     it { should validate_presence_of(:content) }
     it { should validate_presence_of(:status) }
+
+    describe 'variant_index' do
+      let(:track) { build(:track) }
+
+      it 'allows nil values' do
+        track.variant_index = nil
+        expect(track).to be_valid
+      end
+
+      it 'allows 0 or 1' do
+        track.variant_index = 0
+        expect(track).to be_valid
+
+        track.variant_index = 1
+        expect(track).to be_valid
+      end
+
+      it 'does not allow values other than 0 or 1' do
+        track.variant_index = 2
+        expect(track).to be_invalid
+        expect(track.errors[:variant_index]).to include('is not included in the list')
+
+        track.variant_index = -1
+        expect(track).to be_invalid
+        expect(track.errors[:variant_index]).to include('is not included in the list')
+      end
+    end
 
     describe 'duration' do
       let(:track) { build(:track, content: create(:content)) }

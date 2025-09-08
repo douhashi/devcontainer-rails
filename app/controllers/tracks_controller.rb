@@ -2,30 +2,32 @@ class TracksController < ApplicationController
   before_action :set_content
 
   def generate_single
-    if can_generate_more?
-      track = @content.tracks.create!(status: :pending)
-      track.generate_audio!
+    # Deprecated: Use MusicGenerationQueueingService instead
+    Rails.logger.warn "TracksController#generate_single is deprecated. Use MusicGenerationQueueingService instead."
 
-      flash[:success] = "Track生成を開始しました"
+    service = MusicGenerationQueueingService.new(@content)
+    created_generations = service.queue_music_generations!
+
+    if created_generations.any?
+      flash[:success] = "音楽生成を開始しました（#{created_generations.size}件）"
     else
-      flash[:error] = "生成上限に達しています"
+      flash[:info] = "すでに必要な音楽生成が完了またはキューに入っています"
     end
 
     redirect_to content_path(@content)
   end
 
   def generate_bulk
-    if can_generate_more?
-      tracks_to_generate = [ remaining_tracks, 10 ].min
+    # Deprecated: Use MusicGenerationQueueingService instead
+    Rails.logger.warn "TracksController#generate_bulk is deprecated. Use MusicGenerationQueueingService instead."
 
-      tracks_to_generate.times do
-        track = @content.tracks.create!(status: :pending)
-        track.generate_audio!
-      end
+    service = MusicGenerationQueueingService.new(@content)
+    created_generations = service.queue_music_generations!
 
-      flash[:success] = "#{tracks_to_generate}件のTrack生成を開始しました"
+    if created_generations.any?
+      flash[:success] = "音楽生成を開始しました（#{created_generations.size}件）"
     else
-      flash[:error] = "生成上限に達しています"
+      flash[:info] = "すでに必要な音楽生成が完了またはキューに入っています"
     end
 
     redirect_to content_path(@content)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_221339) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_234447) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -38,6 +38,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_221339) do
     t.index [ "theme" ], name: "index_contents_on_theme"
   end
 
+  create_table "music_generations", force: :cascade do |t|
+    t.integer "content_id", null: false
+    t.string "task_id", null: false
+    t.string "status", null: false
+    t.text "prompt", null: false
+    t.string "generation_model", null: false
+    t.json "api_response"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "content_id" ], name: "index_music_generations_on_content_id"
+    t.index [ "status" ], name: "index_music_generations_on_status"
+    t.index [ "task_id" ], name: "index_music_generations_on_task_id"
+  end
+
   create_table "tracks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.string "status", default: "pending", null: false
@@ -46,7 +60,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_221339) do
     t.datetime "updated_at", null: false
     t.json "audio_data"
     t.integer "duration"
+    t.integer "music_generation_id"
+    t.integer "variant_index"
     t.index [ "content_id" ], name: "index_tracks_on_content_id"
+    t.index [ "music_generation_id" ], name: "index_tracks_on_music_generation_id"
     t.index [ "status" ], name: "index_tracks_on_status"
   end
 
@@ -66,6 +83,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_221339) do
 
   add_foreign_key "artworks", "contents"
   add_foreign_key "audios", "contents"
+  add_foreign_key "music_generations", "contents"
   add_foreign_key "tracks", "contents"
+  add_foreign_key "tracks", "music_generations"
   add_foreign_key "videos", "contents"
 end

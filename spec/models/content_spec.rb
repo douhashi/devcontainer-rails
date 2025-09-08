@@ -222,20 +222,27 @@ RSpec.describe Content, type: :model do
     let(:content) { create(:content, duration: 12) }
 
     describe '#required_track_count' do
-      it 'delegates to TrackQueueingService for calculation' do
-        expect(TrackQueueingService).to receive(:calculate_track_count).with(12).and_return(7)
-        expect(content.required_track_count).to eq(7)
+      it 'delegates to MusicGenerationQueueingService for calculation' do
+        # MusicGenerationQueueingService returns music generation count
+        # Each music generation produces 2 tracks
+        expect(MusicGenerationQueueingService).to receive(:calculate_music_generation_count).with(12).and_return(3)
+        expect(content.required_track_count).to eq(6) # 3 generations * 2 tracks = 6
       end
 
       context 'with various durations' do
         it 'calculates correct count for 6 minutes' do
           content.duration = 6
-          expect(content.required_track_count).to eq(6) # (6/6) + 5 = 6
+          # 6 minutes = 1 music generation (minimum) * 2 tracks = 2 tracks
+          expect(content.required_track_count).to eq(2)
         end
 
         it 'calculates correct count for 30 minutes' do
-          content.duration = 30
-          expect(content.required_track_count).to eq(10) # (30/6) + 5 = 10
+          content.duration = 30 * 60  # 30 minutes in seconds
+          # 30 minutes = 1800 seconds
+          # Each generation produces 2 tracks × 240 seconds = 480 seconds
+          # 1800 / 480 = 3.75 → 4 generations (rounded up)
+          # 4 generations × 2 tracks = 8 tracks
+          expect(content.required_track_count).to eq(8)
         end
       end
     end
