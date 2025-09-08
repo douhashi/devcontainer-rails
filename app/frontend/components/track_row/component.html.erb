@@ -5,6 +5,7 @@
   <td class="px-6 py-4 text-sm text-gray-100">
     <%= track_title %>
   </td>
+  <% if show_content_column %>
   <td class="px-6 py-4 text-sm">
     <% if content_link? %>
       <%= link_to content_theme, Rails.application.routes.url_helpers.content_path(track.content), 
@@ -13,6 +14,7 @@
       <span class="text-gray-500">-</span>
     <% end %>
   </td>
+  <% end %>
   <td class="px-6 py-4 whitespace-nowrap text-sm">
     <%= render track_status_badge_component %>
   </td>

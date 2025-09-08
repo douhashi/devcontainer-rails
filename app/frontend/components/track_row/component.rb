@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class TrackRow::Component < ApplicationViewComponent
-  attr_reader :track
+  attr_reader :track, :show_content_column
 
-  def initialize(track:)
+  def initialize(track:, show_content_column: true)
     @track = track
+    @show_content_column = show_content_column
   end
 
   private

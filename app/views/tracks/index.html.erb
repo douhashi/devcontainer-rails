@@ -7,45 +7,15 @@
 
   <%= render 'search_form' %>
 
-  <% if @tracks.any? %>
-    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-700">
-        <thead class="bg-gray-900">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              ID
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              タイトル
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              Content
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              ステータス
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              作成日時
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              プレイヤー
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-gray-800 divide-y divide-gray-700">
-          <% @tracks.each do |track| %>
-            <%= render TrackRow::Component.new(track: track) %>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
+  <%= render TrackTable::Component.new(
+    tracks: @tracks,
+    show_pagination: true,
+    show_content_column: true,
+    empty_message: "Trackがまだありません"
+  ) %>
 
-    <div class="mt-6">
-      <%= paginate @tracks %>
-    </div>
-  <% else %>
-    <div class="bg-gray-800 rounded-lg shadow-lg p-8 text-center">
-      <p class="text-gray-400 text-lg mb-4">Trackがまだありません</p>
+  <% if !@tracks.any? %>
+    <div class="mt-4 text-center">
       <p class="text-gray-500 mb-6">まずはContentを作成してTrackを生成してください</p>
       <%= link_to "コンテンツ一覧へ", contents_path, class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors" %>
     </div>
