@@ -2,10 +2,13 @@ class TracksController < ApplicationController
   before_action :set_content, except: [ :index ]
 
   def index
-    @tracks = Track.includes(:content)
-                   .recent
-                   .page(params[:page])
-                   .per(30)
+    search_params_with_date_fix = search_params_with_end_of_day
+    @q = Track.joins(:content).ransack(search_params_with_date_fix)
+    @tracks = @q.result
+                .includes(:content)
+                .recent
+                .page(params[:page])
+                .per(30)
   end
 
   def generate_single
@@ -52,5 +55,27 @@ class TracksController < ApplicationController
 
   def remaining_tracks
     100 - @content.tracks.count
+  end
+
+  def search_params
+    params[:q]&.permit(:content_theme_cont, :music_title_cont, :status_eq,
+                       :created_at_gteq, :created_at_lteq, :created_at_lt,
+                       :created_at_lteq_end_of_day, :s)
+  end
+
+  def search_params_with_end_of_day
+    return nil unless params[:q]
+
+    search_hash = search_params&.to_h
+    return search_hash unless search_hash
+
+    # Convert created_at_lteq to end of day for inclusive search
+    if search_hash["created_at_lteq"].present?
+      date = Date.parse(search_hash["created_at_lteq"])
+      search_hash["created_at_lt"] = (date + 1.day).to_s
+      search_hash.delete("created_at_lteq")
+    end
+
+    search_hash
   end
 end

@@ -7,6 +7,12 @@
         </p>
       </div>
 
+      <% if search_query %>
+        <div class="mb-6">
+          <%= render Tracks::Search::Component.new(q: search_query) %>
+        </div>
+      <% end %>
+
       <% if empty_state? %>
         <div class="bg-gray-800 rounded-lg p-12 text-center">
           <div class="text-6xl mb-4">🎵</div>
@@ -22,7 +28,7 @@
           <div class="divide-y divide-gray-700">
             <% tracks.each_with_index do |track, index| %>
               <div class="relative">
-                <%= render partial: 'track_row', locals: { track: track } %>
+                <%= render partial: 'tracks/track_row', locals: { track: track } %>
               </div>
             <% end %>
           </div>

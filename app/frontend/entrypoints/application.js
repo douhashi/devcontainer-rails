@@ -13,6 +13,7 @@ import TrackGenerationController from '../controllers/track_generation_controlle
 import StatusFilterController from '../controllers/status_filter_controller'
 import SingleTrackGenerationController from '../controllers/single_track_generation_controller'
 import AudioPlayerController from '../controllers/audio_player_controller'
+import TrackSearchController from '../controllers/track_search_controller'
 
 application.register('layout', LayoutController)
 application.register('delete-confirmation', DeleteConfirmationController)
@@ -23,5 +24,6 @@ application.register('track-generation', TrackGenerationController)
 application.register('status-filter', StatusFilterController)
 application.register('single-track-generation', SingleTrackGenerationController)
 application.register('audio-player', AudioPlayerController)
+application.register('track-search', TrackSearchController)
 
 console.log('Vite ⚡️ Rails with Stimulus & Turbo ready')

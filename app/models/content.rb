@@ -9,6 +9,11 @@ class Content < ApplicationRecord
   validates :duration, presence: true, numericality: { greater_than: 0 }
   validates :audio_prompt, presence: true, length: { maximum: 1000 }
 
+  # Ransack configuration
+  def self.ransackable_attributes(auth_object = nil)
+    %w[theme created_at]
+  end
+
   def required_track_count
     # Use MusicGenerationQueueingService to calculate based on music generations
     # Each generation produces 2 tracks

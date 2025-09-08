@@ -1,0 +1,66 @@
+<%= form_with url: helpers.tracks_path, method: :get, scope: :q, local: true, data: { controller: "track-search" } do |f| %>
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Content Theme Search -->
+      <div>
+        <%= f.label :content_theme_cont, "Content名", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= f.text_field :content_theme_cont, 
+            value: q.content_theme_cont,
+            placeholder: "Content名で検索", 
+            class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" %>
+      </div>
+
+      <!-- Music Title Search -->
+      <div>
+        <%= f.label :music_title_cont, "楽曲タイトル", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= f.text_field :music_title_cont, 
+            value: q.music_title_cont,
+            placeholder: "楽曲タイトルで検索", 
+            class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" %>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <%= f.label :status_eq, "ステータス", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= f.select :status_eq, 
+            options_for_select(status_options, q.status_eq),
+            {},
+            class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" %>
+      </div>
+
+      <!-- Created At Range - From -->
+      <div>
+        <%= f.label :created_at_gteq, "作成日（開始）", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= f.date_field :created_at_gteq, 
+            value: q.created_at_gteq,
+            class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white",
+            data: { 
+              track_search_target: "startDate",
+              action: "change->track-search#startDateChanged"
+            } %>
+      </div>
+
+      <!-- Created At Range - To -->
+      <div>
+        <%= f.label :created_at_lteq, "作成日（終了）", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+        <%= f.date_field :created_at_lteq, 
+            value: q.created_at_lteq,
+            class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white",
+            data: { 
+              track_search_target: "endDate",
+              action: "change->track-search#endDateChanged"
+            } %>
+      </div>
+    </div>
+
+    <!-- Search and Reset Buttons -->
+    <div class="mt-4 flex justify-end space-x-2">
+      <%= link_to "リセット", 
+          helpers.tracks_path, 
+          class: "px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition",
+          data: { track_search_target: "resetButton" } %>
+      <%= f.submit "検索", 
+          class: "px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition cursor-pointer" %>
+    </div>
+  </div>
+<% end %>

@@ -22,6 +22,32 @@ class Track < ApplicationRecord
   after_update :broadcast_status_update_if_changed
   after_update :broadcast_completion_notification_if_finished
 
+  # Ransack configuration
+  def self.ransackable_attributes(auth_object = nil)
+    %w[status created_at music_title content_theme]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[content]
+  end
+
+  # Custom ransacker for searching music_title in JSON metadata
+  ransacker :music_title, type: :string do
+    Arel.sql("json_extract(tracks.metadata, '$.music_title')")
+  end
+
+  # Custom ransacker for searching content theme
+  ransacker :content_theme, type: :string do
+    Arel::Nodes::SqlLiteral.new("contents.theme")
+  end
+
+  def generate_audio!
+    return false unless status.pending?
+
+    GenerateTrackJob.perform_later(id)
+    true
+  end
+
   def formatted_duration
     return "未取得" if duration.nil?
 

@@ -92,3 +92,6 @@ gem "dotenv-rails", "~> 3.1", groups: [ :development, :test ]
 
 # Pagination
 gem "kaminari", "~> 1.2"
+
+# Search and filtering
+gem "ransack", "~> 4.2"

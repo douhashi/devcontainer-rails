@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class Tracks::Index::Component < ApplicationViewComponent
-  attr_reader :tracks
+  attr_reader :tracks, :search_query
 
-  def initialize(tracks:)
+  def initialize(tracks:, search_query: nil)
     @tracks = tracks
+    @search_query = search_query
   end
 
   private

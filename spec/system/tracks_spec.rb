@@ -68,10 +68,12 @@ RSpec.describe "Tracks", type: :system do
   end
 
   describe "Pagination functionality", js: true do
+    let!(:pagination_content) { create(:content, theme: "Pagination Test Content") }
+
     before do
       # 31個のtrackを作成してページネーションをテスト
       31.times do |i|
-        create(:track, content: content1, created_at: i.minutes.ago)
+        create(:track, content: pagination_content, created_at: i.minutes.ago)
       end
     end
 
