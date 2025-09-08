@@ -47,12 +47,12 @@
         </div>
       <% elsif track.status.processing? %>
         <div class="flex items-center text-blue-400 text-sm">
-          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2" style="animation-duration: 2s;"></div>
           <span>処理中...</span>
         </div>
       <% else %>
         <div class="flex items-center text-yellow-400 text-sm">
-          <div class="h-4 w-4 bg-yellow-400 rounded-full mr-2 animate-pulse"></div>
+          <div class="h-4 w-4 bg-yellow-400 rounded-full mr-2 animate-pulse" style="animation-duration: 3s;"></div>
           <span>待機中</span>
         </div>
       <% end %>

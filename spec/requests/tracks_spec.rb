@@ -131,6 +131,26 @@ RSpec.describe "Tracks", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.body).to include(content1.theme)
       end
+
+      it "responds within acceptable time limit" do
+        start_time = Time.current
+        get tracks_path
+        response_time = Time.current - start_time
+
+        expect(response).to have_http_status(:success)
+        expect(response_time).to be < 2.0, "Response took #{response_time}s, expected < 2.0s"
+      end
+
+      it "handles large datasets efficiently" do
+        create_list(:track, 50, content: content1)
+
+        start_time = Time.current
+        get tracks_path
+        response_time = Time.current - start_time
+
+        expect(response).to have_http_status(:success)
+        expect(response_time).to be < 3.0, "Response took #{response_time}s with 50+ tracks, expected < 3.0s"
+      end
     end
   end
 end

@@ -6,7 +6,12 @@
     data-audio-url="<%= audio_url %>"
     preload="none"
     controls
-    class="h-8 max-w-xs">
+    class="h-8 max-w-xs"
+    style="visibility: hidden; transition: visibility 0.1s;">
     お使いのブラウザはaudio要素をサポートしていません。
   </audio>
+<% else %>
+  <div class="text-gray-500 text-sm px-2 py-1 rounded">
+    処理中...
+  </div>
 <% end %>
