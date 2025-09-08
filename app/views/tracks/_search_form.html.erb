@@ -1,0 +1,91 @@
+<div class="bg-white shadow rounded-lg p-6 mb-6">
+  <%= search_form_for @q, url: tracks_path, method: :get, html: { class: "space-y-4" } do |f| %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      
+      <!-- Content名検索 -->
+      <div>
+        <%= f.label :content_theme_cont, "Content名", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_field :content_theme_cont, 
+            class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
+            placeholder: "Content名で検索" %>
+      </div>
+      
+      <!-- 楽曲タイトル検索 -->
+      <div>
+        <%= f.label :music_title_cont, "楽曲タイトル", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_field :music_title_cont,
+            class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
+            placeholder: "楽曲タイトルで検索" %>
+      </div>
+      
+      <!-- ステータスフィルタ（チェックボックスのみ） -->
+      <div class="lg:col-span-3">
+        <fieldset>
+          <legend class="text-sm font-medium text-gray-700 mb-2">ステータス</legend>
+          <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center">
+              <%= check_box_tag "q[status_in][]", "pending",
+                  params.dig(:q, :status_in)&.include?("pending"),
+                  id: "q_status_in_pending",
+                  class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+              <span class="ml-2 text-sm text-gray-700">待機中</span>
+            </label>
+            <label class="inline-flex items-center">
+              <%= check_box_tag "q[status_in][]", "processing",
+                  params.dig(:q, :status_in)&.include?("processing"),
+                  id: "q_status_in_processing",
+                  class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+              <span class="ml-2 text-sm text-gray-700">処理中</span>
+            </label>
+            <label class="inline-flex items-center">
+              <%= check_box_tag "q[status_in][]", "completed",
+                  params.dig(:q, :status_in)&.include?("completed"),
+                  id: "q_status_in_completed",
+                  class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+              <span class="ml-2 text-sm text-gray-700">完了</span>
+            </label>
+            <label class="inline-flex items-center">
+              <%= check_box_tag "q[status_in][]", "failed",
+                  params.dig(:q, :status_in)&.include?("failed"),
+                  id: "q_status_in_failed",
+                  class: "rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
+              <span class="ml-2 text-sm text-gray-700">失敗</span>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+      
+      <!-- 作成日時（開始） -->
+      <div>
+        <%= f.label :created_at_gteq, "作成日時（開始）", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.date_field :created_at_gteq,
+            value: params.dig(:q, :created_at_gteq).present? ? Date.parse(params.dig(:q, :created_at_gteq)) : nil,
+            class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+      </div>
+      
+      <!-- 作成日時（終了） -->
+      <div>
+        <%= f.label :created_at_lteq, "作成日時（終了）", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.date_field :created_at_lteq,
+            value: params.dig(:q, :created_at_lteq).present? ? Date.parse(params.dig(:q, :created_at_lteq)) : nil,
+            class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+      </div>
+    </div>
+    
+    <!-- ボタン -->
+    <div class="flex gap-4 pt-4">
+      <%= f.submit "検索", 
+          class: "inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" %>
+      <%= link_to "クリア", tracks_path,
+          class: "inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" %>
+    </div>
+  <% end %>
+</div>
+
+<% if params[:q].present? %>
+  <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+    <p class="text-sm text-blue-700">
+      検索結果: <%= @tracks.total_count %>件
+    </p>
+  </div>
+<% end %>

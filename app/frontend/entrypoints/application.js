@@ -13,7 +13,6 @@ import TrackGenerationController from '../controllers/track_generation_controlle
 import StatusFilterController from '../controllers/status_filter_controller'
 import SingleTrackGenerationController from '../controllers/single_track_generation_controller'
 import AudioPlayerController from '../controllers/audio_player_controller'
-
 application.register('layout', LayoutController)
 application.register('delete-confirmation', DeleteConfirmationController)
 application.register('flash-message', FlashMessageController)

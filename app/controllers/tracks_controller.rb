@@ -2,10 +2,12 @@ class TracksController < ApplicationController
   before_action :set_content, except: [ :index ]
 
   def index
-    @tracks = Track.includes(:content)
-                   .recent
-                   .page(params[:page])
-                   .per(30)
+    @q = Track.joins(:content).ransack(params[:q])
+    @tracks = @q.result
+                .includes(:content)
+                .recent
+                .page(params[:page])
+                .per(30)
   end
 
   def generate_single

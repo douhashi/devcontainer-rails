@@ -5,6 +5,8 @@
     <h1 class="text-2xl font-bold text-gray-100">Track一覧</h1>
   </div>
 
+  <%= render 'search_form' %>
+
   <% if @tracks.any? %>
     <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
       <table class="min-w-full divide-y divide-gray-700">
