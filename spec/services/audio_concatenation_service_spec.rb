@@ -17,9 +17,10 @@ RSpec.describe AudioConcatenationService do
       temp_file.write("fake audio content for testing")
       temp_file.close
 
-      # Mock the track's audio file path
-      allow(track).to receive_message_chain(:audio, :file, :path).and_return(temp_file.path)
-      allow(track).to receive_message_chain(:audio, :file).and_return(double(path: temp_file.path))
+      # Mock the track's audio file path using Shrine API
+      allow(track).to receive_message_chain(:audio, :id).and_return("mock_audio_id")
+      allow(track).to receive_message_chain(:audio, :storage, :path).with("mock_audio_id").and_return(Pathname.new(temp_file.path))
+      allow(track).to receive_message_chain(:audio, :exists?).and_return(true)
 
       @temp_files << temp_file
     end
@@ -131,7 +132,7 @@ RSpec.describe AudioConcatenationService do
       let(:service_no_audio) { described_class.new([ track_without_audio ]) }
 
       before do
-        allow(track_without_audio).to receive_message_chain(:audio, :file).and_return(nil)
+        allow(track_without_audio).to receive_message_chain(:audio, :exists?).and_return(false)
       end
 
       it 'raises error for missing audio files' do
@@ -151,7 +152,7 @@ RSpec.describe AudioConcatenationService do
 
         content = File.read(playlist_path)
         tracks.each do |track|
-          audio_path = track.audio.file.path
+          audio_path = track.audio.storage.path(track.audio.id).to_s
           expect(content).to include("file '#{audio_path}'")
         end
 
@@ -172,7 +173,7 @@ RSpec.describe AudioConcatenationService do
         let(:track_without_audio) { create(:track, content: content, status: :completed) }
 
         before do
-          allow(track_without_audio).to receive_message_chain(:audio, :file).and_return(nil)
+          allow(track_without_audio).to receive_message_chain(:audio, :exists?).and_return(false)
           service.instance_variable_set(:@tracks, tracks + [ track_without_audio ])
         end
 

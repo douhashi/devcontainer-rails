@@ -44,7 +44,7 @@ class AudioConcatenationService
 
   def validate_audio_files!
     tracks.each do |track|
-      unless track.audio&.file
+      unless track.audio&.exists?
         raise MissingAudioFileError, "Track ##{track.id} has no audio file attached"
       end
     end
@@ -54,7 +54,7 @@ class AudioConcatenationService
     playlist_file = Tempfile.new([ "playlist", ".txt" ])
 
     tracks.each do |track|
-      audio_path = track.audio.file.path
+      audio_path = track.audio.storage.path(track.audio.id).to_s
       # Sanitize path in playlist file to prevent injection attacks
       sanitized_path = audio_path.gsub("'", "\\'")
       playlist_file.puts("file '#{sanitized_path}'")
