@@ -23,11 +23,11 @@ class SingleTrackGenerationButton::Component < ApplicationViewComponent
   def button_text
     return "生成中..." if processing_tracks?
 
-    "1件生成"
+    "音楽生成（2曲）"
   end
 
   def confirmation_message
-    "1件のトラックを生成します。よろしいですか？"
+    "1回のAPI呼び出しで2曲生成します。よろしいですか？"
   end
 
   def generate_single_track_url
@@ -42,6 +42,6 @@ class SingleTrackGenerationButton::Component < ApplicationViewComponent
 
   def would_exceed_limit?
     current_count = content_record.tracks.count
-    current_count >= TrackQueueingService::MAX_TRACKS_PER_CONTENT
+    current_count >= 100 # TrackQueueingService::MAX_TRACKS_PER_CONTENT
   end
 end

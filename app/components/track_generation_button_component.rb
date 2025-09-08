@@ -6,7 +6,11 @@ class TrackGenerationButtonComponent < ViewComponent::Base
   end
 
   def track_count
-    @track_count ||= TrackQueueingService.calculate_track_count(content_record.duration)
+    @track_count ||= content_record.required_track_count
+  end
+
+  def music_generation_count
+    @music_generation_count ||= content_record.required_music_generation_count
   end
 
   def can_generate?
@@ -25,11 +29,11 @@ class TrackGenerationButtonComponent < ViewComponent::Base
   def button_text
     return "生成中..." if processing_tracks?
 
-    "BGM生成開始"
+    "BGM生成開始（#{music_generation_count}回の生成で#{track_count}曲）"
   end
 
   def confirmation_message
-    "#{track_count}個のトラックを生成します。よろしいですか？"
+    "#{music_generation_count}回の音楽生成で#{track_count}曲のトラックを作成します。よろしいですか？"
   end
 
   def generate_tracks_url
@@ -44,6 +48,6 @@ class TrackGenerationButtonComponent < ViewComponent::Base
 
   def would_exceed_limit?
     current_count = content_record.tracks.count
-    (current_count + track_count) > TrackQueueingService::MAX_TRACKS_PER_CONTENT
+    (current_count + track_count) > 100 # TrackQueueingService::MAX_TRACKS_PER_CONTENT
   end
 end

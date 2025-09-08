@@ -18,6 +18,10 @@ class Contents::Show::Component < ApplicationViewComponent
     item.track_progress
   end
 
+  def music_generation_progress
+    item.music_generation_progress
+  end
+
   def artwork_status
     item.artwork_status
   end

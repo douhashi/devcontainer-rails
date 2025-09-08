@@ -27,6 +27,22 @@ class Content < ApplicationRecord
     }
   end
 
+  def music_generation_progress
+    completed_count = music_generations.completed.count
+    total_count = required_music_generation_count
+    percentage = total_count > 0 ? (completed_count.to_f / total_count * 100).round(1) : 0.0
+
+    {
+      completed: completed_count,
+      total: total_count,
+      percentage: percentage
+    }
+  end
+
+  def required_music_generation_count
+    MusicGenerationQueueingService.calculate_music_generation_count(duration)
+  end
+
   def artwork_status
     artwork.present? ? :configured : :not_configured
   end

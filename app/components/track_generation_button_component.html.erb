@@ -4,12 +4,12 @@
       type="button"
       class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
       data-controller="track-generation"
+      data-track-generation-music-generation-count-value="<%= music_generation_count %>"
       data-track-generation-track-count-value="<%= track_count %>"
       data-track-generation-url-value="<%= generate_tracks_url %>"
       data-track-generation-confirmation-message-value="<%= confirmation_message %>"
     >
       <%= button_text %>
-      <span class="text-sm text-blue-200">(<%= track_count %> tracks)</span>
     </button>
   <% else %>
     <button 

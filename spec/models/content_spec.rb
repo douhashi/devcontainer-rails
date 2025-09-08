@@ -376,6 +376,77 @@ RSpec.describe Content, type: :model do
     end
   end
 
+  describe '#music_generation_progress' do
+    let(:content) { create(:content, duration: 1200) } # 20 minutes = 3 music generations
+
+    context 'when music generations exist' do
+      before do
+        # Create 2 completed and 1 pending music generation
+        create_list(:music_generation, 2, content: content, status: :completed)
+        create(:music_generation, content: content, status: :pending)
+      end
+
+      it 'returns correct progress information' do
+        progress = content.music_generation_progress
+        expect(progress[:completed]).to eq(2)
+        expect(progress[:total]).to eq(3)
+        expect(progress[:percentage]).to eq(66.7)
+      end
+    end
+
+    context 'when no music generations exist' do
+      it 'returns zero progress' do
+        progress = content.music_generation_progress
+        expect(progress[:completed]).to eq(0)
+        expect(progress[:total]).to eq(3)
+        expect(progress[:percentage]).to eq(0.0)
+      end
+    end
+
+    context 'when all music generations are completed' do
+      before do
+        create_list(:music_generation, 3, content: content, status: :completed)
+      end
+
+      it 'returns 100% progress' do
+        progress = content.music_generation_progress
+        expect(progress[:completed]).to eq(3)
+        expect(progress[:total]).to eq(3)
+        expect(progress[:percentage]).to eq(100.0)
+      end
+    end
+
+    context 'with various statuses' do
+      before do
+        create(:music_generation, content: content, status: :completed)
+        create(:music_generation, content: content, status: :processing)
+        create(:music_generation, content: content, status: :failed)
+      end
+
+      it 'only counts completed generations' do
+        progress = content.music_generation_progress
+        expect(progress[:completed]).to eq(1)
+        expect(progress[:total]).to eq(3)
+        expect(progress[:percentage]).to eq(33.3)
+      end
+    end
+  end
+
+  describe '#required_music_generation_count' do
+    let(:content) { create(:content) }
+
+    it 'calculates correct count for various durations' do
+      content.duration = 480 # 8 minutes = 1 generation
+      expect(content.required_music_generation_count).to eq(1)
+
+      content.duration = 960 # 16 minutes = 2 generations
+      expect(content.required_music_generation_count).to eq(2)
+
+      content.duration = 1200 # 20 minutes = 3 generations
+      expect(content.required_music_generation_count).to eq(3)
+    end
+  end
+
   describe 'video generation methods' do
     let(:content) { create(:content) }
 

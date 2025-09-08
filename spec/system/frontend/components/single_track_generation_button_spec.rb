@@ -6,7 +6,7 @@ describe "single_track_generation_button component" do
   it "default preview" do
     visit("/rails/view_components/single_track_generation_button/default")
 
-    expect(page).to have_button("1件生成")
+    expect(page).to have_button("音楽生成（2曲）")
   end
 
   it "with_processing_track preview" do
@@ -19,13 +19,13 @@ describe "single_track_generation_button component" do
   it "with_max_tracks preview" do
     visit("/rails/view_components/single_track_generation_button/with_max_tracks")
 
-    expect(page).to have_button("1件生成", disabled: true)
+    expect(page).to have_button("音楽生成（2曲）", disabled: true)
     expect(page).to have_text("トラック数の上限に達しています")
   end
 
   it "with_99_tracks preview" do
     visit("/rails/view_components/single_track_generation_button/with_99_tracks")
 
-    expect(page).to have_button("1件生成")
+    expect(page).to have_button("音楽生成（2曲）")
   end
 end

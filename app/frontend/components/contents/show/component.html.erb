@@ -34,17 +34,35 @@
       <!-- Progress Circle and Stats -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="progress-circle">
-          <div class="flex items-center justify-center">
-            <%= render ProgressBar::Component.new(
-              percentage: track_progress[:percentage],
-              label: "トラック進捗",
-              variant: progress_variant,
-              size: :large
-            ) %>
+          <div class="mb-4">
+            <h3 class="text-md font-medium text-gray-300 mb-2">生成回数</h3>
+            <div class="flex items-center justify-center">
+              <%= render ProgressBar::Component.new(
+                percentage: music_generation_progress[:percentage],
+                label: "MusicGeneration",
+                variant: progress_variant,
+                size: :medium
+              ) %>
+            </div>
+            <p class="text-center text-gray-400 mt-2">
+              <%= music_generation_progress[:completed] %>/<%= music_generation_progress[:total] %>回 完了
+            </p>
           </div>
-          <p class="text-center text-gray-400 mt-2">
-            <%= track_progress[:completed] %>/<%= track_progress[:total] %> 完了
-          </p>
+          
+          <div class="mt-4">
+            <h3 class="text-md font-medium text-gray-300 mb-2">トラック数</h3>
+            <div class="flex items-center justify-center">
+              <%= render ProgressBar::Component.new(
+                percentage: track_progress[:percentage],
+                label: "トラック進捗",
+                variant: progress_variant,
+                size: :medium
+              ) %>
+            </div>
+            <p class="text-center text-gray-400 mt-2">
+              <%= track_progress[:completed] %>/<%= track_progress[:total] %>曲 完了
+            </p>
+          </div>
         </div>
 
         <div class="track-status-breakdown">

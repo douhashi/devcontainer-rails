@@ -138,6 +138,24 @@ RSpec.describe Contents::Show::Component, type: :component do
     it 'shows track status breakdown with icons' do
       expect(subject.css('.track-status-item')).to be_present
     end
+
+    context 'with MusicGeneration progress' do
+      before do
+        allow(content).to receive(:music_generation_progress).and_return({
+          completed: 1,
+          total: 2,
+          percentage: 50.0
+        })
+      end
+
+      it 'shows both MusicGeneration and Track progress' do
+        result = render_inline(component)
+        expect(result.text).to include('生成回数')
+        expect(result.text).to include('1/2回')
+        expect(result.text).to include('トラック数')
+        expect(result.text).to include('3/7曲')
+      end
+    end
   end
 
   describe 'responsive design' do

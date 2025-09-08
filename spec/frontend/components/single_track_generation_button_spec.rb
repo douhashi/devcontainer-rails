@@ -110,8 +110,8 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
 
   describe '#button_text' do
     context 'when not processing' do
-      it 'returns default text' do
-        expect(component.button_text).to eq("1件生成")
+      it 'returns text with track count' do
+        expect(component.button_text).to eq("音楽生成（2曲）")
       end
     end
 
@@ -127,8 +127,8 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
   end
 
   describe '#confirmation_message' do
-    it 'returns confirmation message for single track' do
-      expect(component.confirmation_message).to eq("1件のトラックを生成します。よろしいですか？")
+    it 'returns confirmation message for music generation' do
+      expect(component.confirmation_message).to eq("1回のAPI呼び出しで2曲生成します。よろしいですか？")
     end
   end
 
@@ -144,7 +144,7 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
     it 'renders the component' do
       render_inline(component)
 
-      expect(page).to have_button("1件生成")
+      expect(page).to have_button("音楽生成（2曲）")
     end
 
     context 'when can generate' do
@@ -154,7 +154,7 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
         button = page.find('button[data-controller="single-track-generation"]')
         expect(button).not_to be_disabled
         expect(button['data-single-track-generation-url-value']).to include('generate_single_track')
-        expect(button['data-single-track-generation-confirmation-message-value']).to include('1件のトラック')
+        expect(button['data-single-track-generation-confirmation-message-value']).to include('1回のAPI')
       end
     end
 
