@@ -35,12 +35,8 @@
     </div>
     
     <div class="flex items-center space-x-3">
-      <% if track.status.completed? && track.audio.present? %>
-        <audio controls class="h-8">
-          <source src="<%= track.audio.url %>" type="audio/mpeg">
-          お使いのブラウザはaudio要素をサポートしていません。
-        </audio>
-      <% elsif track.status.failed? %>
+      <%= render AudioPlayer::Component.new(track: track) %>
+      <% if track.status.failed? %>
         <div class="text-red-400 text-sm max-w-xs">
           <div class="flex items-center">
             <span class="mr-2">❌</span>

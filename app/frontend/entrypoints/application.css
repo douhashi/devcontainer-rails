@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "plyr/dist/plyr.css";
 
 @source "../../views/**/*.{haml,slim,erb}";
 
@@ -41,6 +42,52 @@ body {
 .layout-footer {
   grid-area: footer;
   @apply bg-gray-800 border-t border-gray-700;
+}
+
+/* Plyr.js dark theme customization */
+.plyr {
+  @apply rounded-lg;
+}
+
+.plyr--audio .plyr__controls {
+  @apply bg-gray-700 border border-gray-600 rounded-lg;
+}
+
+.plyr__control {
+  @apply text-gray-300;
+}
+
+.plyr__control:hover {
+  @apply text-white;
+}
+
+.plyr__control--pressed {
+  @apply text-blue-400;
+}
+
+.plyr__progress {
+  @apply bg-gray-600;
+}
+
+.plyr__progress--played {
+  @apply bg-blue-500;
+}
+
+.plyr__volume {
+  @apply bg-gray-600;
+}
+
+.plyr__volume--value {
+  @apply bg-blue-500;
+}
+
+.plyr__time {
+  @apply text-gray-300 text-xs;
+}
+
+.plyr--audio {
+  max-width: 320px;
+  height: 48px;
 }
 
 @media (max-width: 768px) {

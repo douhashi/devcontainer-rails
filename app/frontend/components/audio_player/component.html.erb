@@ -1,0 +1,12 @@
+<% if should_render_audio_player? %>
+  <audio 
+    data-controller="audio-player"
+    data-audio-player-target="player"
+    data-audio-player-autoplay-value="<%= autoplay_value %>"
+    data-audio-url="<%= audio_url %>"
+    preload="none"
+    controls
+    class="h-8 max-w-xs">
+    お使いのブラウザはaudio要素をサポートしていません。
+  </audio>
+<% end %>
