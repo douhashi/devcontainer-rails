@@ -235,25 +235,27 @@ RSpec.describe "Contents", type: :request do
 
     context "with valid content" do
       it "generates tracks successfully" do
+        # For duration 10: 7 tracks needed, ceil(7/2) = 4 MusicGeneration
         expect {
           post generate_tracks_content_path(content)
-        }.to change { content.tracks.count }.by(7) # (10 / (3*2)) + 5 = 7
+        }.to change { content.music_generations.count }.by(4)
 
         expect(response).to redirect_to(content)
         follow_redirect!
         expect(response.body).to include("7 tracks were queued for generation")
       end
 
-      it "enqueues GenerateTrackJob for each created track" do
+      it "enqueues GenerateMusicJob for each music generation" do
+        # For duration 10: 7 tracks needed, ceil(7/2) = 4 MusicGeneration
         expect {
           post generate_tracks_content_path(content)
-        }.to have_enqueued_job(GenerateTrackJob).exactly(7).times
+        }.to have_enqueued_job(GenerateMusicJob).exactly(4).times
       end
 
-      it "creates tracks with pending status" do
+      it "creates music generations with pending status" do
         post generate_tracks_content_path(content)
 
-        expect(content.tracks.all?(&:pending?)).to be true
+        expect(content.music_generations.all?(&:pending?)).to be true
       end
     end
 

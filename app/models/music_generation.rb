@@ -4,7 +4,7 @@ class MusicGeneration < ApplicationRecord
   belongs_to :content
   has_many :tracks, dependent: :destroy
 
-  enumerize :status, in: [ :pending, :processing, :completed, :failed ], default: :pending
+  enumerize :status, in: [ :pending, :processing, :completed, :failed ], default: :pending, predicates: true
 
   validates :task_id, presence: true, allow_nil: false
   validates :status, presence: true

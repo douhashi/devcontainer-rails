@@ -40,30 +40,37 @@ RSpec.describe TrackQueueingService do
     let(:service) { described_class.new(content) }
 
     context 'when content is valid' do
-      it 'creates the correct number of tracks' do
+      it 'creates the correct number of music generations' do
+        # For duration 10: 7 tracks needed, each MusicGeneration produces 2 tracks
+        # So we need ceil(7/2) = 4 MusicGeneration
         expect {
           service.queue_tracks!
-        }.to change { content.tracks.count }.by(7)
+        }.to change { content.music_generations.count }.by(4)
       end
 
-      it 'creates tracks with pending status' do
+      it 'creates music generations with pending status' do
         service.queue_tracks!
 
-        expect(content.tracks.all?(&:pending?)).to be true
+        expect(content.music_generations.all?(&:pending?)).to be true
       end
 
-      it 'enqueues GenerateTrackJob for each track' do
+      it 'enqueues GenerateMusicJob for each music generation' do
         expect {
           service.queue_tracks!
-        }.to have_enqueued_job(GenerateTrackJob).exactly(7).times
+        }.to have_enqueued_job(GenerateMusicJob).exactly(4).times
       end
 
-      it 'returns the created tracks' do
-        tracks = service.queue_tracks!
+      it 'returns the created music generations' do
+        music_generations = service.queue_tracks!
 
-        expect(tracks).to all(be_a(Track))
-        expect(tracks.count).to eq(7)
-        expect(tracks).to all(have_attributes(content: content, status: 'pending'))
+        expect(music_generations).to all(be_a(MusicGeneration))
+        expect(music_generations.count).to eq(4)
+        expect(music_generations).to all(have_attributes(
+          content: content,
+          status: 'pending',
+          prompt: content.audio_prompt,
+          generation_model: 'V4_5PLUS'
+        ))
       end
 
       it 'logs the operation' do
@@ -71,7 +78,25 @@ RSpec.describe TrackQueueingService do
 
         service.queue_tracks!
 
-        expect(Rails.logger).to have_received(:info).with("Queued 7 tracks for Content ##{content.id}")
+        expect(Rails.logger).to have_received(:info).with("Queued 4 music generations for Content ##{content.id} (expecting 7 tracks)")
+      end
+
+      context 'with different durations' do
+        it 'creates correct number of music generations for 6 duration' do
+          content.update!(duration: 6)
+          # 6 tracks needed, ceil(6/2) = 3 MusicGeneration
+          expect {
+            service.queue_tracks!
+          }.to change { content.music_generations.count }.by(3)
+        end
+
+        it 'creates correct number of music generations for 120 duration' do
+          content.update!(duration: 120)
+          # 25 tracks needed, ceil(25/2) = 13 MusicGeneration
+          expect {
+            service.queue_tracks!
+          }.to change { content.music_generations.count }.by(13)
+        end
       end
     end
 

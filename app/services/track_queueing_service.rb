@@ -1,5 +1,6 @@
 class TrackQueueingService
   MAX_TRACKS_PER_CONTENT = 100
+  TRACKS_PER_MUSIC_GENERATION = 2
 
   class ValidationError < StandardError; end
 
@@ -19,20 +20,24 @@ class TrackQueueingService
     validate!
 
     track_count = self.class.calculate_track_count(content.duration)
-    tracks = []
+    music_generation_count = (track_count.to_f / TRACKS_PER_MUSIC_GENERATION).ceil
+    music_generations = []
 
     ActiveRecord::Base.transaction do
-      track_count.times do
-        tracks << content.tracks.create!(status: :pending)
-      end
-
-      tracks.each do |track|
-        GenerateTrackJob.perform_later(track.id)
+      music_generation_count.times do
+        music_generation = content.music_generations.create!(
+          task_id: "pending-#{SecureRandom.uuid}",
+          prompt: content.audio_prompt,
+          generation_model: "V4_5PLUS",
+          status: :pending
+        )
+        music_generations << music_generation
+        GenerateMusicJob.perform_later(music_generation.id)
       end
     end
 
-    Rails.logger.info "Queued #{track_count} tracks for Content ##{content.id}"
-    tracks
+    Rails.logger.info "Queued #{music_generation_count} music generations for Content ##{content.id} (expecting #{track_count} tracks)"
+    music_generations
   end
 
   def queue_single_track!

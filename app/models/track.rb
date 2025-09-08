@@ -22,13 +22,6 @@ class Track < ApplicationRecord
   after_update :broadcast_status_update_if_changed
   after_update :broadcast_completion_notification_if_finished
 
-  def generate_audio!
-    return false unless status.pending?
-
-    GenerateTrackJob.perform_later(id)
-    true
-  end
-
   def formatted_duration
     return "未取得" if duration.nil?
 

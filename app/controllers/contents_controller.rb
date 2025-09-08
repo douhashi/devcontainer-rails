@@ -55,10 +55,10 @@ class ContentsController < ApplicationController
     service = TrackQueueingService.new(@content)
 
     begin
-      tracks = service.queue_tracks!
-      track_count = tracks.count
+      music_generations = service.queue_tracks!
+      track_count = TrackQueueingService.calculate_track_count(@content.duration)
 
-      Rails.logger.info "Generated #{track_count} tracks for Content ##{@content.id}"
+      Rails.logger.info "Generated #{music_generations.count} music generations for Content ##{@content.id} (expecting #{track_count} tracks)"
       redirect_to @content, notice: "#{track_count} tracks were queued for generation."
     rescue TrackQueueingService::ValidationError => e
       Rails.logger.warn "Track generation failed for Content ##{@content.id}: #{e.message}"
