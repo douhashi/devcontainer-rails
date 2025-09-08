@@ -1,7 +1,4 @@
-<div class="bg-gray-800 rounded-lg p-6 mb-8" data-controller="artwork-drag-drop">
-  <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
-
-  <turbo-frame id="artwork_<%= content.id %>">
+<turbo-frame id="artwork_<%= content.id %>" data-controller="artwork-drag-drop">
     <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
       <% if has_artwork? %>
         <!-- アートワークが存在する場合 -->
@@ -82,5 +79,4 @@
         </div>
       <% end %>
     </div>
-  </turbo-frame>
-</div>
+</turbo-frame>

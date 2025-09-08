@@ -1,6 +1,6 @@
-<turbo-frame id="artwork_<%= content.id %>">
-  <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
-    <% if artwork.persisted? && artwork.image.present? %>
+<% if artwork.persisted? && artwork.image.present? %>
+  <turbo-frame id="artwork_<%= content.id %>">
+    <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
       <!-- アートワークが存在する場合 -->
       <img src="<%= artwork.image.url %>" 
            alt="アートワーク" 
@@ -20,9 +20,9 @@
           削除
         <% end %>
       <% end %>
-    <% else %>
-      <!-- アートワークが存在しない場合 - 再度ArtworkDragDrop::Componentを表示 -->
-      <%= render ArtworkDragDrop::Component.new(content_record: content) %>
-    <% end %>
-  </div>
-</turbo-frame>
+    </div>
+  </turbo-frame>
+<% else %>
+  <!-- アートワークが存在しない場合 - ArtworkDragDrop::Componentを表示 -->
+  <%= render ArtworkDragDrop::Component.new(content_record: content) %>
+<% end %>

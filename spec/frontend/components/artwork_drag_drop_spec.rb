@@ -31,6 +31,13 @@ RSpec.describe ArtworkDragDrop::Component, type: :component do
         expect(page).to have_selector("form[action='#{component.form_url}']")
         expect(page).to have_selector('input[type="file"][accept="image/*"]', visible: :all)
       end
+
+      it "「アートワーク」ラベルが表示されない" do
+        render_inline(component)
+
+        expect(page).not_to have_text("アートワーク")
+        expect(page).not_to have_css("h2")
+      end
     end
 
     context "アートワークが存在する場合" do
@@ -60,6 +67,13 @@ RSpec.describe ArtworkDragDrop::Component, type: :component do
 
         expect(page).to have_css('.aspect-\\[16\\/9\\]')
         expect(page).to have_css('img.object-cover')
+      end
+
+      it "「アートワーク」ラベルが表示されない" do
+        render_inline(component)
+
+        expect(page).not_to have_text("アートワーク")
+        expect(page).not_to have_css("h2")
       end
     end
   end

@@ -92,6 +92,19 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
       expect(content.reload.artwork).to be_nil
     end
 
+    it "削除後に「アートワーク」ラベルが重複して表示されない" do
+      accept_confirm("アートワークを削除しますか？") do
+        click_button "削除"
+      end
+
+      # 削除後、再度ドロップゾーンが表示される
+      expect(page).to have_text("画像をドラッグ&ドロップ", wait: 10)
+
+      # 「アートワーク」ラベルが1つだけ表示されることを確認
+      artwork_labels = page.all("h2", text: "アートワーク")
+      expect(artwork_labels.count).to eq(1)
+    end
+
     it "16:9の比率で画像が表示される" do
       expect(page).to have_css('.aspect-\\[16\\/9\\]')
       expect(page).to have_css('img.object-cover')
