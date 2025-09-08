@@ -52,32 +52,34 @@ class ContentsController < ApplicationController
   end
 
   def generate_tracks
-    service = TrackQueueingService.new(@content)
+    # バリデーション
+    return redirect_to(@content, alert: "動画の長さが設定されていません") if @content.duration_min.blank? || @content.duration_min <= 0
+    return redirect_to(@content, alert: "音楽生成プロンプトが設定されていません") if @content.audio_prompt.blank?
 
-    begin
-      music_generations = service.queue_tracks!
-      track_count = TrackQueueingService.calculate_track_count(@content.duration_min)
+    service = MusicGenerationQueueingService.new(@content)
+    recommended_count = service.required_music_generation_count
+    music_generations = service.queue_bulk_generation!(recommended_count)
 
-      Rails.logger.info "Generated #{music_generations.count} music generations for Content ##{@content.id} (expecting #{track_count} tracks)"
-      redirect_to @content, notice: "#{track_count} tracks were queued for generation."
-    rescue TrackQueueingService::ValidationError => e
-      Rails.logger.warn "Track generation failed for Content ##{@content.id}: #{e.message}"
-      redirect_to @content, alert: e.message
-    end
+    flash[:success] = "音楽生成を開始しました（#{music_generations.size}件）"
+    redirect_to @content
+  rescue StandardError => e
+    Rails.logger.error "Music generation failed for Content ##{@content.id}: #{e.message}"
+    redirect_to @content, alert: "音楽生成の開始に失敗しました: #{e.message}"
   end
 
   def generate_single_track
-    service = TrackQueueingService.new(@content)
+    # バリデーション
+    return redirect_to(@content, alert: "動画の長さが設定されていません") if @content.duration_min.blank? || @content.duration_min <= 0
+    return redirect_to(@content, alert: "音楽生成プロンプトが設定されていません") if @content.audio_prompt.blank?
 
-    begin
-      music_generation = service.queue_single_track!
+    service = MusicGenerationQueueingService.new(@content)
+    music_generation = service.queue_single_generation!
 
-      Rails.logger.info "Generated MusicGeneration ##{music_generation.id} for Content ##{@content.id}"
-      redirect_to @content, notice: "Music generation was queued."
-    rescue TrackQueueingService::ValidationError => e
-      Rails.logger.warn "Single track generation failed for Content ##{@content.id}: #{e.message}"
-      redirect_to @content, alert: e.message
-    end
+    flash[:success] = "音楽生成を開始しました（1件）"
+    redirect_to @content
+  rescue StandardError => e
+    Rails.logger.error "Single music generation failed for Content ##{@content.id}: #{e.message}"
+    redirect_to @content, alert: "音楽生成の開始に失敗しました: #{e.message}"
   end
 
   def generate_audio

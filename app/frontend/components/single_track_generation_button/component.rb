@@ -15,7 +15,6 @@ class SingleTrackGenerationButton::Component < ApplicationViewComponent
     return "動画の長さが設定されていません" if content_record.duration_min.blank?
     return "音楽生成プロンプトが設定されていません" if content_record.audio_prompt.blank?
     return "BGM生成処理中です" if processing_tracks?
-    return "トラック数の上限に達しています" if would_exceed_limit?
 
     nil
   end
@@ -38,10 +37,5 @@ class SingleTrackGenerationButton::Component < ApplicationViewComponent
 
   def processing_tracks?
     content_record.tracks.exists?(status: :processing)
-  end
-
-  def would_exceed_limit?
-    current_count = content_record.tracks.count
-    current_count >= 100 # TrackQueueingService::MAX_TRACKS_PER_CONTENT
   end
 end

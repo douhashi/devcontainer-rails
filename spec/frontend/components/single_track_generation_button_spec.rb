@@ -42,26 +42,6 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
         expect(component.can_generate?).to be false
       end
     end
-
-    context 'when track limit would be exceeded' do
-      before do
-        create_list(:track, 100, content: content)
-      end
-
-      it 'returns false' do
-        expect(component.can_generate?).to be false
-      end
-    end
-
-    context 'when content has 99 tracks' do
-      before do
-        create_list(:track, 99, content: content)
-      end
-
-      it 'returns true (can add one more)' do
-        expect(component.can_generate?).to be true
-      end
-    end
   end
 
   describe '#disability_reason' do
@@ -94,16 +74,6 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
 
       it 'returns appropriate message' do
         expect(component.disability_reason).to eq("BGM生成処理中です")
-      end
-    end
-
-    context 'when track limit would be exceeded' do
-      before do
-        create_list(:track, 100, content: content)
-      end
-
-      it 'returns appropriate message' do
-        expect(component.disability_reason).to eq("トラック数の上限に達しています")
       end
     end
   end

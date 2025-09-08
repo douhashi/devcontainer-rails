@@ -14,16 +14,4 @@ class SingleTrackGenerationButton::Preview < ApplicationViewComponentPreview
     FactoryBot.create(:track, content: content, status: :processing)
     render SingleTrackGenerationButton::Component.new(content_record: content)
   end
-
-  def with_max_tracks
-    content = FactoryBot.create(:content, duration_min: 10, audio_prompt: "Lo-fi hip hop beat")
-    FactoryBot.create_list(:track, 100, content: content)
-    render SingleTrackGenerationButton::Component.new(content_record: content)
-  end
-
-  def with_99_tracks
-    content = FactoryBot.create(:content, duration_min: 10, audio_prompt: "Lo-fi hip hop beat")
-    FactoryBot.create_list(:track, 99, content: content)
-    render SingleTrackGenerationButton::Component.new(content_record: content)
-  end
 end

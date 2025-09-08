@@ -64,21 +64,6 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
         expect(rendered).not_to have_css('[data-controller="track-generation"]')
       end
     end
-
-    context 'when content would exceed track limit' do
-      before do
-        create_list(:track, 99, content: content)
-      end
-
-      it 'renders disabled button with limit message' do
-        rendered = render_inline(described_class.new(content_record: content))
-
-        expect(rendered).to have_css('button[disabled]')
-        expect(rendered).to have_text('BGM生成開始（7回の生成で14曲）')
-        expect(rendered).to have_text('トラック数の上限に達しています')
-        expect(rendered).not_to have_css('[data-controller="track-generation"]')
-      end
-    end
   end
 
   describe '#track_count' do
@@ -112,11 +97,6 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
       create(:track, content: content, status: :processing)
       expect(component.can_generate?).to be false
     end
-
-    it 'returns false when track limit would be exceeded' do
-      create_list(:track, 99, content: content)
-      expect(component.can_generate?).to be false
-    end
   end
 
   describe '#disability_reason' do
@@ -141,11 +121,6 @@ RSpec.describe TrackGenerationButtonComponent, type: :component do
     it 'returns processing error when processing tracks exist' do
       create(:track, content: content, status: :processing)
       expect(component.disability_reason).to eq('BGM生成処理中です')
-    end
-
-    it 'returns limit error when track limit would be exceeded' do
-      create_list(:track, 99, content: content)
-      expect(component.disability_reason).to eq('トラック数の上限に達しています')
     end
   end
 

@@ -234,22 +234,22 @@ RSpec.describe "Contents", type: :request do
     let(:content) { create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト") }
 
     context "with valid content" do
-      it "generates tracks successfully" do
-        # For duration 10: 7 tracks needed, ceil(7/2) = 4 MusicGeneration
+      it "generates music generations successfully" do
+        # For duration 10: (10 / (3*2)) + 5 = 1.67 + 5 = 6.67 => 7 MusicGeneration
         expect {
           post generate_tracks_content_path(content)
-        }.to change { content.music_generations.count }.by(4)
+        }.to change { content.music_generations.count }.by(7)
 
         expect(response).to redirect_to(content)
         follow_redirect!
-        expect(response.body).to include("7 tracks were queued for generation")
+        expect(response.body).to include("音楽生成を開始しました（7件）")
       end
 
       it "enqueues GenerateMusicGenerationJob for each music generation" do
-        # For duration 10: 7 tracks needed, ceil(7/2) = 4 MusicGeneration
+        # For duration 10: 7 music generations needed
         expect {
           post generate_tracks_content_path(content)
-        }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(4).times
+        }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(7).times
       end
 
       it "creates music generations with pending status" do
@@ -260,31 +260,29 @@ RSpec.describe "Contents", type: :request do
     end
 
     context "with invalid content" do
-      context "when tracks are already being generated" do
-        before do
-          create(:track, content: content, status: :processing)
-        end
-
+      context "when duration is missing" do
         it "redirects with error message" do
-          post generate_tracks_content_path(content)
+          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+          invalid_content.update_column(:duration_min, 0) # バリデーションをスキップして無効なデータを作成
 
-          expect(response).to redirect_to(content)
+          post generate_tracks_content_path(invalid_content)
+
+          expect(response).to redirect_to(invalid_content)
           follow_redirect!
-          expect(response.body).to include("Content already has tracks being generated")
+          expect(response.body).to include("動画の長さが設定されていません")
         end
       end
 
-      context "when track limit would be exceeded" do
-        before do
-          create_list(:track, 95, content: content)
-        end
-
+      context "when audio_prompt is missing" do
         it "redirects with error message" do
-          post generate_tracks_content_path(content)
+          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+          invalid_content.update_column(:audio_prompt, "") # バリデーションをスキップして無効なデータを作成
 
-          expect(response).to redirect_to(content)
+          post generate_tracks_content_path(invalid_content)
+
+          expect(response).to redirect_to(invalid_content)
           follow_redirect!
-          expect(response.body).to include("Content would exceed maximum track limit")
+          expect(response.body).to include("音楽生成プロンプトが設定されていません")
         end
       end
     end
@@ -301,7 +299,7 @@ RSpec.describe "Contents", type: :request do
 
         expect(response).to redirect_to(content)
         follow_redirect!
-        expect(response.body).to include("Music generation was queued")
+        expect(response.body).to include("音楽生成を開始しました（1件）")
       end
 
       it "enqueues GenerateMusicGenerationJob for the created music generation" do
@@ -318,47 +316,29 @@ RSpec.describe "Contents", type: :request do
     end
 
     context "with invalid content" do
-      context "when tracks are already being generated" do
-        before do
-          create(:track, content: content, status: :processing)
-        end
-
+      context "when duration is missing" do
         it "redirects with error message" do
-          post generate_single_track_content_path(content)
+          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+          invalid_content.update_column(:duration_min, 0) # バリデーションをスキップして無効なデータを作成
 
-          expect(response).to redirect_to(content)
+          post generate_single_track_content_path(invalid_content)
+
+          expect(response).to redirect_to(invalid_content)
           follow_redirect!
-          expect(response.body).to include("Content already has tracks being generated")
+          expect(response.body).to include("動画の長さが設定されていません")
         end
       end
 
-      context "when track limit would be exceeded" do
-        before do
-          create_list(:track, 100, content: content)
-        end
-
+      context "when audio_prompt is missing" do
         it "redirects with error message" do
-          post generate_single_track_content_path(content)
+          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+          invalid_content.update_column(:audio_prompt, "") # バリデーションをスキップして無効なデータを作成
 
-          expect(response).to redirect_to(content)
+          post generate_single_track_content_path(invalid_content)
+
+          expect(response).to redirect_to(invalid_content)
           follow_redirect!
-          expect(response.body).to include("Content would exceed maximum track limit")
-        end
-      end
-
-      context "when content has 99 tracks" do
-        before do
-          create_list(:track, 99, content: content)
-        end
-
-        it "allows generating one more music generation" do
-          expect {
-            post generate_single_track_content_path(content)
-          }.to change { content.music_generations.count }.by(1)
-
-          expect(response).to redirect_to(content)
-          follow_redirect!
-          expect(response.body).to include("Music generation was queued")
+          expect(response.body).to include("音楽生成プロンプトが設定されていません")
         end
       end
     end
