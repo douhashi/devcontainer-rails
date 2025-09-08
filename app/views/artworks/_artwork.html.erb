@@ -1,0 +1,28 @@
+<turbo-frame id="artwork_<%= content.id %>">
+  <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
+    <% if artwork.persisted? && artwork.image.present? %>
+      <!-- アートワークが存在する場合 -->
+      <img src="<%= artwork.image.url %>" 
+           alt="アートワーク" 
+           class="w-full h-full object-cover">
+      
+      <!-- 削除ボタン -->
+      <%= form_with url: content_artwork_path(content, artwork),
+                    method: :delete,
+                    local: false,
+                    class: "absolute top-2 right-2" do |f| %>
+        <%= f.button type: "submit",
+                    data: { 
+                      turbo_method: :delete,
+                      turbo_confirm: "アートワークを削除しますか？"
+                    },
+                    class: "px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors z-10" do %>
+          削除
+        <% end %>
+      <% end %>
+    <% else %>
+      <!-- アートワークが存在しない場合 - 再度ArtworkDragDrop::Componentを表示 -->
+      <%= render ArtworkDragDrop::Component.new(content_record: content) %>
+    <% end %>
+  </div>
+</turbo-frame>

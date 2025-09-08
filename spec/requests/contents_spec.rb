@@ -15,6 +15,9 @@ RSpec.describe "Contents", type: :request do
     end
 
     it "displays empty state when no contents" do
+      # Ensure database is clean
+      Content.destroy_all
+
       get contents_path
 
       expect(response).to have_http_status(:success)

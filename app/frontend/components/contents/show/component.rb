@@ -14,21 +14,11 @@ class Contents::Show::Component < ApplicationViewComponent
     date.strftime("%Y年%m月%d日 %H:%M")
   end
 
-
-  def artwork_status
-    item.artwork_status
-  end
-
   def completion_status
     item.completion_status
   end
 
   def next_actions
     item.next_actions
-  end
-
-
-  def artwork_preview_available?
-    artwork_status == :configured && item.artwork&.image&.present?
   end
 end

@@ -1,0 +1,86 @@
+<div class="bg-gray-800 rounded-lg p-6 mb-8" data-controller="artwork-drag-drop">
+  <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
+
+  <turbo-frame id="artwork_<%= content.id %>">
+    <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
+      <% if has_artwork? %>
+        <!-- アートワークが存在する場合 -->
+        <img src="<%= artwork_url %>" 
+             alt="アートワーク" 
+             class="w-full h-full object-cover">
+        
+        <!-- 削除ボタン -->
+        <%= form_with url: form_url,
+                      method: :delete,
+                      local: false,
+                      class: "absolute top-2 right-2" do |f| %>
+          <%= f.button type: "submit",
+                      data: { 
+                        turbo_method: :delete,
+                        turbo_confirm: "アートワークを削除しますか？"
+                      },
+                      class: delete_button_class do %>
+            削除
+          <% end %>
+        <% end %>
+      <% else %>
+        <!-- アートワークが存在しない場合 - ドラッグ&ドロップエリア -->
+        <%= form_with model: [content, artwork],
+                      url: form_url,
+                      method: form_method,
+                      local: false,
+                      multipart: true,
+                      html: { 
+                        class: "w-full h-full",
+                        data: {
+                          artwork_drag_drop_target: "form"
+                        }
+                      } do |f| %>
+          
+          <div class="<%= drop_zone_class %>"
+               data-action="dragover->artwork-drag-drop#handleDragOver
+                           dragleave->artwork-drag-drop#handleDragLeave
+                           drop->artwork-drag-drop#handleDrop
+                           click->artwork-drag-drop#openFileDialog"
+               data-artwork-drag-drop-target="dropZone">
+            
+            <!-- アップロード中のローディング表示 -->
+            <div class="hidden" data-artwork-drag-drop-target="loading">
+              <div class="flex flex-col items-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
+                <p class="text-gray-400 mt-4">アップロード中...</p>
+              </div>
+            </div>
+
+            <!-- 通常時の表示 -->
+            <div data-artwork-drag-drop-target="placeholder">
+              <%= placeholder_icon_svg %>
+              <p class="text-gray-300 text-lg font-medium mb-2">
+                画像をドラッグ&ドロップ
+              </p>
+              <p class="text-gray-500 text-sm">
+                またはクリックしてファイルを選択
+              </p>
+              <p class="text-gray-600 text-xs mt-2">
+                JPEG、PNG、GIF（最大10MB）
+              </p>
+            </div>
+          </div>
+
+          <%= f.file_field :image,
+                          accept: "image/*",
+                          class: "hidden",
+                          data: { 
+                            artwork_drag_drop_target: "fileInput",
+                            action: "change->artwork-drag-drop#handleFileSelect"
+                          } %>
+        <% end %>
+
+        <!-- エラーメッセージ表示エリア -->
+        <div class="hidden absolute bottom-4 left-4 right-4 bg-red-900 text-red-200 px-4 py-2 rounded-lg"
+             data-artwork-drag-drop-target="errorMessage">
+        </div>
+      <% end %>
+    </div>
+  </turbo-frame>
+</div>
