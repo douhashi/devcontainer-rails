@@ -158,7 +158,41 @@
     <% if item.tracks.any? %>
     <div class="tracks-section mb-8">
       <h2 class="text-xl font-bold text-gray-200 mb-4">トラック一覧</h2>
-      <%= render Tracks::List::Component.new(tracks: item.tracks) %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-700">
+          <thead class="bg-gray-900">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">タイトル</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ステータス</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">作成日時</th>
+            </tr>
+          </thead>
+          <tbody class="bg-gray-800 divide-y divide-gray-700">
+            <% item.tracks.each do |track| %>
+              <tr id="track_<%= track.id %>" class="hover:bg-gray-700 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">#<%= track.id %></td>
+                <td class="px-6 py-4 text-sm text-gray-100"><%= track.metadata_title || "生成中..." %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <% case track.status %>
+                  <% when "pending" %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600 text-gray-200">待機中</span>
+                  <% when "processing" %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-600 text-yellow-200">処理中</span>
+                  <% when "completed" %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-600 text-green-200">完了</span>
+                  <% when "failed" %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-600 text-red-200">失敗</span>
+                  <% else %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600 text-gray-200"><%= track.status %></span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300"><%= l(track.created_at, format: :short) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
     <% end %>
 

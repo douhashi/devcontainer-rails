@@ -10,7 +10,8 @@ RSpec.describe "Audio Player in Track List", type: :request do
       let!(:track_with_audio) { create(:track, :completed, content: content) }
       let!(:track_without_audio) { create(:track, :completed, content: content) }
 
-      it "displays audio player for tracks with audio" do
+      # Audio player functionality has been temporarily removed in Issue #86
+      xit "displays audio player for tracks with audio" do
         # Mock audio for all Track instances
         allow_any_instance_of(Track).to receive(:audio).and_return(double(present?: true, url: "https://example.com/test.mp3"))
 

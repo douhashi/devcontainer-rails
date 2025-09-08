@@ -30,7 +30,8 @@ RSpec.describe "Tracks Performance", type: :system, js: true do
 
         # Page should remain responsive
         expect(page).to have_content("Track一覧")
-        expect(page).to have_content("10件中")
+        # Check for track elements
+        expect(page).to have_css('.track', minimum: 1)
       end
     end
 
@@ -43,11 +44,11 @@ RSpec.describe "Tracks Performance", type: :system, js: true do
 
         expect(page).to have_content("Track一覧")
 
-        # Should have animate-spin elements for processing tracks
-        expect(page).to have_css('.animate-spin', minimum: 1)
+        # Check for processing status badge
+        expect(page).to have_content("処理中", minimum: 1)
 
-        # Page should remain responsive (simplified check)
-        expect(page).to have_content("10件中")
+        # Page should remain responsive
+        expect(page).to have_css('.track', minimum: 1)
       end
 
       it "does not have infinite animation loops" do
@@ -62,40 +63,25 @@ RSpec.describe "Tracks Performance", type: :system, js: true do
       end
     end
 
-    context "with search functionality" do
+    # Search functionality has been temporarily removed in Issue #86
+    context "with search functionality (temporarily disabled)" do
       let!(:tracks) { create_list(:track, 5, content: content) }
 
-      it "handles search form interactions smoothly" do
-        visit tracks_path
-
-        fill_in "Content名", with: "Performance Test"
-
-        # Form should be responsive
-        expect(page).to have_field("Content名", with: "Performance Test")
-
-        click_button "検索"
-
-        # Search should complete without hanging
-        expect(page).to have_content("Track一覧")
+      xit "handles search form interactions smoothly" do
+        # This test is disabled as search functionality was removed in Issue #86
+        # Will be re-implemented in a future issue
       end
 
-      it "validates date ranges without causing delays" do
-        visit tracks_path
-
-        # Just check that date fields are responsive
-        expect(page).to have_field("作成日（開始）")
-        expect(page).to have_field("作成日（終了）")
-
-        # No delay when clicking on date fields
-        find_field("作成日（開始）").click
-        expect(page).to have_field("作成日（開始）", visible: true)
+      xit "validates date ranges without causing delays" do
+        # This test is disabled as search functionality was removed in Issue #86
+        # Will be re-implemented in a future issue
       end
     end
   end
 
   describe "Large Dataset Performance" do
     context "with many tracks" do
-      let!(:many_tracks) { create_list(:track, 50, content: content) }
+      let!(:many_tracks) { create_list(:track, 31, content: content) }
 
       it "loads page with large dataset within acceptable time" do
         start_time = Time.current
@@ -109,14 +95,36 @@ RSpec.describe "Tracks Performance", type: :system, js: true do
       it "handles pagination smoothly" do
         visit tracks_path
 
-        # First page should load
-        expect(page).to have_content("50件中 1-30件を表示")
+        # Should display tracks on first page (30 items per page)
+        expect(page).to have_css('.track', count: 30)
 
-        # Navigation to next page should be smooth
-        if page.has_link?("次のページ")
-          click_link "次のページ"
-          expect(page).to have_content("50件中 31-50件を表示")
+        # Should have pagination controls
+        expect(page).to have_css('nav[aria-label="pagination"]')
+
+        # Navigate to next page if available
+        if page.has_link?("Next")
+          click_link "Next"
+          # Should load next page without issues
+          expect(page).to have_content("Track一覧")
+          expect(page).to have_css('.track', minimum: 1)
         end
+      end
+    end
+
+    context "with very large dataset" do
+      let!(:large_dataset) { create_list(:track, 100, content: content) }
+
+      it "efficiently handles 100+ tracks with pagination" do
+        visit tracks_path
+
+        # Should only show first page of results
+        expect(page).to have_css('.track', count: 30)
+
+        # Pagination controls should be present
+        expect(page).to have_css('nav[aria-label="pagination"]')
+
+        # Should not attempt to render all tracks at once
+        expect(page).not_to have_css('.track', count: 100)
       end
     end
   end

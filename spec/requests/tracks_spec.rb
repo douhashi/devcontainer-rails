@@ -15,12 +15,23 @@ RSpec.describe "Tracks", type: :request do
 
         expect(response).to have_http_status(:success)
         expect(response.body).to include("Track一覧")
+        # Confirm that it uses table format
+        expect(response.body).to include("<table")
+        expect(response.body).to include("<thead")
+        expect(response.body).to include("<tbody")
       end
 
       it "displays track information including content name" do
         get tracks_path
 
         expect(response).to have_http_status(:success)
+        # Display track IDs
+        expect(response.body).to include("##{track1.id}")
+        expect(response.body).to include("##{track2.id}")
+        expect(response.body).to include("##{track3.id}")
+        # Display track titles
+        expect(response.body).to include(track1.metadata_title) if track1.metadata_title.present?
+        # Display content themes
         expect(response.body).to include(content1.theme)
         expect(response.body).to include(content2.theme)
       end
@@ -32,6 +43,14 @@ RSpec.describe "Tracks", type: :request do
         expect(response.body).to include("完了")
         expect(response.body).to include("処理中")
         expect(response.body).to include("待機中")
+      end
+
+      it "includes link to content detail page" do
+        get tracks_path
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include(content_path(content1))
+        expect(response.body).to include(content_path(content2))
       end
 
       it "orders tracks by creation date (newest first)" do
@@ -65,7 +84,9 @@ RSpec.describe "Tracks", type: :request do
           get tracks_path
 
           expect(response).to have_http_status(:success)
-          expect(response.body.scan(/track_\d+/).count).to be <= 30
+          # Count actual track rows in table
+          track_count = response.body.scan(/<tr[^>]*class="[^"]*track[^"]*"/).count
+          expect(track_count).to be <= 30
         end
 
         it "shows pagination controls" do
@@ -79,7 +100,8 @@ RSpec.describe "Tracks", type: :request do
           get tracks_path, params: { page: 2 }
 
           expect(response).to have_http_status(:success)
-          expect(response.body.scan(/track_\d+/).count).to be > 0
+          track_count = response.body.scan(/<tr[^>]*class="[^"]*track[^"]*"/).count
+          expect(track_count).to be > 0
         end
       end
     end
