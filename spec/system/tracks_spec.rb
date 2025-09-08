@@ -8,6 +8,28 @@ RSpec.describe "Tracks", type: :system do
   let!(:content1) { create(:content, theme: "レコード、古いスピーカー") }
   let!(:content2) { create(:content, :cafe_theme) }
 
+  describe "Layout rendering" do
+    it "renders single layout without duplication" do
+      visit tracks_path
+
+      # サイドバーが1つだけ表示されることを確認
+      sidebar_elements = page.all('[data-controller="layout"]')
+      expect(sidebar_elements.count).to eq(1), "Expected exactly 1 layout component, but found #{sidebar_elements.count}"
+
+      # ヘッダーが1つだけ表示されることを確認
+      header_elements = page.all('.bg-gray-800.border-b.border-gray-700')
+      expect(header_elements.count).to be <= 1, "Found duplicate header elements"
+    end
+
+    it "does not cause infinite loop or hang" do
+      # タイムアウトを設定して、無限ループを検出
+      Timeout.timeout(5) do
+        visit tracks_path
+        expect(page).to have_text("Track一覧", wait: 2)
+      end
+    end
+  end
+
   describe "Track listing navigation" do
     let!(:track1) { create(:track, :completed, content: content1) }
     let!(:track2) { create(:track, :processing, content: content2) }

@@ -1,1 +1,2 @@
+<% content_for :title, "Track一覧" %>
 <%= render Tracks::Index::Component.new(tracks: @tracks, search_query: @q) %>

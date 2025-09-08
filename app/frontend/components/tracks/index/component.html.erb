@@ -1,48 +1,46 @@
-<%= render Layout::ApplicationComponent.new(title: "Track一覧") do %>
-    <div class="container mx-auto px-4 py-8">
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-white mb-4">Track一覧</h1>
-        <p class="text-gray-400">
-          <%= page_summary_text %>
-        </p>
-      </div>
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold text-white mb-4">Track一覧</h1>
+    <p class="text-gray-400">
+      <%= page_summary_text %>
+    </p>
+  </div>
 
-      <% if search_query %>
-        <div class="mb-6">
-          <%= render Tracks::Search::Component.new(q: search_query) %>
-        </div>
-      <% end %>
+  <% if search_query %>
+    <div class="mb-6">
+      <%= render Tracks::Search::Component.new(q: search_query) %>
+    </div>
+  <% end %>
 
-      <% if empty_state? %>
-        <div class="bg-gray-800 rounded-lg p-12 text-center">
-          <div class="text-6xl mb-4">🎵</div>
-          <h2 class="text-2xl font-semibold text-gray-300 mb-2">Trackがまだありません</h2>
-          <p class="text-gray-400 mb-6">
-            まずはContentを作成してTrackを生成してください。
-          </p>
-          <%= link_to "コンテンツ一覧へ", contents_path, 
-                class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" %>
-        </div>
-      <% else %>
-        <div class="bg-gray-800 rounded-lg overflow-hidden">
-          <div class="divide-y divide-gray-700">
-            <% tracks.each_with_index do |track, index| %>
-              <div class="relative">
-                <%= render partial: 'tracks/track_row', locals: { track: track } %>
-              </div>
-            <% end %>
-          </div>
-        </div>
-
-        <% if paginated? %>
-          <div class="mt-8 flex justify-center">
-            <nav class="flex items-center space-x-1" role="navigation" aria-label="ページネーション">
-              <%= paginate tracks, 
-                    previous_label: '← 前のページ',
-                    next_label: '次のページ →' %>
-            </nav>
+  <% if empty_state? %>
+    <div class="bg-gray-800 rounded-lg p-12 text-center">
+      <div class="text-6xl mb-4">🎵</div>
+      <h2 class="text-2xl font-semibold text-gray-300 mb-2">Trackがまだありません</h2>
+      <p class="text-gray-400 mb-6">
+        まずはContentを作成してTrackを生成してください。
+      </p>
+      <%= link_to "コンテンツ一覧へ", contents_path, 
+            class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" %>
+    </div>
+  <% else %>
+    <div class="bg-gray-800 rounded-lg overflow-hidden">
+      <div class="divide-y divide-gray-700">
+        <% tracks.each_with_index do |track, index| %>
+          <div class="relative">
+            <%= render partial: 'tracks/track_row', locals: { track: track } %>
           </div>
         <% end %>
-      <% end %>
+      </div>
     </div>
-<% end %>
+
+    <% if paginated? %>
+      <div class="mt-8 flex justify-center">
+        <nav class="flex items-center space-x-1" role="navigation" aria-label="ページネーション">
+          <%= paginate tracks, 
+                previous_label: '← 前のページ',
+                next_label: '次のページ →' %>
+        </nav>
+      </div>
+    <% end %>
+  <% end %>
+</div>

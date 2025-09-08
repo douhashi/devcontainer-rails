@@ -100,6 +100,26 @@ RSpec.describe "Tracks", type: :request do
       end
     end
 
+    context "layout rendering" do
+      it "does not have duplicate layout components" do
+        get tracks_path
+
+        expect(response).to have_http_status(:success)
+        # サイドバーが1つだけ存在することを確認
+        sidebar_count = response.body.scan(/data-controller="layout"/).count
+        expect(sidebar_count).to eq(1), "Expected exactly 1 layout component, but found #{sidebar_count}"
+      end
+
+      it "renders page title correctly" do
+        get tracks_path
+
+        expect(response).to have_http_status(:success)
+        # タイトルが適切に設定されていることを確認
+        expect(response.body).to include("<title>")
+        expect(response.body).to include("Track一覧")
+      end
+    end
+
     context "performance considerations" do
       let!(:tracks_with_content) { create_list(:track, 5, content: content1) }
 
