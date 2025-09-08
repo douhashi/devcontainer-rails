@@ -27,6 +27,9 @@
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
               作成日時
             </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              プレイヤー
+            </th>
           </tr>
         </thead>
         <tbody class="bg-gray-800 divide-y divide-gray-700">
@@ -72,6 +75,17 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                 <%= l(track.created_at, format: :short) %>
+              </td>
+              <td class="px-6 py-4">
+                <% if track.status.completed? && track.audio.present? %>
+                  <%= render AudioPlayer::Component.new(track: track) %>
+                <% elsif track.status.completed? %>
+                  <span class="text-gray-500 text-sm">音声なし</span>
+                <% elsif track.status.processing? %>
+                  <span class="text-yellow-400 text-sm">処理中...</span>
+                <% else %>
+                  <span class="text-gray-500 text-sm">-</span>
+                <% end %>
               </td>
             </tr>
           <% end %>

@@ -24,7 +24,7 @@ RSpec.describe AudioPlayer::Component, type: :component do
     it "includes Plyr initialization data" do
       render_inline described_class.new(track: track)
 
-      expect(page).to have_css("audio[data-controller='audio-player']")
+      expect(page).to have_css("div[data-controller='audio-player']")
     end
   end
 
@@ -82,13 +82,13 @@ RSpec.describe AudioPlayer::Component, type: :component do
     it "sets autoplay data attribute when autoplay is true" do
       render_inline described_class.new(track: track, autoplay: true)
 
-      expect(page).to have_css("audio[data-audio-player-autoplay-value='true']")
+      expect(page).to have_css("div[data-audio-player-autoplay-value='true']")
     end
 
     it "defaults to false when autoplay is not specified" do
       render_inline described_class.new(track: track)
 
-      expect(page).to have_css("audio[data-audio-player-autoplay-value='false']")
+      expect(page).to have_css("div[data-audio-player-autoplay-value='false']")
     end
   end
 end

@@ -10,8 +10,7 @@ RSpec.describe "Audio Player in Track List", type: :request do
       let!(:track_with_audio) { create(:track, :completed, content: content) }
       let!(:track_without_audio) { create(:track, :completed, content: content) }
 
-      # Audio player functionality has been temporarily removed in Issue #86
-      xit "displays audio player for tracks with audio" do
+      it "displays audio player for tracks with audio" do
         # Mock audio for all Track instances
         allow_any_instance_of(Track).to receive(:audio).and_return(double(present?: true, url: "https://example.com/test.mp3"))
 
@@ -20,6 +19,23 @@ RSpec.describe "Audio Player in Track List", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.body).to include('data-controller="audio-player"')
         expect(response.body).to include('data-audio-player-target="player"')
+        expect(response.body).to include('data-audio-url="https://example.com/test.mp3"')
+      end
+
+      it "displays 'プレイヤー' column header in track list" do
+        get tracks_path
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('プレイヤー')
+      end
+
+      it "displays appropriate status messages for tracks without audio" do
+        allow_any_instance_of(Track).to receive(:audio).and_return(double(present?: false))
+
+        get tracks_path
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('音声なし')
       end
 
       it "does not display audio player for tracks without audio" do
@@ -64,6 +80,13 @@ RSpec.describe "Audio Player in Track List", type: :request do
 
         expect(response).to have_http_status(:success)
         expect(response.body).not_to include('data-controller="audio-player"')
+      end
+
+      it "displays processing status message" do
+        get tracks_path
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('処理中...')
       end
     end
   end

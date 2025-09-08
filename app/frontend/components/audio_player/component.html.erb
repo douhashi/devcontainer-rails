@@ -1,17 +1,17 @@
-<% if should_render_audio_player? %>
+<div 
+  data-controller="audio-player" 
+  data-audio-player-autoplay-value="<%= autoplay %>"
+  class="<%= table_optimized_classes %> <%= css_class %>"
+>
   <audio 
-    data-controller="audio-player"
+    id="<%= player_id %>"
     data-audio-player-target="player"
-    data-audio-player-autoplay-value="<%= autoplay_value %>"
     data-audio-url="<%= audio_url %>"
-    preload="none"
+    style="visibility: hidden;"
     controls
-    class="h-8 max-w-xs"
-    style="visibility: hidden; transition: visibility 0.1s;">
-    お使いのブラウザはaudio要素をサポートしていません。
+    preload="none"
+  >
+    <p class="text-red-400 text-sm">お使いのブラウザは音声ファイルの再生をサポートしていません。</p>
   </audio>
-<% else %>
-  <div class="text-gray-500 text-sm px-2 py-1 rounded">
-    処理中...
-  </div>
-<% end %>
+</div>
+

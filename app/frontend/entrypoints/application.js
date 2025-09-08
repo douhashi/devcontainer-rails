@@ -1,5 +1,6 @@
 import { Application } from '@hotwired/stimulus'
 import '@hotwired/turbo-rails'
+import 'plyr/dist/plyr.css'
 
 const application = Application.start()
 
