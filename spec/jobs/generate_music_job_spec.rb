@@ -9,6 +9,26 @@ RSpec.describe GenerateMusicJob, type: :job do
     allow(KieService).to receive(:new).and_return(kie_service)
   end
 
+  describe "concurrency control" do
+    it "has limits_concurrency configured" do
+      expect(described_class).to respond_to(:limits_concurrency)
+    end
+
+    it "uses music_generation concurrency key" do
+      expect(described_class.concurrency_key).to eq("music_generation")
+    end
+
+    it "respects MUSIC_GENERATION_CONCURRENCY environment variable" do
+      allow(ENV).to receive(:fetch).with("MUSIC_GENERATION_CONCURRENCY", "5").and_return("10")
+      expect(described_class.concurrency_limit).to eq(10)
+    end
+
+    it "defaults to 5 concurrent jobs when environment variable is not set" do
+      allow(ENV).to receive(:fetch).with("MUSIC_GENERATION_CONCURRENCY", "5").and_return("5")
+      expect(described_class.concurrency_limit).to eq(5)
+    end
+  end
+
   describe "#perform" do
     context "when music generation is pending" do
       it "starts generation and transitions to processing" do

@@ -1,6 +1,19 @@
 class GenerateVideoJob < ApplicationJob
   queue_as :default
 
+  # SolidQueue concurrency control
+  limits_concurrency to: -> { ENV.fetch("VIDEO_GENERATION_CONCURRENCY", "1").to_i },
+                     key: -> { "video_generation" }
+
+  # Helper methods for testing
+  def self.concurrency_key
+    "video_generation"
+  end
+
+  def self.concurrency_limit
+    ENV.fetch("VIDEO_GENERATION_CONCURRENCY", "1").to_i
+  end
+
   def perform(video_id)
     @video = Video.find(video_id)
 

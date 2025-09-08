@@ -5,3 +5,9 @@ export KAMAL_REGISTRY_USERNAME=registry-user
 export KAMAL_REGISTRY_PASSWORD=registry-password
 export VITE_RUBY_HOST="0.0.0.0"
 export RAILS_MASTER_KEY=rails-master-key-here
+
+# SOLID QUEUE CONCURRENCY SETTINGS
+# Music generation allows multiple parallel jobs (default: 5)
+export MUSIC_GENERATION_CONCURRENCY=5
+# Video generation is heavy processing, limited to 1 parallel job (default: 1)
+export VIDEO_GENERATION_CONCURRENCY=1

@@ -1,6 +1,26 @@
 require 'rails_helper'
 
 RSpec.describe GenerateVideoJob, type: :job do
+  describe "concurrency control" do
+    it "has limits_concurrency configured" do
+      expect(described_class).to respond_to(:limits_concurrency)
+    end
+
+    it "uses video_generation concurrency key" do
+      expect(described_class.concurrency_key).to eq("video_generation")
+    end
+
+    it "respects VIDEO_GENERATION_CONCURRENCY environment variable" do
+      allow(ENV).to receive(:fetch).with("VIDEO_GENERATION_CONCURRENCY", "1").and_return("3")
+      expect(described_class.concurrency_limit).to eq(3)
+    end
+
+    it "defaults to 1 concurrent job when environment variable is not set" do
+      allow(ENV).to receive(:fetch).with("VIDEO_GENERATION_CONCURRENCY", "1").and_return("1")
+      expect(described_class.concurrency_limit).to eq(1)
+    end
+  end
+
   describe "#perform" do
     let(:content) { create(:content) }
     let(:audio) { create(:audio, :completed, content: content) }

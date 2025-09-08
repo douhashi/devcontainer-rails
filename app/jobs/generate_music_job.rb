@@ -5,8 +5,21 @@ class GenerateMusicJob < ApplicationJob
   POLLING_INTERVAL = 30.seconds
   SAMPLE_PROMPT = "Create a relaxing lo-fi hip-hop beat for studying"
 
+  # SolidQueue concurrency control
+  limits_concurrency to: -> { ENV.fetch("MUSIC_GENERATION_CONCURRENCY", "5").to_i },
+                     key: -> { "music_generation" }
+
   retry_on Kie::Errors::NetworkError, wait: :exponentially_longer, attempts: 3
   retry_on Kie::Errors::RateLimitError, wait: :exponentially_longer, attempts: 5
+
+  # Helper methods for testing
+  def self.concurrency_key
+    "music_generation"
+  end
+
+  def self.concurrency_limit
+    ENV.fetch("MUSIC_GENERATION_CONCURRENCY", "5").to_i
+  end
 
   def perform(music_generation_id)
     @music_generation = MusicGeneration.find(music_generation_id)
