@@ -70,10 +70,10 @@ class ContentsController < ApplicationController
     service = TrackQueueingService.new(@content)
 
     begin
-      track = service.queue_single_track!
+      music_generation = service.queue_single_track!
 
-      Rails.logger.info "Generated 1 track for Content ##{@content.id}"
-      redirect_to @content, notice: "1 track was queued for generation."
+      Rails.logger.info "Generated MusicGeneration ##{music_generation.id} for Content ##{@content.id}"
+      redirect_to @content, notice: "Music generation was queued."
     rescue TrackQueueingService::ValidationError => e
       Rails.logger.warn "Single track generation failed for Content ##{@content.id}: #{e.message}"
       redirect_to @content, alert: e.message

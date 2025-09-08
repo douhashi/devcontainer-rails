@@ -6,7 +6,7 @@ class MusicGeneration < ApplicationRecord
 
   enumerize :status, in: [ :pending, :processing, :completed, :failed ], default: :pending
 
-  validates :task_id, presence: true
+  validates :task_id, presence: true, allow_nil: false
   validates :status, presence: true
   validates :prompt, presence: true
   validates :generation_model, presence: true

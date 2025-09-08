@@ -38,15 +38,20 @@ class TrackQueueingService
   def queue_single_track!
     validate_single_track!
 
-    track = nil
+    music_generation = nil
 
     ActiveRecord::Base.transaction do
-      track = content.tracks.create!(status: :pending)
-      GenerateTrackJob.perform_later(track.id)
+      music_generation = content.music_generations.create!(
+        task_id: "pending-#{SecureRandom.uuid}",
+        prompt: content.audio_prompt,
+        generation_model: "V3_5",
+        status: :pending
+      )
+      GenerateMusicJob.perform_later(music_generation.id)
     end
 
-    Rails.logger.info "Queued 1 track for Content ##{content.id}"
-    track
+    Rails.logger.info "Queued MusicGeneration ##{music_generation.id} for Content ##{content.id}"
+    music_generation
   end
 
   private

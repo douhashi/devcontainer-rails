@@ -231,29 +231,39 @@ RSpec.describe TrackQueueingService do
     let(:service) { described_class.new(content) }
 
     context 'when content is valid' do
-      it 'creates a single track' do
+      it 'does not immediately create tracks' do
         expect {
           service.queue_single_track!
-        }.to change { content.tracks.count }.by(1)
+        }.not_to change { content.tracks.count }
       end
 
-      it 'creates track with pending status' do
-        service.queue_single_track!
-
-        expect(content.tracks.last.pending?).to be true
-      end
-
-      it 'enqueues GenerateTrackJob for the track' do
+      it 'creates a MusicGeneration' do
         expect {
           service.queue_single_track!
-        }.to have_enqueued_job(GenerateTrackJob).once
+        }.to change { content.music_generations.count }.by(1)
+
+        music_generation = content.music_generations.last
+        expect(music_generation.prompt).to eq(content.audio_prompt)
+        expect(music_generation.generation_model).to eq("V3_5")
+        expect(music_generation.status.pending?).to be true
       end
 
-      it 'returns the created track' do
-        track = service.queue_single_track!
+      it 'enqueues GenerateMusicJob for the music generation' do
+        expect {
+          service.queue_single_track!
+        }.to have_enqueued_job(GenerateMusicJob).once
+      end
 
-        expect(track).to be_a(Track)
-        expect(track).to have_attributes(content: content, status: 'pending')
+      it 'returns the created music generation' do
+        music_generation = service.queue_single_track!
+
+        expect(music_generation).to be_a(MusicGeneration)
+        expect(music_generation).to have_attributes(
+          content: content,
+          status: 'pending',
+          prompt: content.audio_prompt,
+          generation_model: "V3_5"
+        )
       end
 
       it 'logs the operation' do
@@ -261,7 +271,7 @@ RSpec.describe TrackQueueingService do
 
         service.queue_single_track!
 
-        expect(Rails.logger).to have_received(:info).with("Queued 1 track for Content ##{content.id}")
+        expect(Rails.logger).to have_received(:info).with("Queued MusicGeneration ##{MusicGeneration.last.id} for Content ##{content.id}")
       end
     end
 
@@ -321,10 +331,10 @@ RSpec.describe TrackQueueingService do
           create_list(:track, 99, content: content)
         end
 
-        it 'allows one more track' do
+        it 'allows one more music generation' do
           expect {
             service.queue_single_track!
-          }.to change { content.tracks.count }.by(1)
+          }.to change { content.music_generations.count }.by(1)
         end
       end
     end
