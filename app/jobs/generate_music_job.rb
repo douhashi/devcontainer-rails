@@ -62,7 +62,7 @@ class GenerateMusicJob < ApplicationJob
     Rails.logger.info "Status transition for MusicGeneration ##{@music_generation.id}: #{normalized_status} (raw: #{status_response['status']})"
 
     case normalized_status
-    when "processing"
+    when "processing", "first_success"
       handle_processing_status
     when "completed", "success"
       handle_completed_status(status_response)
