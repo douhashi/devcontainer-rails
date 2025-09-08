@@ -32,7 +32,7 @@ class TrackQueueingService
           status: :pending
         )
         music_generations << music_generation
-        GenerateMusicJob.perform_later(music_generation.id)
+        GenerateMusicGenerationJob.perform_later(music_generation.id)
       end
     end
 
@@ -52,7 +52,7 @@ class TrackQueueingService
         generation_model: "V4_5PLUS",
         status: :pending
       )
-      GenerateMusicJob.perform_later(music_generation.id)
+      GenerateMusicGenerationJob.perform_later(music_generation.id)
     end
 
     Rails.logger.info "Queued MusicGeneration ##{music_generation.id} for Content ##{content.id}"

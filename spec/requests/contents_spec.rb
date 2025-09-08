@@ -245,11 +245,11 @@ RSpec.describe "Contents", type: :request do
         expect(response.body).to include("7 tracks were queued for generation")
       end
 
-      it "enqueues GenerateMusicJob for each music generation" do
+      it "enqueues GenerateMusicGenerationJob for each music generation" do
         # For duration 10: 7 tracks needed, ceil(7/2) = 4 MusicGeneration
         expect {
           post generate_tracks_content_path(content)
-        }.to have_enqueued_job(GenerateMusicJob).exactly(4).times
+        }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(4).times
       end
 
       it "creates music generations with pending status" do
@@ -304,10 +304,10 @@ RSpec.describe "Contents", type: :request do
         expect(response.body).to include("Music generation was queued")
       end
 
-      it "enqueues GenerateMusicJob for the created music generation" do
+      it "enqueues GenerateMusicGenerationJob for the created music generation" do
         expect {
           post generate_single_track_content_path(content)
-        }.to have_enqueued_job(GenerateMusicJob).once
+        }.to have_enqueued_job(GenerateMusicGenerationJob).once
       end
 
       it "creates music generation with pending status" do

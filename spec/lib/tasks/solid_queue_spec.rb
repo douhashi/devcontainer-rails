@@ -27,7 +27,7 @@ RSpec.describe "solid_queue tasks" do
     context "when jobs exist" do
       before do
         # Create test job using Active Job
-        GenerateMusicJob.perform_later(create(:music_generation))
+        GenerateMusicGenerationJob.perform_later(create(:music_generation))
       end
 
       it "shows job counts" do

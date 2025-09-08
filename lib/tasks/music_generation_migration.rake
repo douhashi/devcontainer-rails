@@ -29,7 +29,7 @@ namespace :music_generation do
 
     pending_music_generations.find_each do |music_generation|
       begin
-        GenerateMusicJob.perform_later(music_generation.id)
+        GenerateMusicGenerationJob.perform_later(music_generation.id)
         puts "✓ Requeued MusicGeneration ##{music_generation.id}"
         success_count += 1
       rescue => e

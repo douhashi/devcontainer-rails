@@ -54,10 +54,10 @@ RSpec.describe TrackQueueingService do
         expect(content.music_generations.all?(&:pending?)).to be true
       end
 
-      it 'enqueues GenerateMusicJob for each music generation' do
+      it 'enqueues GenerateMusicGenerationJob for each music generation' do
         expect {
           service.queue_tracks!
-        }.to have_enqueued_job(GenerateMusicJob).exactly(4).times
+        }.to have_enqueued_job(GenerateMusicGenerationJob).exactly(4).times
       end
 
       it 'returns the created music generations' do
@@ -273,10 +273,10 @@ RSpec.describe TrackQueueingService do
         expect(music_generation.status.pending?).to be true
       end
 
-      it 'enqueues GenerateMusicJob for the music generation' do
+      it 'enqueues GenerateMusicGenerationJob for the music generation' do
         expect {
           service.queue_single_track!
-        }.to have_enqueued_job(GenerateMusicJob).once
+        }.to have_enqueued_job(GenerateMusicGenerationJob).once
       end
 
       it 'returns the created music generation' do
