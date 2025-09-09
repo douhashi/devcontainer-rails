@@ -17,8 +17,4 @@ class Contents::Show::Component < ApplicationViewComponent
   def completion_status
     item.completion_status
   end
-
-  def next_actions
-    item.next_actions
-  end
 end

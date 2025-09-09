@@ -9,7 +9,7 @@ RSpec.describe Contents::Show::Component, type: :component do
     allow(content).to receive(:track_progress).and_return({ completed: 3, total: 7, percentage: 42.9 })
     allow(content).to receive(:artwork_status).and_return(:not_configured)
     allow(content).to receive(:completion_status).and_return(:in_progress)
-    allow(content).to receive(:next_actions).and_return([ 'トラックを生成してください', 'アートワークを設定してください' ])
+    # next_actions is no longer needed
 
     # Mock associated components that may not exist
     stub_const('Artwork::Form::Component', Class.new(ApplicationViewComponent) do
@@ -78,11 +78,20 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(subject.text).to include('アートワーク')
     end
 
-    it 'shows next actions recommendations' do
-      expect(subject.css('.next-actions')).to be_present
-      expect(subject.text).to include('推奨アクション')
-      expect(subject.text).to include('トラックを生成してください')
-      expect(subject.text).to include('アートワークを設定してください')
+    it 'displays work overview section combining prompt and basic info' do
+      expect(subject.text).to include('作品概要')
+      # Section should contain both prompt and basic info
+      work_overview_section = subject.css('.work-overview-section')
+      expect(work_overview_section).to be_present
+      expect(work_overview_section.text).to include('Chill beats for studying')
+      expect(work_overview_section.text).to include('12 分')
+      expect(work_overview_section.text).to include('作成日時')
+      expect(work_overview_section.text).to include('更新日時')
+    end
+
+    it 'does not show next actions recommendations' do
+      expect(subject.css('.next-actions')).not_to be_present
+      expect(subject.text).not_to include('推奨アクション')
     end
 
     it 'includes completion status badge' do
@@ -104,17 +113,27 @@ RSpec.describe Contents::Show::Component, type: :component do
 
     it 'renders sections in correct order' do
       html = subject.to_html
-      music_generation_pos = html.index('音楽生成リクエスト')
+      header_pos = html.index('Study Music')
       artwork_pos = html.index('アートワーク')
+      prompt_pos = html.index('音楽生成プロンプト')
+      edit_button_pos = html.index('編集')
+      music_generation_pos = html.index('音楽生成リクエスト')
       audio_generation_pos = html.index('音源生成')
       video_generation_pos = html.index('動画生成')
 
-      # 音楽生成リクエストがアートワークより前に配置
-      expect(music_generation_pos).to be < artwork_pos
-      # アートワークが音源生成より前に配置
-      expect(artwork_pos).to be < audio_generation_pos
-      # 音源生成が動画生成より前に配置
-      expect(audio_generation_pos).to be < video_generation_pos
+      # アートワークがヘッダーの直後に配置
+      expect(artwork_pos).to be > header_pos
+      # 作品概要（プロンプト）がアートワークの後に配置
+      expect(prompt_pos).to be > artwork_pos
+      # 編集ボタンが作品概要の後、音楽生成リクエストの前に配置
+      expect(edit_button_pos).to be > prompt_pos
+      expect(edit_button_pos).to be < music_generation_pos
+      # 音楽生成リクエストが編集ボタンの後に配置
+      expect(music_generation_pos).to be > edit_button_pos
+      # 音源生成が音楽生成リクエストの後に配置
+      expect(audio_generation_pos).to be > music_generation_pos
+      # 動画生成が音源生成の後に配置
+      expect(video_generation_pos).to be > audio_generation_pos
     end
 
     it 'shows Track Generation Controls in music generation section' do
@@ -126,7 +145,7 @@ RSpec.describe Contents::Show::Component, type: :component do
         allow(content).to receive(:track_progress).and_return({ completed: 7, total: 7, percentage: 100.0 })
         allow(content).to receive(:artwork_status).and_return(:configured)
         allow(content).to receive(:completion_status).and_return(:completed)
-        allow(content).to receive(:next_actions).and_return([])
+        # next_actions is no longer needed
       end
 
       it 'shows completed status' do
@@ -139,7 +158,7 @@ RSpec.describe Contents::Show::Component, type: :component do
         expect(result.text).not_to include('すべての作業が完了しました！この楽曲は準備完了です。')
       end
 
-      it 'does not show next actions when everything is complete' do
+      it 'does not show next actions section' do
         result = render_inline(component)
         expect(result.css('.next-actions')).not_to be_present
       end

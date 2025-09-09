@@ -326,51 +326,6 @@ RSpec.describe Content, type: :model do
         end
       end
     end
-
-    describe '#next_actions' do
-      context 'when tracks need to be generated' do
-        it 'suggests generating tracks' do
-          actions = content.next_actions
-          expect(actions).to include('トラックを生成してください')
-        end
-      end
-
-      context 'when artwork is not configured' do
-        before do
-          required_count = content.required_track_count
-          create_list(:track, required_count, content: content, status: :completed)
-        end
-
-        it 'suggests setting artwork' do
-          actions = content.next_actions
-          expect(actions).to include('アートワークを設定してください')
-        end
-      end
-
-      context 'when there are failed tracks' do
-        before do
-          create_list(:track, 1, content: content, status: :failed)
-        end
-
-        it 'suggests retrying failed tracks' do
-          actions = content.next_actions
-          expect(actions).to include('失敗したトラックを再生成してください')
-        end
-      end
-
-      context 'when everything is complete' do
-        before do
-          required_count = content.required_track_count
-          create_list(:track, required_count, content: content, status: :completed)
-          create(:artwork, content: content)
-        end
-
-        it 'returns empty array' do
-          actions = content.next_actions
-          expect(actions).to be_empty
-        end
-      end
-    end
   end
 
   describe '#music_generation_progress' do

@@ -68,23 +68,6 @@ class Content < ApplicationRecord
     end
   end
 
-  def next_actions
-    actions = []
-
-    if tracks.count < required_track_count
-      actions << "トラックを生成してください"
-    end
-
-    if tracks.failed.exists?
-      actions << "失敗したトラックを再生成してください"
-    end
-
-    if artwork_status == :not_configured
-      actions << "アートワークを設定してください"
-    end
-
-    actions
-  end
 
   def video_generation_prerequisites_met?
     audio_ready? && artwork_ready?
