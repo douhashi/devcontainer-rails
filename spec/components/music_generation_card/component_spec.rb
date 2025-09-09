@@ -131,9 +131,74 @@ RSpec.describe MusicGenerationCard::Component, type: :component do
       it "has responsive classes" do
         render_inline(component)
 
-        expect(page).to have_css(".bg-white")
-        expect(page).to have_css(".rounded-lg")
-        expect(page).to have_css(".shadow")
+        expect(page).to have_css(".bg-gray-800")
+        expect(page).to have_css(".rounded-xl")
+        expect(page).to have_css(".shadow-lg")
+      end
+    end
+
+    context "dark mode styling" do
+      let(:status) { :completed }
+
+      it "has dark mode background classes" do
+        render_inline(component)
+
+        expect(page).to have_css(".bg-gray-800")
+        expect(page).to have_css(".rounded-xl")
+        expect(page).to have_css(".shadow-lg")
+      end
+
+      it "has dark mode text classes" do
+        render_inline(component)
+
+        expect(page).to have_css(".text-gray-100")
+        expect(page).to have_css(".text-gray-300")
+        expect(page).to have_css(".border-gray-700")
+      end
+
+      it "has dark mode delete button classes" do
+        render_inline(component)
+
+        expect(page).to have_css(".text-red-400")
+        expect(page).to have_css(".bg-red-900\\/20")
+        expect(page).to have_css(".border-red-800")
+      end
+    end
+
+    context "dark mode for different states" do
+      context "when processing" do
+        let(:status) { :processing }
+
+        it "has appropriate dark mode classes for processing state" do
+          render_inline(component)
+
+          expect(page).to have_css(".text-yellow-400")
+          expect(page).to have_css(".text-gray-300")
+        end
+      end
+
+      context "when failed" do
+        let(:status) { :failed }
+
+        it "has appropriate dark mode classes for failed state" do
+          render_inline(component)
+
+          expect(page).to have_css(".text-red-400")
+        end
+      end
+
+      context "when no tracks" do
+        let(:status) { :completed }
+
+        before do
+          music_generation.tracks.destroy_all
+        end
+
+        it "has appropriate dark mode classes for empty state" do
+          render_inline(component)
+
+          expect(page).to have_css(".text-gray-400")
+        end
       end
     end
   end

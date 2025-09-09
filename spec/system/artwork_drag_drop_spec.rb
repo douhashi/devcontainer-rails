@@ -55,10 +55,24 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
         file_input.set(test_image_path)
 
         # JavaScriptのchangeイベントを手動でトリガー
-        page.execute_script("document.querySelector('[data-artwork-drag-drop-target=\"fileInput\"]').dispatchEvent(new Event('change', { bubbles: true }))")
-
-        # 少し待機
-        sleep 1
+        # セレクターが見つからない場合に備えて、エラーハンドリングを追加
+        page.execute_script(<<~JS)
+          const fileInput = document.querySelector('[data-artwork-drag-drop-target="fileInput"]');
+          if (fileInput) {
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+          } else {
+            // フォームが動的に生成されるのを待機
+            const interval = setInterval(() => {
+              const input = document.querySelector('[data-artwork-drag-drop-target="fileInput"]');
+              if (input) {
+                clearInterval(interval);
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }, 100);
+            // 5秒後にタイムアウト
+            setTimeout(() => clearInterval(interval), 5000);
+          }
+        JS
 
         # アップロード成功を確認
         expect(page).to have_css('img[alt="アートワーク"]', wait: 10)

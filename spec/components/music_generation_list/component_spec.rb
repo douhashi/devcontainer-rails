@@ -66,6 +66,13 @@ RSpec.describe MusicGenerationList::Component, type: :component do
 
         expect(page).to have_text("音楽生成リクエストがありません")
         expect(page).to have_css(".text-center")
+        expect(page).to have_css(".text-gray-400")
+      end
+
+      it "has appropriate dark mode classes for empty state" do
+        render_inline(component)
+
+        expect(page).to have_css(".text-gray-400")
         expect(page).to have_css(".text-gray-500")
       end
     end
