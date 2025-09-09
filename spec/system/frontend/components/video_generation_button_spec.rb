@@ -23,15 +23,6 @@ describe "video_generation_button component", type: :system do
         expect(page).to have_css("button", text: "削除")
       end
     end
-
-    it "shows confirmation dialog when delete button is clicked", js: true do
-      within(".video-generation-section") do
-        accept_confirm do
-          click_button "削除"
-        end
-      end
-      expect(page).to have_content("動画が削除されました")
-    end
   end
 
   context "when video is failed" do

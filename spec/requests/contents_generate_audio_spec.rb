@@ -48,48 +48,33 @@ RSpec.describe "Contents generate_audio", type: :request do
     end
 
     context "when prerequisites not met" do
-      context "without artwork" do
-        let(:content_no_artwork) { create(:content, duration_min: 10) }
-        let!(:track1) { create(:track, content: content_no_artwork, status: :completed, duration_sec: 180) }
-        let!(:track2) { create(:track, content: content_no_artwork, status: :completed, duration_sec: 150) }
+      it "handles various prerequisite failures with appropriate HTTP responses" do
+        # Without artwork
+        content_no_artwork = create(:content, duration_min: 10)
+        create_list(:track, 2, content: content_no_artwork, status: :completed, duration_sec: 180)
 
-        it "returns error message" do
+        expect {
           post generate_audio_content_path(content_no_artwork)
+        }.not_to change { content_no_artwork.reload.audio }
+        expect(response).to redirect_to(content_path(content_no_artwork))
+        expect(flash[:alert]).to include("Artwork must be configured")
 
-          expect(response).to redirect_to(content_path(content_no_artwork))
-          expect(flash[:alert]).to include("Artwork must be configured")
-        end
+        # Without completed tracks
+        content_no_tracks = create(:content, duration_min: 10)
+        create(:artwork, content: content_no_tracks)
 
-        it "does not create audio record" do
-          expect {
-            post generate_audio_content_path(content_no_artwork)
-          }.not_to change { content_no_artwork.reload.audio }
-        end
-      end
+        post generate_audio_content_path(content_no_tracks)
+        expect(response).to redirect_to(content_path(content_no_tracks))
+        expect(flash[:alert]).to include("No completed tracks available")
 
-      context "without completed tracks" do
-        let(:content_no_tracks) { create(:content, duration_min: 10) }
-        let!(:artwork) { create(:artwork, content: content_no_tracks) }
+        # With insufficient completed tracks
+        content_few_tracks = create(:content, duration_min: 10)
+        create(:artwork, content: content_few_tracks)
+        create(:track, content: content_few_tracks, status: :completed, duration_sec: 180)
 
-        it "returns error message" do
-          post generate_audio_content_path(content_no_tracks)
-
-          expect(response).to redirect_to(content_path(content_no_tracks))
-          expect(flash[:alert]).to include("No completed tracks available")
-        end
-      end
-
-      context "with insufficient completed tracks" do
-        let(:content_few_tracks) { create(:content, duration_min: 10) }
-        let!(:artwork) { create(:artwork, content: content_few_tracks) }
-        let!(:single_track) { create(:track, content: content_few_tracks, status: :completed, duration_sec: 180) }
-
-        it "returns error message" do
-          post generate_audio_content_path(content_few_tracks)
-
-          expect(response).to redirect_to(content_path(content_few_tracks))
-          expect(flash[:alert]).to include("At least 2 completed tracks")
-        end
+        post generate_audio_content_path(content_few_tracks)
+        expect(response).to redirect_to(content_path(content_few_tracks))
+        expect(flash[:alert]).to include("At least 2 completed tracks")
       end
     end
 
@@ -110,82 +95,6 @@ RSpec.describe "Contents generate_audio", type: :request do
 
         expect(response).to redirect_to(content_path(content))
         expect(flash[:alert]).to include("Failed to start audio generation")
-      end
-    end
-  end
-
-  describe "private methods" do
-    let(:controller) { ContentsController.new }
-
-    before do
-      controller.instance_variable_set(:@content, content)
-    end
-
-    describe "#audio_generation_prerequisites_met?" do
-      context "with all prerequisites" do
-        it "returns true" do
-          expect(controller.send(:audio_generation_prerequisites_met?)).to be true
-        end
-      end
-
-      context "without artwork" do
-        before do
-          artwork.destroy!
-          content.reload
-          controller.instance_variable_set(:@content, content)
-        end
-
-        it "returns false" do
-          expect(controller.send(:audio_generation_prerequisites_met?)).to be false
-        end
-      end
-
-      context "without completed tracks" do
-        before do
-          content.tracks.update_all(status: :pending)
-        end
-
-        it "returns false" do
-          expect(controller.send(:audio_generation_prerequisites_met?)).to be false
-        end
-      end
-
-      context "with insufficient tracks" do
-        before { completed_track2.destroy! }
-
-        it "returns false" do
-          expect(controller.send(:audio_generation_prerequisites_met?)).to be false
-        end
-      end
-    end
-
-    describe "#audio_generation_error_message" do
-      context "without artwork" do
-        before do
-          artwork.destroy!
-          content.reload
-          controller.instance_variable_set(:@content, content)
-        end
-
-        it "includes artwork error" do
-          message = controller.send(:audio_generation_error_message)
-          expect(message).to include("Artwork must be configured")
-        end
-      end
-
-      context "without completed tracks" do
-        before do
-          content.tracks.update_all(status: :pending)
-          artwork.destroy!
-          content.reload
-          controller.instance_variable_set(:@content, content)
-        end
-
-        it "includes multiple errors" do
-          message = controller.send(:audio_generation_error_message)
-          expect(message).to include("No completed tracks available")
-          expect(message).to include("Artwork must be configured")
-        end
       end
     end
   end

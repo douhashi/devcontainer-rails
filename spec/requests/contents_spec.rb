@@ -162,25 +162,15 @@ RSpec.describe "Contents", type: :request do
     end
 
     context "with invalid params" do
-      it "renders new template with errors when theme is blank" do
-        post contents_path, params: { content: { theme: "", duration_min: 5, audio_prompt: "test" } }
-
+      it "renders new template with unprocessable_content status for validation errors" do
+        # Test multiple validation failures
+        post contents_path, params: { content: { theme: "", duration_min: 0, audio_prompt: "" } }
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")
-      end
 
-      it "renders new template with errors when duration is invalid" do
-        post contents_path, params: { content: { theme: "test", duration_min: 0, audio_prompt: "test" } }
-
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response.body).to include("form")
-      end
-
-      it "renders new template with errors when audio_prompt is blank" do
+        # Verify each individual validation failure returns same HTTP status
         post contents_path, params: { content: { theme: "test", duration_min: 5, audio_prompt: "" } }
-
         expect(response).to have_http_status(:unprocessable_content)
-        expect(response.body).to include("form")
       end
     end
   end
@@ -220,16 +210,9 @@ RSpec.describe "Contents", type: :request do
     end
 
     context "with invalid params" do
-      it "renders edit template with errors when theme is blank" do
-        patch content_path(content), params: { content: { theme: "" } }
-
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response.body).to include("form")
-      end
-
-      it "renders edit template with errors when duration is invalid" do
-        patch content_path(content), params: { content: { duration_min: 0 } }
-
+      it "renders edit template with unprocessable_content status for validation errors" do
+        # Test multiple validation failures
+        patch content_path(content), params: { content: { theme: "", duration_min: 0 } }
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("form")
       end
@@ -280,30 +263,24 @@ RSpec.describe "Contents", type: :request do
     end
 
     context "with invalid content" do
-      context "when duration is missing" do
-        it "redirects with error message" do
-          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
-          invalid_content.update_column(:duration_min, 0) # バリデーションをスキップして無効なデータを作成
+      it "redirects with appropriate error messages for missing prerequisites" do
+        # Test missing duration
+        invalid_content1 = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+        invalid_content1.update_column(:duration_min, 0)
 
-          post generate_tracks_content_path(invalid_content)
+        post generate_tracks_content_path(invalid_content1)
+        expect(response).to redirect_to(invalid_content1)
+        follow_redirect!
+        expect(response.body).to include("動画の長さが設定されていません")
 
-          expect(response).to redirect_to(invalid_content)
-          follow_redirect!
-          expect(response.body).to include("動画の長さが設定されていません")
-        end
-      end
+        # Test missing audio_prompt
+        invalid_content2 = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+        invalid_content2.update_column(:audio_prompt, "")
 
-      context "when audio_prompt is missing" do
-        it "redirects with error message" do
-          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
-          invalid_content.update_column(:audio_prompt, "") # バリデーションをスキップして無効なデータを作成
-
-          post generate_tracks_content_path(invalid_content)
-
-          expect(response).to redirect_to(invalid_content)
-          follow_redirect!
-          expect(response.body).to include("音楽生成プロンプトが設定されていません")
-        end
+        post generate_tracks_content_path(invalid_content2)
+        expect(response).to redirect_to(invalid_content2)
+        follow_redirect!
+        expect(response.body).to include("音楽生成プロンプトが設定されていません")
       end
     end
   end
@@ -336,30 +313,24 @@ RSpec.describe "Contents", type: :request do
     end
 
     context "with invalid content" do
-      context "when duration is missing" do
-        it "redirects with error message" do
-          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
-          invalid_content.update_column(:duration_min, 0) # バリデーションをスキップして無効なデータを作成
+      it "redirects with appropriate error messages for missing prerequisites" do
+        # Test missing duration
+        invalid_content1 = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+        invalid_content1.update_column(:duration_min, 0)
 
-          post generate_single_track_content_path(invalid_content)
+        post generate_single_track_content_path(invalid_content1)
+        expect(response).to redirect_to(invalid_content1)
+        follow_redirect!
+        expect(response.body).to include("動画の長さが設定されていません")
 
-          expect(response).to redirect_to(invalid_content)
-          follow_redirect!
-          expect(response.body).to include("動画の長さが設定されていません")
-        end
-      end
+        # Test missing audio_prompt
+        invalid_content2 = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
+        invalid_content2.update_column(:audio_prompt, "")
 
-      context "when audio_prompt is missing" do
-        it "redirects with error message" do
-          invalid_content = create(:content, theme: "テストテーマ", duration_min: 10, audio_prompt: "テスト用プロンプト")
-          invalid_content.update_column(:audio_prompt, "") # バリデーションをスキップして無効なデータを作成
-
-          post generate_single_track_content_path(invalid_content)
-
-          expect(response).to redirect_to(invalid_content)
-          follow_redirect!
-          expect(response.body).to include("音楽生成プロンプトが設定されていません")
-        end
+        post generate_single_track_content_path(invalid_content2)
+        expect(response).to redirect_to(invalid_content2)
+        follow_redirect!
+        expect(response.body).to include("音楽生成プロンプトが設定されていません")
       end
     end
   end

@@ -46,30 +46,21 @@ RSpec.describe "Videos", type: :request do
     end
 
     context "when prerequisites are not met" do
-      context "when audio is missing" do
-        before do
-          create(:artwork, content: content)
-        end
+      it "redirects with error message for missing audio or artwork" do
+        # Test missing audio (with artwork present)
+        create(:artwork, content: content)
+        post content_video_path(content)
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("動画生成の前提条件が満たされていません")
 
-        it "redirects with error message" do
-          post content_video_path(content)
-          expect(response).to redirect_to(content)
-          follow_redirect!
-          expect(response.body).to include("動画生成の前提条件が満たされていません")
-        end
-      end
-
-      context "when artwork is missing" do
-        before do
-          create(:audio, :completed, content: content)
-        end
-
-        it "redirects with error message" do
-          post content_video_path(content)
-          expect(response).to redirect_to(content)
-          follow_redirect!
-          expect(response.body).to include("動画生成の前提条件が満たされていません")
-        end
+        # Test missing artwork (with audio present) - using new content
+        content2 = create(:content)
+        create(:audio, :completed, content: content2)
+        post content_video_path(content2)
+        expect(response).to redirect_to(content2)
+        follow_redirect!
+        expect(response.body).to include("動画生成の前提条件が満たされていません")
       end
     end
   end
@@ -92,56 +83,34 @@ RSpec.describe "Videos", type: :request do
         create(:artwork, content: content)
       end
 
-      context "when video is pending" do
-        before do
-          video.update!(status: :pending)
-        end
+      it "responds correctly based on video status" do
+        # Test pending status
+        video.update!(status: :pending)
+        get content_video_path(content)
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("動画生成待機中です")
 
-        it "redirects with pending message" do
-          get content_video_path(content)
-          expect(response).to redirect_to(content)
-          follow_redirect!
-          expect(response.body).to include("動画生成待機中です")
-        end
-      end
+        # Test processing status
+        video.update!(status: :processing)
+        get content_video_path(content)
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("動画生成中です")
 
-      context "when video is processing" do
-        before do
-          video.update!(status: :processing)
-        end
+        # Test completed status - should show video page
+        video.update!(status: :completed)
+        get content_video_path(content)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include(content.theme)
 
-        it "redirects with processing message" do
-          get content_video_path(content)
-          expect(response).to redirect_to(content)
-          follow_redirect!
-          expect(response.body).to include("動画生成中です")
-        end
-      end
-
-      context "when video is completed" do
-        before do
-          video.update!(status: :completed)
-        end
-
-        it "shows video page" do
-          get content_video_path(content)
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include(content.theme)
-        end
-      end
-
-      context "when video generation failed" do
-        before do
-          video.update!(status: :failed, error_message: "ffmpeg error")
-        end
-
-        it "redirects with error message" do
-          get content_video_path(content)
-          expect(response).to redirect_to(content)
-          follow_redirect!
-          expect(response.body).to include("動画生成に失敗しました")
-          expect(response.body).to include("ffmpeg error")
-        end
+        # Test failed status
+        video.update!(status: :failed, error_message: "ffmpeg error")
+        get content_video_path(content)
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("動画生成に失敗しました")
+        expect(response.body).to include("ffmpeg error")
       end
     end
   end

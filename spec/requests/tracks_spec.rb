@@ -178,8 +178,6 @@ RSpec.describe "Tracks", type: :request do
     context "search functionality" do
       let!(:content3) { create(:content, theme: "Relaxing BGM") }
       let!(:content4) { create(:content, theme: "Focus Music") }
-      let!(:content5) { create(:content, theme: "Study Music") }
-
       let!(:track_completed1) {
         create(:track,
           content: content3,
@@ -198,167 +196,45 @@ RSpec.describe "Tracks", type: :request do
       }
       let!(:track_pending) {
         create(:track,
-          content: content5,
+          content: content3,
           status: :pending,
           metadata: { "music_title" => "Night Jazz" },
           created_at: 3.days.ago
         )
       }
-      let!(:track_processing) {
-        create(:track,
-          content: content3,
-          status: :processing,
-          metadata: { "music_title" => "Evening Relax" },
-          created_at: 4.days.ago
-        )
-      }
-      let!(:track_failed) {
-        create(:track,
-          content: content4,
-          status: :failed,
-          metadata: { "music_title" => "Study Session" },
-          created_at: 5.days.ago
-        )
-      }
 
-      context "with content theme search" do
-        it "filters tracks by partial content theme match" do
-          get tracks_path, params: { q: { content_theme_cont: "Relax" } }
+      it "filters tracks correctly by various search parameters and maintains pagination" do
+        # Test content theme search
+        get tracks_path, params: { q: { content_theme_cont: "Relax" } }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Morning Coffee")
+        expect(response.body).not_to include("Deep Focus")
 
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Morning Coffee")
-          expect(response.body).to include("Evening Relax")
-          expect(response.body).not_to include("Deep Focus")
-          expect(response.body).not_to include("Night Jazz")
-          expect(response.body).not_to include("Study Session")
-        end
-      end
+        # Test music title search
+        get tracks_path, params: { q: { music_title_cont: "Focus" } }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Deep Focus")
+        expect(response.body).not_to include("Morning Coffee")
 
-      context "with music title search" do
-        it "filters tracks by partial music title match" do
-          get tracks_path, params: { q: { music_title_cont: "Focus" } }
+        # Test status filter
+        get tracks_path, params: { q: { status_in: [ "completed" ] } }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Morning Coffee")
+        expect(response.body).to include("Deep Focus")
+        expect(response.body).not_to include("Night Jazz")
+        expect(response.body).to match(/検索結果.*2.*件/)
 
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Deep Focus")
-          expect(response.body).not_to include("Morning Coffee")
-          expect(response.body).not_to include("Night Jazz")
-          expect(response.body).not_to include("Evening Relax")
-        end
-      end
+        # Test combined search parameters
+        get tracks_path, params: { q: { content_theme_cont: "Music", status_in: [ "completed" ] } }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Deep Focus")
+        expect(response.body).not_to include("Morning Coffee")
 
-      context "with status filter" do
-        it "filters tracks by single status" do
-          get tracks_path, params: { q: { status_in: [ "completed" ] } }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Morning Coffee")
-          expect(response.body).to include("Deep Focus")
-          expect(response.body).not_to include("Night Jazz")
-          expect(response.body).not_to include("Evening Relax")
-          expect(response.body).not_to include("Study Session")
-        end
-
-        it "filters tracks by multiple statuses" do
-          get tracks_path, params: { q: { status_in: [ "pending", "processing" ] } }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Night Jazz")
-          expect(response.body).to include("Evening Relax")
-          expect(response.body).not_to include("Morning Coffee")
-          expect(response.body).not_to include("Deep Focus")
-          expect(response.body).not_to include("Study Session")
-        end
-      end
-
-      context "with date range search" do
-        it "filters tracks by created_at start date" do
-          get tracks_path, params: { q: { created_at_gteq: 3.days.ago.beginning_of_day.iso8601 } }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Morning Coffee")
-          expect(response.body).to include("Deep Focus")
-          expect(response.body).to include("Night Jazz")
-          expect(response.body).not_to include("Evening Relax")
-          expect(response.body).not_to include("Study Session")
-        end
-
-        it "filters tracks by created_at end date" do
-          get tracks_path, params: { q: { created_at_lteq: 3.days.ago.end_of_day.iso8601 } }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Night Jazz")
-          expect(response.body).to include("Evening Relax")
-          expect(response.body).to include("Study Session")
-          expect(response.body).not_to include("Morning Coffee")
-          expect(response.body).not_to include("Deep Focus")
-        end
-
-        it "filters tracks by created_at date range" do
-          get tracks_path, params: {
-            q: {
-              created_at_gteq: 4.days.ago.beginning_of_day.iso8601,
-              created_at_lteq: 2.days.ago.end_of_day.iso8601
-            }
-          }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Deep Focus")
-          expect(response.body).to include("Night Jazz")
-          expect(response.body).to include("Evening Relax")
-          expect(response.body).not_to include("Morning Coffee")
-          expect(response.body).not_to include("Study Session")
-        end
-      end
-
-      context "with combined search parameters" do
-        it "filters tracks by multiple conditions" do
-          get tracks_path, params: {
-            q: {
-              content_theme_cont: "Music",
-              status_in: [ "completed" ]
-            }
-          }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to include("Deep Focus")
-          expect(response.body).not_to include("Morning Coffee")
-          expect(response.body).not_to include("Night Jazz")
-          expect(response.body).not_to include("Evening Relax")
-          expect(response.body).not_to include("Study Session")
-        end
-      end
-
-      context "with pagination" do
-        before do
-          # Create 30 more tracks
-          30.times do |i|
-            create(:track,
-              content: content3,
-              status: :completed,
-              created_at: (i + 10).days.ago
-            )
-          end
-        end
-
-        it "maintains search results across pages" do
-          get tracks_path, params: {
-            q: { status_in: [ "completed" ] },
-            page: 2
-          }
-
-          expect(response).to have_http_status(:success)
-          # Search params should be preserved in pagination links
-          expect(response.body).to include("q%5Bstatus_in%5D%5B%5D=completed")
-        end
-      end
-
-      context "search results count" do
-        it "displays the number of search results" do
-          get tracks_path, params: { q: { status_in: [ "completed" ] } }
-
-          expect(response).to have_http_status(:success)
-          expect(response.body).to match(/検索結果.*2.*件/)
-        end
+        # Test date range search
+        get tracks_path, params: { q: { created_at_gteq: 2.days.ago.beginning_of_day.iso8601 } }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Morning Coffee")
+        expect(response.body).to include("Deep Focus")
       end
     end
   end

@@ -23,7 +23,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        # Mock Open3.capture3 for system command execution
+        # Mock Open3.capture3 for FFmpeg command execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
           "",              # stderr
@@ -56,7 +56,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        # Mock Open3.capture3 for system command execution
+        # Mock Open3.capture3 for FFmpeg command execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
           "",              # stderr
@@ -159,7 +159,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        # Mock Open3.capture3 to return failure status
+        # Mock Open3.capture3 for FFmpeg failure (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output",                     # stdout
           "Invalid codec configuration",      # stderr
@@ -182,7 +182,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        # Mock Open3.capture3 for successful execution
+        # Mock Open3.capture3 for FFmpeg execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
           "",              # stderr
@@ -207,7 +207,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        # Mock Open3.capture3 for successful execution
+        # Mock Open3.capture3 for FFmpeg execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
           "",              # stderr

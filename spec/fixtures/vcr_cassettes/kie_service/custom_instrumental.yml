@@ -1,0 +1,55 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.kie.ai/api/v1/generate
+    body:
+      encoding: UTF-8
+      string: '{"prompt":"Relaxing lo-fi hip hop beat with soft piano","model":"V4_5PLUS","wait_audio":false,"customMode":false,"instrumental":false,"callBackUrl":"https://lofi-bgm-not-exist-server.com/callback"}'
+    headers:
+      Authorization:
+      - Bearer <KIE_AI_API_KEY>
+      Content-Type:
+      - application/json
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 09 Sep 2025 09:18:35 GMT
+      Content-Type:
+      - application/json;charset=utf-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Server:
+      - cloudflare
+      Nel:
+      - '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}'
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Origin:
+      - "*"
+      Vary:
+      - Access-Control-Request-Headers
+      Cf-Cache-Status:
+      - DYNAMIC
+      Report-To:
+      - '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=sX2F4NpFzIaFoJe3D4IkwKPVpMjnY7OCGgZ2m37Gw7lPstEd7m%2FZpE2x442tKE4Lz888sZ89cza6YB76ccnBnP1RQfWOmRYL5A%3D%3D"}]}'
+      Set-Cookie:
+      - JSESSIONID=604ABC43A102E025919A13DF01E42432; HttpOnly; Path=/
+      Cf-Ray:
+      - 97c59960486896aa-KIX
+    body:
+      encoding: ASCII-8BIT
+      string: '{"code":401,"msg":"You do not have access permissions"}'
+  recorded_at: Tue, 09 Sep 2025 09:18:36 GMT
+recorded_with: VCR 6.3.1

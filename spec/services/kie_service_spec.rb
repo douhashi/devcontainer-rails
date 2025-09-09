@@ -27,8 +27,22 @@ RSpec.describe KieService do
     end
   end
 
-  describe '#generate_music', vcr: { cassette_name: 'kie_service/generate_music' } do
+  describe '#generate_music' do
     let(:prompt) { 'Relaxing lo-fi hip hop beat with soft piano' }
+    let(:mock_response) do
+      {
+        "data" => {
+          "taskId" => "12345678-1234-1234-1234-123456789abc"
+        }
+      }
+    end
+
+    before do
+      # Mock HTTParty at the class level to prevent actual API calls
+      allow(service.class).to receive(:post).and_return(
+        double('response', code: 200, body: mock_response.to_json, parsed_response: mock_response)
+      )
+    end
 
     it 'sends a request to generate music and returns task_id' do
       result = service.generate_music(prompt: prompt)
@@ -38,55 +52,91 @@ RSpec.describe KieService do
 
     context 'default parameters' do
       it 'uses V4_5PLUS as the default model' do
-        expect(service).to receive(:with_retry) do |&block|
-          expect(service).to receive(:make_request) do |method, path, options|
-            body = JSON.parse(options[:body])
-            expect(body['model']).to eq('V4_5PLUS')
-            { 'data' => { 'taskId' => 'test-task-id' } }
-          end
-          block.call
-        end
+        # Verify that the correct parameters are sent to the API
+        expected_body = {
+          "prompt" => prompt,
+          "model" => "V4_5PLUS",
+          "wait_audio" => false,
+          "customMode" => false,
+          "instrumental" => true,
+          "callBackUrl" => "https://lofi-bgm-not-exist-server.com/callback"
+        }
 
-        service.generate_music(prompt: prompt)
-      end
+        expect(service.class).to receive(:post).with(
+          "/api/v1/generate",
+          {
+            body: JSON.generate(expected_body),
+            headers: {
+              "Accept" => "application/json",
+              "Authorization" => "Bearer test_api_key",
+              "Content-Type" => "application/json"
+            }
+          }
+        ).and_return(
+          double('response', code: 200, body: mock_response.to_json, parsed_response: mock_response)
+        )
 
-      it 'uses instrumental=true as the default' do
-        expect(service).to receive(:with_retry) do |&block|
-          expect(service).to receive(:make_request) do |method, path, options|
-            body = JSON.parse(options[:body])
-            expect(body['instrumental']).to eq(true)
-            { 'data' => { 'taskId' => 'test-task-id' } }
-          end
-          block.call
-        end
-
-        service.generate_music(prompt: prompt)
+        result = service.generate_music(prompt: prompt)
+        expect(result).to be_a(String)
+        expect(result).to match(/^[a-f0-9-]+$/)
       end
 
       it 'allows overriding the default model' do
-        expect(service).to receive(:with_retry) do |&block|
-          expect(service).to receive(:make_request) do |method, path, options|
-            body = JSON.parse(options[:body])
-            expect(body['model']).to eq('V3_5')
-            { 'data' => { 'taskId' => 'test-task-id' } }
-          end
-          block.call
-        end
+        expected_body = {
+          "prompt" => prompt,
+          "model" => "V3_5",
+          "wait_audio" => false,
+          "customMode" => false,
+          "instrumental" => true,
+          "callBackUrl" => "https://lofi-bgm-not-exist-server.com/callback"
+        }
 
-        service.generate_music(prompt: prompt, model: 'V3_5')
+        expect(service.class).to receive(:post).with(
+          "/api/v1/generate",
+          {
+            body: JSON.generate(expected_body),
+            headers: {
+              "Accept" => "application/json",
+              "Authorization" => "Bearer test_api_key",
+              "Content-Type" => "application/json"
+            }
+          }
+        ).and_return(
+          double('response', code: 200, body: mock_response.to_json, parsed_response: mock_response)
+        )
+
+        result = service.generate_music(prompt: prompt, model: 'V3_5')
+        expect(result).to be_a(String)
+        expect(result).to match(/^[a-f0-9-]+$/)
       end
 
       it 'allows overriding the instrumental parameter' do
-        expect(service).to receive(:with_retry) do |&block|
-          expect(service).to receive(:make_request) do |method, path, options|
-            body = JSON.parse(options[:body])
-            expect(body['instrumental']).to eq(false)
-            { 'data' => { 'taskId' => 'test-task-id' } }
-          end
-          block.call
-        end
+        expected_body = {
+          "prompt" => prompt,
+          "model" => "V4_5PLUS",
+          "wait_audio" => false,
+          "customMode" => false,
+          "instrumental" => false,
+          "callBackUrl" => "https://lofi-bgm-not-exist-server.com/callback"
+        }
 
-        service.generate_music(prompt: prompt, instrumental: false)
+        expect(service.class).to receive(:post).with(
+          "/api/v1/generate",
+          {
+            body: JSON.generate(expected_body),
+            headers: {
+              "Accept" => "application/json",
+              "Authorization" => "Bearer test_api_key",
+              "Content-Type" => "application/json"
+            }
+          }
+        ).and_return(
+          double('response', code: 200, body: mock_response.to_json, parsed_response: mock_response)
+        )
+
+        result = service.generate_music(prompt: prompt, instrumental: false)
+        expect(result).to be_a(String)
+        expect(result).to match(/^[a-f0-9-]+$/)
       end
     end
 
@@ -106,18 +156,28 @@ RSpec.describe KieService do
   end
 
   describe '#get_task_status' do
-    context 'with valid task_id', vcr: { cassette_name: 'kie_service/get_task_status_success' } do
-      # First generate a task to get a valid task_id
-      let(:task_id) do
-        VCR.use_cassette('kie_service/generate_for_status_check') do
-          service.generate_music(prompt: 'Test beat for status check')
-        end
+    let(:task_id) { '12345678-1234-1234-1234-123456789abc' }
+
+    context 'with valid task_id' do
+      let(:mock_response) do
+        {
+          "data" => {
+            "taskId" => task_id,
+            "status" => "completed",
+            "output" => {
+              "audio_url" => "https://example.com/audio.mp3"
+            }
+          }
+        }
+      end
+
+      before do
+        allow(service.class).to receive(:get).and_return(
+          double('response', code: 200, body: mock_response.to_json, parsed_response: mock_response)
+        )
       end
 
       it 'retrieves task status' do
-        # Wait a bit for the task to process (in real scenario)
-        sleep 2 if VCR.current_cassette.recording?
-
         result = service.get_task_status(task_id)
         expect(result).to be_a(Hash)
         expect(result).to have_key('taskId')
@@ -154,12 +214,18 @@ RSpec.describe KieService do
       end
     end
 
-    context 'with invalid task_id', vcr: { cassette_name: 'kie_service/get_task_status_not_found' } do
+    context 'with invalid task_id' do
       let(:invalid_task_id) { 'invalid-task-id-12345' }
+
+      before do
+        allow(service.class).to receive(:get).and_return(
+          double('response', code: 200, body: '{"data": null}', parsed_response: { "data" => nil })
+        )
+      end
 
       it 'returns nil or error data' do
         result = service.get_task_status(invalid_task_id)
-        expect(result).to be_nil.or be_a(Hash)
+        expect(result).to be_nil
       end
     end
 
@@ -170,7 +236,11 @@ RSpec.describe KieService do
         allow(Rails.logger).to receive(:warn)
       end
 
-      context 'when response is missing required fields' do
+      context 'response validation with mocked responses' do
+        before do
+          allow(Rails.logger).to receive(:warn)
+        end
+
         it 'logs warning when status field is missing' do
           allow(service).to receive(:with_retry).and_return({ 'data' => { 'taskId' => task_id } })
 
@@ -184,18 +254,14 @@ RSpec.describe KieService do
           expect(Rails.logger).to receive(:warn).with(/Missing required field: taskId/)
           service.get_task_status(task_id)
         end
-      end
 
-      context 'when response has unexpected format' do
         it 'logs warning for unexpected response structure' do
           allow(service).to receive(:with_retry).and_return({ 'data' => 'unexpected_string_response' })
 
           expect(Rails.logger).to receive(:warn).with(/Unexpected response format/)
           service.get_task_status(task_id)
         end
-      end
 
-      context 'when response has all required fields' do
         it 'does not log warning for valid response' do
           allow(service).to receive(:with_retry).and_return({
             'data' => {
@@ -220,9 +286,17 @@ RSpec.describe KieService do
       FileUtils.rm_rf(Rails.root.join('tmp', 'test_downloads'))
     end
 
-    context 'with valid URL', vcr: { cassette_name: 'kie_service/download_audio_success' } do
-      # For testing, we'll use a real MP3 URL or mock it
-      let(:audio_url) { 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' }
+    context 'with valid URL' do
+      before do
+        # Mock Net::HTTP request since download_audio uses Net::HTTP, not HTTParty
+        response_mock = double('response')
+        allow(response_mock).to receive(:code).and_return('200')
+        allow(response_mock).to receive(:body).and_return('fake audio data')
+        allow(Net::HTTP).to receive(:get_response).with(URI(audio_url)).and_return(response_mock)
+
+        # Ensure the directory exists
+        FileUtils.mkdir_p(File.dirname(file_path))
+      end
 
       it 'downloads audio file' do
         result = service.download_audio(audio_url, file_path)

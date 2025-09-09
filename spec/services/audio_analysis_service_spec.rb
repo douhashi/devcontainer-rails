@@ -7,8 +7,20 @@ RSpec.describe AudioAnalysisService do
     context 'with valid audio file' do
       let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
 
-      it 'returns duration in seconds' do
-        allow(service).to receive(:execute_ffprobe).and_return("180.123\n")
+      before do
+        # Ensure test fixture exists
+        FileUtils.mkdir_p(File.dirname(audio_path))
+        unless File.exist?(audio_path)
+          # Create a dummy MP3 file for testing
+          File.write(audio_path, "fake mp3 content for testing")
+        end
+      end
+
+      it 'returns duration in seconds for real file' do
+        # Test with mocked ffprobe command (external dependency)
+        allow(Open3).to receive(:capture3).with(
+          'ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', audio_path.to_s, timeout: 5
+        ).and_return([ "180.123", "", double(success?: true) ])
 
         duration = service.analyze_duration(audio_path)
 
@@ -16,7 +28,10 @@ RSpec.describe AudioAnalysisService do
       end
 
       it 'handles decimal durations by rounding down' do
-        allow(service).to receive(:execute_ffprobe).and_return("185.789\n")
+        # Test with mocked ffprobe command (external dependency)
+        allow(Open3).to receive(:capture3).with(
+          'ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', audio_path.to_s, timeout: 5
+        ).and_return([ "185.789", "", double(success?: true) ])
 
         duration = service.analyze_duration(audio_path)
 
@@ -28,7 +43,10 @@ RSpec.describe AudioAnalysisService do
       let(:invalid_path) { '/nonexistent/file.mp3' }
 
       it 'returns default duration when file does not exist' do
-        allow(service).to receive(:execute_ffprobe).and_raise(StandardError.new('File not found'))
+        # Mock ffprobe to fail for nonexistent file (external dependency)
+        allow(Open3).to receive(:capture3).with(
+          'ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', invalid_path, timeout: 5
+        ).and_raise(StandardError.new('File not found'))
         allow(Rails.logger).to receive(:error)
 
         duration = service.analyze_duration(invalid_path)
@@ -41,8 +59,19 @@ RSpec.describe AudioAnalysisService do
     context 'with ffprobe command failure' do
       let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
 
+      before do
+        # Ensure test fixture exists
+        FileUtils.mkdir_p(File.dirname(audio_path))
+        unless File.exist?(audio_path)
+          File.write(audio_path, "fake mp3 content for testing")
+        end
+      end
+
       it 'returns default duration when command fails' do
-        allow(service).to receive(:execute_ffprobe).and_raise(StandardError.new('ffprobe error'))
+        # Mock ffprobe to fail (external dependency)
+        allow(Open3).to receive(:capture3).with(
+          'ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', audio_path.to_s, timeout: 5
+        ).and_raise(StandardError.new('ffprobe error'))
         allow(Rails.logger).to receive(:error)
 
         duration = service.analyze_duration(audio_path)
@@ -55,8 +84,19 @@ RSpec.describe AudioAnalysisService do
     context 'with invalid ffprobe output' do
       let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
 
+      before do
+        # Ensure test fixture exists
+        FileUtils.mkdir_p(File.dirname(audio_path))
+        unless File.exist?(audio_path)
+          File.write(audio_path, "fake mp3 content for testing")
+        end
+      end
+
       it 'returns default duration when output is not a number' do
-        allow(service).to receive(:execute_ffprobe).and_return("N/A\n")
+        # Mock ffprobe to return invalid output (external dependency)
+        allow(Open3).to receive(:capture3).with(
+          'ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', audio_path.to_s, timeout: 5
+        ).and_return([ "N/A\n", "", double(success?: true) ])
         allow(Rails.logger).to receive(:error)
 
         duration = service.analyze_duration(audio_path)

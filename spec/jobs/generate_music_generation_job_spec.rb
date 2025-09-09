@@ -68,13 +68,13 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
       end
 
       before do
+        # Mock external KIE.AI API calls
         allow(kie_service).to receive(:generate_music).and_return(task_id)
-        # Mock get_task_status to return completed immediately (skip polling)
         allow(kie_service).to receive(:get_task_status).and_return(api_response)
         allow(kie_service).to receive(:extract_all_music_data).and_return(music_data)
-        # Mock download_audio properly for file operations
+        # Mock external file download operation
         allow(kie_service).to receive(:download_audio) do |url, path|
-          # Copy sample MP3 file to the expected path
+          # Copy sample MP3 file to the expected path for testing
           FileUtils.cp(Rails.root.join('spec/fixtures/files/sample.mp3'), path)
           path
         end
@@ -152,6 +152,7 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
       let(:error_message) { 'API error occurred' }
 
       before do
+        # Mock external KIE.AI API to simulate failure
         allow(kie_service).to receive(:generate_music).and_raise(Kie::Errors::ApiError.new(error_message))
       end
 
@@ -210,13 +211,12 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
       end
 
       before do
+        # Mock external KIE.AI API calls for single track case
         allow(kie_service).to receive(:generate_music).and_return(task_id)
-        # Mock get_task_status to return completed immediately (skip polling)
         allow(kie_service).to receive(:get_task_status).and_return(api_response)
         allow(kie_service).to receive(:extract_all_music_data).and_return(music_data)
-        # Mock download_audio properly for file operations
+        # Mock external file download operation
         allow(kie_service).to receive(:download_audio) do |url, path|
-          # Copy sample MP3 file to the expected path
           FileUtils.cp(Rails.root.join('spec/fixtures/files/sample.mp3'), path)
           path
         end
@@ -256,6 +256,7 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
     let(:music_generation) { create(:music_generation, content: content, status: :processing, task_id: task_id) }
 
     before do
+      # Set up job instance variables for testing private methods
       job.instance_variable_set(:@music_generation, music_generation)
       job.instance_variable_set(:@kie_service, kie_service)
     end
@@ -282,6 +283,7 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
       end
 
       before do
+        # Mock external KIE.AI API response
         allow(kie_service).to receive(:get_task_status).and_return(api_response_success)
       end
 
