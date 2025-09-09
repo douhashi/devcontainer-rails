@@ -32,6 +32,17 @@ class MusicGenerationCard::Component < ApplicationViewComponent
     end
   end
 
+  def delete_url
+    Rails.application.routes.url_helpers.content_music_generation_path(
+      music_generation.content,
+      music_generation
+    )
+  end
+
+  def delete_confirmation_message
+    "この音楽生成リクエストを削除しますか？関連するトラックもすべて削除されます。この操作は取り消せません。"
+  end
+
   private
 
   def status_badge_component

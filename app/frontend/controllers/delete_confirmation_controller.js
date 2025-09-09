@@ -9,6 +9,9 @@ export default class extends Controller {
     if (!confirm(message)) {
       event.preventDefault()
       event.stopPropagation()
+      return false
     }
+    
+    return true
   }
 }
