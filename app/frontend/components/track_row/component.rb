@@ -50,7 +50,7 @@ class TrackRow::Component < ApplicationViewComponent
   def play_button_component
     return unless show_audio_player?
 
-    PlayButton::Component.new(track: track)
+    AudioPlayButton::Component.new(track: track)
   end
 
   def track_status_badge_component

@@ -51,14 +51,23 @@ export default class extends Controller {
 
   setupEventListeners() {
     console.log('FloatingAudioPlayerController: Setting up event listeners')
+    this.audioPlayHandler = this.handleAudioPlayEvent.bind(this)
     this.playHandler = this.handlePlayEvent.bind(this)
     this.contentPlayHandler = this.handleContentPlayEvent.bind(this)
+    
+    // New unified event listener
+    document.addEventListener("audio:play", this.audioPlayHandler)
+    
+    // Legacy event listeners (for backward compatibility during transition)
     document.addEventListener("track:play", this.playHandler)
     document.addEventListener("content:play", this.contentPlayHandler)
     console.log('FloatingAudioPlayerController: Event listeners setup complete')
   }
 
   removeEventListeners() {
+    if (this.audioPlayHandler) {
+      document.removeEventListener("audio:play", this.audioPlayHandler)
+    }
     if (this.playHandler) {
       document.removeEventListener("track:play", this.playHandler)
     }
@@ -116,6 +125,45 @@ export default class extends Controller {
     this.show()
     
     console.log('FloatingAudioPlayerController: content:play event handled successfully')
+  }
+
+  handleAudioPlayEvent(event) {
+    console.log('FloatingAudioPlayerController: audio:play event received (unified)', event.detail)
+    const eventDetail = event.detail
+
+    // Convert unified data format to internal track format
+    const trackData = {
+      id: eventDetail.type === "track" ? eventDetail.id : `content-${eventDetail.id}`,
+      title: eventDetail.title,
+      url: eventDetail.audioUrl,
+      contentId: eventDetail.contentId || eventDetail.id,
+      contentTitle: eventDetail.contentTitle || eventDetail.title
+    }
+
+    console.log('FloatingAudioPlayerController: Unified track data prepared', trackData)
+
+    // Use track list if available (for tracks), otherwise create single item list
+    if (eventDetail.trackList && eventDetail.trackList.length > 0) {
+      this.trackList = eventDetail.trackList.map(track => ({
+        id: track.id,
+        title: track.title,
+        url: track.url || track.audioUrl
+      }))
+      // Find current track index
+      this.currentTrackIndex = this.trackList.findIndex(t => t.id === eventDetail.id)
+      if (this.currentTrackIndex === -1) {
+        this.currentTrackIndex = 0
+      }
+    } else {
+      // Single track for content
+      this.trackList = [trackData]
+      this.currentTrackIndex = 0
+    }
+
+    this.playTrack(trackData)
+    this.show()
+
+    console.log('FloatingAudioPlayerController: audio:play event handled successfully')
   }
 
   play(event) {

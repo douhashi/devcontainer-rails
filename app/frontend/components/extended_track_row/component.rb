@@ -36,7 +36,7 @@ class ExtendedTrackRow::Component < ApplicationViewComponent
 
   def play_button_component
     return unless show_audio_player?
-    PlayButton::Component.new(track: track)
+    AudioPlayButton::Component.new(track: track)
   end
 
   def delete_path
