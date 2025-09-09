@@ -37,26 +37,38 @@ RSpec.describe MusicGenerationList::Component, type: :component do
       let(:music_generations) { [ generation1, generation2, generation3 ] }
 
       before do
-        create_list(:track, 2, music_generation: generation1)
+        create_list(:track, 2, music_generation: generation1, duration_sec: 120)
       end
 
-      it "renders all music generation cards" do
+      it "renders music generation table" do
         render_inline(component)
 
-        expect(page).to have_text("生成リクエスト ##{generation1.id}")
-        expect(page).to have_text("生成リクエスト ##{generation2.id}")
-        expect(page).to have_text("生成リクエスト ##{generation3.id}")
+        expect(page).to have_css("table.min-w-full")
+        expect(page).to have_text("##{generation1.id}")
+        expect(page).to have_text("##{generation2.id}")
+        expect(page).to have_text("##{generation3.id}")
 
-        expect(page).to have_text("完了")
-        expect(page).to have_text("処理中")
-        expect(page).to have_text("待機中")
+        expect(page).to have_css("span.px-2")
       end
 
-      it "has responsive grid layout" do
+      it "renders table headers" do
         render_inline(component)
 
-        expect(page).to have_css(".grid")
-        expect(page).to have_css(".gap-4")
+        expect(page).to have_css("th", text: "ID")
+        expect(page).to have_css("th", text: "ステータス")
+        expect(page).to have_css("th", text: "曲の長さ")
+        expect(page).to have_css("th", text: "Track数")
+        expect(page).to have_css("th", text: "作成日時")
+        expect(page).to have_css("th", text: "アクション")
+      end
+
+      it "renders table rows for each music generation" do
+        render_inline(component)
+
+        expect(page).to have_css("tbody tr", count: 3)
+        expect(page).to have_css("tr#music_generation_#{generation1.id}")
+        expect(page).to have_css("tr#music_generation_#{generation2.id}")
+        expect(page).to have_css("tr#music_generation_#{generation3.id}")
       end
     end
 
@@ -65,27 +77,24 @@ RSpec.describe MusicGenerationList::Component, type: :component do
         render_inline(component)
 
         expect(page).to have_text("音楽生成リクエストがありません")
-        expect(page).to have_css(".text-center")
+        expect(page).to have_css(".empty-state")
         expect(page).to have_css(".text-gray-400")
       end
 
-      it "has appropriate dark mode classes for empty state" do
+      it "does not render table when empty" do
         render_inline(component)
 
-        expect(page).to have_css(".text-gray-400")
-        expect(page).to have_css(".text-gray-500")
+        expect(page).not_to have_css("table")
       end
     end
 
     context "responsive design" do
       let(:music_generations) { create_list(:music_generation, 3, content: content) }
 
-      it "applies responsive grid classes" do
+      it "includes responsive table container" do
         render_inline(component)
 
-        expect(page).to have_css(".grid")
-        expect(page).to have_css(".grid-cols-1")
-        expect(page).to have_css(".lg\\:grid-cols-1", visible: false)
+        expect(page).to have_css(".overflow-x-auto")
       end
     end
   end

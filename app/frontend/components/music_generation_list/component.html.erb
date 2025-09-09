@@ -1,18 +1,3 @@
 <div id="music_generations_list" class="music-generation-list">
-  <% if has_generations? %>
-    <div class="grid grid-cols-1 lg:grid-cols-1 gap-4">
-      <% music_generations.each do |music_generation| %>
-        <%= render music_generation_card_component(music_generation) %>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="text-center py-12">
-      <div class="text-gray-400">
-        <svg class="mx-auto h-12 w-12 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-        </svg>
-        <p class="text-lg"><%= empty_message %></p>
-      </div>
-    </div>
-  <% end %>
+  <%= render music_generation_table_component %>
 </div>

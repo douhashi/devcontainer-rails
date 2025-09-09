@@ -17,7 +17,11 @@ class MusicGenerationList::Component < ApplicationViewComponent
 
   private
 
-  def music_generation_card_component(music_generation)
-    MusicGenerationCard::Component.new(music_generation: music_generation)
+  def music_generation_table_component
+    MusicGenerationTable::Component.new(
+      music_generations: music_generations,
+      show_pagination: false,
+      empty_message: empty_message
+    )
   end
 end
