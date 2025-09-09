@@ -1,0 +1,28 @@
+<div class="space-y-8">
+  <% %i[primary secondary danger ghost].each do |variant| %>
+    <div>
+      <h3 class="text-lg font-semibold mb-4 capitalize"><%= variant %> Variant</h3>
+      <div class="flex items-center space-x-4">
+        <% %i[sm md lg].each do |size| %>
+          <%= render(Button::Component.new(
+            text: "#{size.to_s.upcase} #{variant.to_s.capitalize}",
+            variant: variant,
+            size: size
+          )) %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div>
+    <h3 class="text-lg font-semibold mb-4">States</h3>
+    <div class="space-y-4">
+      <div class="flex items-center space-x-4">
+        <%= render(Button::Component.new(text: "Normal", variant: :primary)) %>
+        <%= render(Button::Component.new(text: "Loading", variant: :primary, loading: true)) %>
+        <%= render(Button::Component.new(text: "Disabled", variant: :primary, disabled: true)) %>
+        <%= render(Button::Component.new(text: "Both", variant: :primary, loading: true, disabled: true)) %>
+      </div>
+    </div>
+  </div>
+</div>
