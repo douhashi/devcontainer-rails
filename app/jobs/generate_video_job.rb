@@ -81,27 +81,57 @@ class GenerateVideoJob < ApplicationJob
 
   def download_audio_file
     audio = @video.content.audio
-    temp_path = Rails.root.join("tmp", "video_audio_#{@video.id}_#{Time.current.to_i}.mp3")
+    shrine_file = audio.audio
 
+    # Get the actual file extension from Shrine metadata
+    filename = shrine_file.original_filename || shrine_file.metadata["filename"] || "audio.mp3"
+    extension = File.extname(filename).sub(/^\./, "").presence || "mp3"
+    temp_path = Rails.root.join("tmp", "video_audio_#{@video.id}_#{Time.current.to_i}.#{extension}")
+
+    Rails.logger.debug "Downloading audio file for Video ##{@video.id} from Shrine location: #{shrine_file.url}"
+
+    # Use Shrine's download method properly
     File.open(temp_path, "wb") do |file|
-      audio.audio.download do |chunk|
+      shrine_file.download do |chunk|
         file.write(chunk)
       end
+      # Ensure all data is written to disk
+      file.flush
+      file.fsync if file.respond_to?(:fsync)
     end
 
+    # Validate downloaded file
+    validate_downloaded_file(temp_path, :audio)
+
+    Rails.logger.info "Successfully downloaded audio file: #{temp_path} (#{File.size(temp_path)} bytes)"
     temp_path.to_s
   end
 
   def download_artwork_file
     artwork = @video.content.artwork
-    temp_path = Rails.root.join("tmp", "video_artwork_#{@video.id}_#{Time.current.to_i}.jpg")
+    shrine_file = artwork.image
 
+    # Get the actual file extension from Shrine metadata
+    filename = shrine_file.original_filename || shrine_file.metadata["filename"] || "artwork.jpg"
+    extension = File.extname(filename).sub(/^\./, "").presence || "jpg"
+    temp_path = Rails.root.join("tmp", "video_artwork_#{@video.id}_#{Time.current.to_i}.#{extension}")
+
+    Rails.logger.debug "Downloading artwork file for Video ##{@video.id} from Shrine location: #{shrine_file.url}"
+
+    # Use Shrine's download method properly
     File.open(temp_path, "wb") do |file|
-      artwork.image.download do |chunk|
+      shrine_file.download do |chunk|
         file.write(chunk)
       end
+      # Ensure all data is written to disk
+      file.flush
+      file.fsync if file.respond_to?(:fsync)
     end
 
+    # Validate downloaded file
+    validate_downloaded_file(temp_path, :image)
+
+    Rails.logger.info "Successfully downloaded artwork file: #{temp_path} (#{File.size(temp_path)} bytes)"
     temp_path.to_s
   end
 
@@ -167,6 +197,15 @@ class GenerateVideoJob < ApplicationJob
   end
 
   def cleanup_temp_files(file_paths)
+    # Skip cleanup if debug mode is enabled
+    if ENV["VIDEO_GENERATION_DEBUG"].present?
+      Rails.logger.info "Debug mode enabled - preserving temporary files for inspection"
+      file_paths.compact.each do |path|
+        Rails.logger.info "Preserved temporary file: #{path}" if path && File.exist?(path)
+      end
+      return
+    end
+
     file_paths.compact.each do |path|
       if path && File.exist?(path)
         File.unlink(path)
@@ -175,6 +214,33 @@ class GenerateVideoJob < ApplicationJob
     end
   rescue StandardError => e
     Rails.logger.error "Error cleaning up temporary files: #{e.message}"
+  end
+
+  def validate_downloaded_file(path, type)
+    unless File.exist?(path)
+      raise StandardError, "Downloaded file does not exist: #{path}"
+    end
+
+    if File.size(path) == 0
+      raise StandardError, "Downloaded file is empty: #{path}"
+    end
+
+    # Use Marcel for MIME type detection (already included via Shrine)
+    require "marcel"
+    actual_mime_type = Marcel::MimeType.for(File.open(path))
+
+    case type
+    when :audio
+      unless actual_mime_type.start_with?("audio/")
+        raise StandardError, "Invalid audio file format. Expected audio/*, got: #{actual_mime_type}"
+      end
+    when :image
+      unless actual_mime_type.start_with?("image/")
+        raise StandardError, "Invalid image file format. Expected image/*, got: #{actual_mime_type}"
+      end
+    end
+
+    Rails.logger.debug "File validated: #{path} (#{File.size(path)} bytes, #{actual_mime_type})"
   end
 
   def handle_error(error)

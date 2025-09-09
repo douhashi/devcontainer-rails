@@ -39,6 +39,15 @@ class VideoGenerationService
       raise GenerationError, "Artwork file not found: #{artwork_path}"
     end
 
+    # Additional size validation
+    if File.size(audio_path) == 0
+      raise GenerationError, "Audio file is empty: #{audio_path}"
+    end
+
+    if File.size(artwork_path) == 0
+      raise GenerationError, "Artwork file is empty: #{artwork_path}"
+    end
+
     audio_ext = File.extname(audio_path).downcase
     unless SUPPORTED_AUDIO_FORMATS.include?(audio_ext)
       raise GenerationError, "Invalid audio format: #{audio_ext}. Supported formats: #{SUPPORTED_AUDIO_FORMATS.join(', ')}"
@@ -48,6 +57,9 @@ class VideoGenerationService
     unless SUPPORTED_IMAGE_FORMATS.include?(artwork_ext)
       raise GenerationError, "Invalid artwork format: #{artwork_ext}. Supported formats: #{SUPPORTED_IMAGE_FORMATS.join(', ')}"
     end
+
+    # Log file information for debugging
+    Rails.logger.debug "Input files validated - Audio: #{audio_path} (#{File.size(audio_path)} bytes), Artwork: #{artwork_path} (#{File.size(artwork_path)} bytes)"
   end
 
   def generate_video_with_ffmpeg(audio_path, artwork_path, output_path, &progress_block)
@@ -71,20 +83,28 @@ class VideoGenerationService
   end
 
   def build_ffmpeg_command(audio_path, artwork_path, output_path)
+    # Check if input is already MP3, if so, copy it without re-encoding
+    audio_codec_args = if File.extname(audio_path).downcase == ".mp3"
+      [ "-c:a", "copy" ]  # Copy MP3 audio without re-encoding
+    else
+      [ "-c:a", "aac", "-b:a", "192k" ]  # Convert to AAC for other formats
+    end
+
     [
       "ffmpeg",
-      "-loop", "1",
+      "-loop", "1",       # Loop the image
+      "-framerate", "1",  # Static image framerate
       "-i", artwork_path,
       "-i", audio_path,
       "-c:v", "libx264",
       "-preset", "slow",
       "-crf", "18",
-      "-c:a", "aac",
-      "-b:a", "192k",
-      "-r", "30",
-      "-shortest",
+      *audio_codec_args,    # Audio codec settings (copy or encode)
+      "-r", "30",         # Output framerate
+      "-shortest",         # Stop when the shortest input ends (audio)
       "-pix_fmt", "yuv420p",
-      "-y",
+      "-movflags", "+faststart",  # Optimize for web streaming
+      "-y",                # Overwrite output file
       output_path
     ]
   end

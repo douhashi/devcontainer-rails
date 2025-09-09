@@ -166,6 +166,14 @@ RSpec.describe GenerateVideoJob, type: :job do
         artwork_file.write('fake image data')
         artwork_file.rewind
 
+        # Mock Shrine files with metadata
+        allow(audio.audio).to receive(:original_filename).and_return("audio.mp3")
+        allow(artwork.image).to receive(:original_filename).and_return("artwork.jpg")
+        allow(audio.audio).to receive(:metadata).and_return({ "filename" => "audio.mp3" })
+        allow(artwork.image).to receive(:metadata).and_return({ "filename" => "artwork.jpg" })
+        allow(audio.audio).to receive(:url).and_return("/uploads/audio.mp3")
+        allow(artwork.image).to receive(:url).and_return("/uploads/artwork.jpg")
+
         allow(audio.audio).to receive(:download) do |&block|
           block.call(audio_file) if block
           audio_file
@@ -175,6 +183,9 @@ RSpec.describe GenerateVideoJob, type: :job do
           block.call(artwork_file) if block
           artwork_file
         end
+
+        # Mock Marcel to return valid MIME types to pass validation
+        allow(Marcel::MimeType).to receive(:for).and_return("audio/mpeg", "image/jpeg")
 
         # Mock external VideoGenerationService to simulate failure
         service = instance_double(VideoGenerationService)
@@ -249,6 +260,95 @@ RSpec.describe GenerateVideoJob, type: :job do
         it "generates valid output path" do
           path = job.send(:generate_output_path)
           expect(path).to match(%r{tmp/video_\d+_\d{8}_\d{6}\.mp4$})
+        end
+      end
+
+      describe "#validate_downloaded_file" do
+        let(:temp_file) { Rails.root.join('spec/test_data/sample_audio.mp3') }
+
+        # Using actual test files - no cleanup needed
+
+        context "when file exists and is valid" do
+          it "validates audio file successfully" do
+            allow(Marcel::MimeType).to receive(:for).and_return("audio/mpeg")
+            expect { job.send(:validate_downloaded_file, temp_file.to_s, :audio) }.not_to raise_error
+          end
+
+          it "validates image file successfully" do
+            allow(Marcel::MimeType).to receive(:for).and_return("image/jpeg")
+            expect { job.send(:validate_downloaded_file, Rails.root.join('spec/test_data/sample_artwork.jpg').to_s, :image) }.not_to raise_error
+          end
+        end
+
+        context "when file does not exist" do
+          it "raises error" do
+            expect { job.send(:validate_downloaded_file, "/nonexistent/file.mp3", :audio) }
+              .to raise_error(StandardError, /Downloaded file does not exist/)
+          end
+        end
+
+        context "when file is empty" do
+          it "raises error" do
+            empty_file = Rails.root.join('tmp/empty_test_file.mp3')
+            File.write(empty_file, "")
+
+            expect { job.send(:validate_downloaded_file, empty_file.to_s, :audio) }
+              .to raise_error(StandardError, /Downloaded file is empty/)
+
+            File.unlink(empty_file) if File.exist?(empty_file)
+          end
+        end
+
+        context "when file has wrong MIME type" do
+          it "raises error for audio with wrong MIME type" do
+            text_file = Rails.root.join('tmp/text_file.txt')
+            File.write(text_file, "This is not audio")
+
+            expect { job.send(:validate_downloaded_file, text_file.to_s, :audio) }
+              .to raise_error(StandardError, /Invalid audio file format/)
+
+            File.unlink(text_file) if File.exist?(text_file)
+          end
+
+          it "raises error for image with wrong MIME type" do
+            text_file = Rails.root.join('tmp/text_file_image.txt')
+            File.write(text_file, "This is not an image")
+
+            expect { job.send(:validate_downloaded_file, text_file.to_s, :image) }
+              .to raise_error(StandardError, /Invalid image file format/)
+
+            File.unlink(text_file) if File.exist?(text_file)
+          end
+        end
+      end
+
+      describe "#cleanup_temp_files" do
+        context "when debug mode is disabled" do
+          it "deletes temporary files" do
+            temp_file = Tempfile.new([ 'test', '.mp3' ])
+            temp_file.write("data")
+            temp_file.close
+
+            allow(ENV).to receive(:[]).and_call_original
+            allow(ENV).to receive(:[]).with("VIDEO_GENERATION_DEBUG").and_return(nil)
+            expect(File).to receive(:unlink).with(temp_file.path)
+
+            job.send(:cleanup_temp_files, [ temp_file.path ])
+          end
+        end
+
+        context "when debug mode is enabled" do
+          it "preserves temporary files" do
+            temp_file = Tempfile.new([ 'test', '.mp3' ])
+            temp_file.write("data")
+            temp_file.close
+
+            allow(ENV).to receive(:[]).and_call_original
+            allow(ENV).to receive(:[]).with("VIDEO_GENERATION_DEBUG").and_return("true")
+            expect(File).not_to receive(:unlink)
+
+            job.send(:cleanup_temp_files, [ temp_file.path ])
+          end
         end
       end
     end

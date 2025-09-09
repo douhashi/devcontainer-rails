@@ -4,8 +4,8 @@ require "open3"
 RSpec.describe VideoGenerationService, type: :service do
   let(:video) { create(:video) }
   let(:service) { described_class.new(video) }
-  let(:audio_path) { Rails.root.join("spec/fixtures/files/sample.mp3").to_s }
-  let(:artwork_path) { Rails.root.join("spec/fixtures/files/sample.jpg").to_s }
+  let(:audio_path) { Rails.root.join("spec/test_data/sample_audio.mp3").to_s }
+  let(:artwork_path) { Rails.root.join("spec/test_data/sample_artwork.jpg").to_s }
   let(:output_path) { Rails.root.join("tmp/test_output.mp4").to_s }
 
   before do
@@ -19,10 +19,6 @@ RSpec.describe VideoGenerationService, type: :service do
   describe "#generate" do
     context "with valid inputs" do
       it "generates a video file successfully" do
-        allow(File).to receive(:exist?).and_call_original
-        allow(File).to receive(:exist?).with(audio_path).and_return(true)
-        allow(File).to receive(:exist?).with(artwork_path).and_return(true)
-
         # Mock Open3.capture3 for FFmpeg command execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
@@ -30,7 +26,9 @@ RSpec.describe VideoGenerationService, type: :service do
           double("status", success?: true) # status
         ])
 
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(output_path).and_return(true)
+        allow(File).to receive(:size).and_call_original
         allow(File).to receive(:size).with(output_path).and_return(1024 * 1024)
 
         ffmpeg_output_movie = instance_double(FFMPEG::Movie)
@@ -52,10 +50,6 @@ RSpec.describe VideoGenerationService, type: :service do
       end
 
       it "calls progress callback when provided" do
-        allow(File).to receive(:exist?).and_call_original
-        allow(File).to receive(:exist?).with(audio_path).and_return(true)
-        allow(File).to receive(:exist?).with(artwork_path).and_return(true)
-
         # Mock Open3.capture3 for FFmpeg command execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
@@ -63,7 +57,9 @@ RSpec.describe VideoGenerationService, type: :service do
           double("status", success?: true) # status
         ])
 
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(output_path).and_return(true)
+        allow(File).to receive(:size).and_call_original
         allow(File).to receive(:size).with(output_path).and_return(1024 * 1024)
 
         ffmpeg_output_movie = instance_double(FFMPEG::Movie)
@@ -120,10 +116,10 @@ RSpec.describe VideoGenerationService, type: :service do
 
       context "when audio file has invalid format" do
         it "raises an error" do
-          invalid_audio_path = "/path/to/file.txt"
-          allow(File).to receive(:exist?).and_call_original
-          allow(File).to receive(:exist?).with(invalid_audio_path).and_return(true)
-          allow(File).to receive(:exist?).with(artwork_path).and_return(true)
+          invalid_audio_path = Rails.root.join("spec/test_data/invalid_file.txt").to_s
+
+          # Create a temporary invalid file
+          File.write(invalid_audio_path, "invalid content")
 
           expect {
             service.generate(
@@ -132,15 +128,18 @@ RSpec.describe VideoGenerationService, type: :service do
               output_path: output_path
             )
           }.to raise_error(VideoGenerationService::GenerationError, /Invalid audio format/)
+
+          # Clean up
+          File.unlink(invalid_audio_path) if File.exist?(invalid_audio_path)
         end
       end
 
       context "when artwork file has invalid format" do
         it "raises an error" do
-          invalid_artwork_path = "/path/to/file.txt"
-          allow(File).to receive(:exist?).and_call_original
-          allow(File).to receive(:exist?).with(audio_path).and_return(true)
-          allow(File).to receive(:exist?).with(invalid_artwork_path).and_return(true)
+          invalid_artwork_path = Rails.root.join("spec/test_data/invalid_artwork.txt").to_s
+
+          # Create a temporary invalid file
+          File.write(invalid_artwork_path, "invalid content")
 
           expect {
             service.generate(
@@ -149,6 +148,9 @@ RSpec.describe VideoGenerationService, type: :service do
               output_path: output_path
             )
           }.to raise_error(VideoGenerationService::GenerationError, /Invalid artwork format/)
+
+          # Clean up
+          File.unlink(invalid_artwork_path) if File.exist?(invalid_artwork_path)
         end
       end
     end
@@ -203,10 +205,6 @@ RSpec.describe VideoGenerationService, type: :service do
 
     context "when output file is empty" do
       it "raises an error" do
-        allow(File).to receive(:exist?).and_call_original
-        allow(File).to receive(:exist?).with(audio_path).and_return(true)
-        allow(File).to receive(:exist?).with(artwork_path).and_return(true)
-
         # Mock Open3.capture3 for FFmpeg execution (external dependency)
         allow(Open3).to receive(:capture3).and_return([
           "ffmpeg output", # stdout
@@ -214,7 +212,9 @@ RSpec.describe VideoGenerationService, type: :service do
           double("status", success?: true) # status
         ])
 
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(output_path).and_return(true)
+        allow(File).to receive(:size).and_call_original
         allow(File).to receive(:size).with(output_path).and_return(0)
 
         expect {
@@ -229,27 +229,59 @@ RSpec.describe VideoGenerationService, type: :service do
   end
 
   describe "#build_ffmpeg_command" do
-    it "returns correct ffmpeg command array" do
-      command = service.send(:build_ffmpeg_command, audio_path, artwork_path, output_path)
+    context "with MP3 audio" do
+      it "returns command with audio copy codec" do
+        mp3_path = "/path/to/audio.mp3"
+        command = service.send(:build_ffmpeg_command, mp3_path, artwork_path, output_path)
 
-      expected_command = [
-        "ffmpeg",
-        "-loop", "1",
-        "-i", artwork_path,
-        "-i", audio_path,
-        "-c:v", "libx264",
-        "-preset", "slow",
-        "-crf", "18",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-r", "30",
-        "-shortest",
-        "-pix_fmt", "yuv420p",
-        "-y",
-        output_path
-      ]
+        expected_command = [
+          "ffmpeg",
+          "-loop", "1",
+          "-framerate", "1",
+          "-i", artwork_path,
+          "-i", mp3_path,
+          "-c:v", "libx264",
+          "-preset", "slow",
+          "-crf", "18",
+          "-c:a", "copy",
+          "-r", "30",
+          "-shortest",
+          "-pix_fmt", "yuv420p",
+          "-movflags", "+faststart",
+          "-y",
+          output_path
+        ]
 
-      expect(command).to eq(expected_command)
+        expect(command).to eq(expected_command)
+      end
+    end
+
+    context "with non-MP3 audio" do
+      it "returns command with AAC encoding" do
+        wav_path = "/path/to/audio.wav"
+        command = service.send(:build_ffmpeg_command, wav_path, artwork_path, output_path)
+
+        expected_command = [
+          "ffmpeg",
+          "-loop", "1",
+          "-framerate", "1",
+          "-i", artwork_path,
+          "-i", wav_path,
+          "-c:v", "libx264",
+          "-preset", "slow",
+          "-crf", "18",
+          "-c:a", "aac",
+          "-b:a", "192k",
+          "-r", "30",
+          "-shortest",
+          "-pix_fmt", "yuv420p",
+          "-movflags", "+faststart",
+          "-y",
+          output_path
+        ]
+
+        expect(command).to eq(expected_command)
+      end
     end
   end
 
@@ -259,10 +291,40 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
+        allow(File).to receive(:size).with(audio_path).and_return(1024)
+        allow(File).to receive(:size).with(artwork_path).and_return(2048)
 
         expect {
           service.send(:validate_input_files!, audio_path, artwork_path)
         }.not_to raise_error
+      end
+    end
+
+    context "when audio file is empty" do
+      it "raises an error" do
+        allow(File).to receive(:exist?).and_call_original
+        allow(File).to receive(:exist?).with(audio_path).and_return(true)
+        allow(File).to receive(:exist?).with(artwork_path).and_return(true)
+        allow(File).to receive(:size).with(audio_path).and_return(0)
+        allow(File).to receive(:size).with(artwork_path).and_return(2048)
+
+        expect {
+          service.send(:validate_input_files!, audio_path, artwork_path)
+        }.to raise_error(VideoGenerationService::GenerationError, /Audio file is empty/)
+      end
+    end
+
+    context "when artwork file is empty" do
+      it "raises an error" do
+        allow(File).to receive(:exist?).and_call_original
+        allow(File).to receive(:exist?).with(audio_path).and_return(true)
+        allow(File).to receive(:exist?).with(artwork_path).and_return(true)
+        allow(File).to receive(:size).with(audio_path).and_return(1024)
+        allow(File).to receive(:size).with(artwork_path).and_return(0)
+
+        expect {
+          service.send(:validate_input_files!, audio_path, artwork_path)
+        }.to raise_error(VideoGenerationService::GenerationError, /Artwork file is empty/)
       end
     end
 
@@ -271,6 +333,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(audio_path).and_return(false)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
+        allow(File).to receive(:size).with(artwork_path).and_return(2048)
 
         expect {
           service.send(:validate_input_files!, audio_path, artwork_path)
@@ -283,6 +346,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(false)
+        allow(File).to receive(:size).with(audio_path).and_return(1024)
 
         expect {
           service.send(:validate_input_files!, audio_path, artwork_path)
