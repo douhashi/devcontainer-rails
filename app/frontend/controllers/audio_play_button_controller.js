@@ -7,8 +7,23 @@ export default class extends Controller {
     audioUrl: String
   }
 
+  connect() {
+    console.log('AudioPlayButtonController connected', {
+      contentId: this.contentIdValue,
+      theme: this.themeValue,
+      audioUrl: this.audioUrlValue
+    })
+  }
+
   playContent(event) {
     event.preventDefault()
+    
+    console.log('AudioPlayButtonController: playContent called', {
+      contentId: this.contentIdValue,
+      theme: this.themeValue,
+      audioUrl: this.audioUrlValue,
+      element: this.element
+    })
     
     const theme = this.themeValue || "Untitled"
     
@@ -22,6 +37,8 @@ export default class extends Controller {
       bubbles: true
     })
     
+    console.log('AudioPlayButtonController: Dispatching content:play event', customEvent.detail)
     document.dispatchEvent(customEvent)
+    console.log('AudioPlayButtonController: content:play event dispatched successfully')
   }
 }

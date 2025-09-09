@@ -5,6 +5,7 @@ export default class extends Controller {
   static targets = ["audio", "trackTitle", "playButton", "playIcon", "pauseIcon"]
 
   connect() {
+    console.log('FloatingAudioPlayerController connected')
     this.initializePlayer()
     this.setupEventListeners()
     this.trackList = []
@@ -19,28 +20,42 @@ export default class extends Controller {
   }
 
   initializePlayer() {
+    console.log('FloatingAudioPlayerController: Initializing Plyr player')
+    
+    if (!this.audioTarget) {
+      console.error('FloatingAudioPlayerController: Audio target not found')
+      return
+    }
+    
     const config = this.audioTarget.dataset.plyrConfig
     this.player = new Plyr(this.audioTarget, config ? JSON.parse(config) : {})
     
     this.player.on("play", () => {
+      console.log('FloatingAudioPlayerController: Player started playing')
       this.updatePlayButton(true)
       this.stopOtherPlayers()
     })
     
     this.player.on("pause", () => {
+      console.log('FloatingAudioPlayerController: Player paused')
       this.updatePlayButton(false)
     })
     
     this.player.on("ended", () => {
+      console.log('FloatingAudioPlayerController: Player ended')
       this.next()
     })
+    
+    console.log('FloatingAudioPlayerController: Plyr player initialized successfully')
   }
 
   setupEventListeners() {
+    console.log('FloatingAudioPlayerController: Setting up event listeners')
     this.playHandler = this.handlePlayEvent.bind(this)
     this.contentPlayHandler = this.handleContentPlayEvent.bind(this)
     document.addEventListener("track:play", this.playHandler)
     document.addEventListener("content:play", this.contentPlayHandler)
+    console.log('FloatingAudioPlayerController: Event listeners setup complete')
   }
 
   removeEventListeners() {
@@ -80,6 +95,7 @@ export default class extends Controller {
   }
 
   handleContentPlayEvent(event) {
+    console.log('FloatingAudioPlayerController: content:play event received', event.detail)
     const eventDetail = event.detail
     
     const trackData = {
@@ -90,12 +106,16 @@ export default class extends Controller {
       contentTitle: eventDetail.theme || "Untitled"
     }
     
+    console.log('FloatingAudioPlayerController: Track data prepared', trackData)
+    
     // Create single track for content audio
     this.trackList = [trackData]
     this.currentTrackIndex = 0
     
     this.playTrack(trackData)
     this.show()
+    
+    console.log('FloatingAudioPlayerController: content:play event handled successfully')
   }
 
   play(event) {
