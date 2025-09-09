@@ -38,12 +38,17 @@ export default class extends Controller {
 
   setupEventListeners() {
     this.playHandler = this.handlePlayEvent.bind(this)
+    this.contentPlayHandler = this.handleContentPlayEvent.bind(this)
     document.addEventListener("track:play", this.playHandler)
+    document.addEventListener("content:play", this.contentPlayHandler)
   }
 
   removeEventListeners() {
     if (this.playHandler) {
       document.removeEventListener("track:play", this.playHandler)
+    }
+    if (this.contentPlayHandler) {
+      document.removeEventListener("content:play", this.contentPlayHandler)
     }
   }
 
@@ -74,6 +79,25 @@ export default class extends Controller {
     this.show()
   }
 
+  handleContentPlayEvent(event) {
+    const eventDetail = event.detail
+    
+    const trackData = {
+      id: `content-${eventDetail.contentId}`,
+      title: eventDetail.theme || "Untitled",
+      url: eventDetail.audioUrl,
+      contentId: eventDetail.contentId,
+      contentTitle: eventDetail.theme || "Untitled"
+    }
+    
+    // Create single track for content audio
+    this.trackList = [trackData]
+    this.currentTrackIndex = 0
+    
+    this.playTrack(trackData)
+    this.show()
+  }
+
   play(event) {
     event.preventDefault()
     const button = event.currentTarget
@@ -84,32 +108,6 @@ export default class extends Controller {
       bubbles: true
     })
     button.dispatchEvent(customEvent)
-  }
-
-  playContent(event) {
-    event.preventDefault()
-    const button = event.currentTarget
-    
-    const contentData = {
-      contentId: parseInt(button.dataset.floatingAudioPlayerContentIdValue),
-      contentTitle: button.dataset.floatingAudioPlayerContentTitleValue,
-      audioUrl: button.dataset.floatingAudioPlayerAudioUrlValue
-    }
-    
-    // Create single track for content audio
-    const trackData = {
-      id: `content-${contentData.contentId}`,
-      title: contentData.contentTitle,
-      url: contentData.audioUrl,
-      contentId: contentData.contentId,
-      contentTitle: contentData.contentTitle
-    }
-    
-    this.trackList = [trackData]
-    this.currentTrackIndex = 0
-    
-    this.playTrack(trackData)
-    this.show()
   }
 
   playTrack(trackData) {

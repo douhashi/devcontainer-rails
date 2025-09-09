@@ -2,11 +2,11 @@
   id="<%= button_id %>"
   type="button"
   class="<%= button_classes %>"
-  data-controller="floating-audio-player"
-  data-action="click->floating-audio-player#playContent"
-  data-floating-audio-player-content-id-value="<%= content_record.id %>"
-  data-floating-audio-player-content-title-value="<%= content_record.theme || "Untitled" %>"
-  data-floating-audio-player-audio-url-value="<%= content_record.audio.audio.url %>"
+  data-controller="content-play-button"
+  data-action="click->content-play-button#playContent"
+  data-content-play-button-content-id-value="<%= content_record.id %>"
+  data-content-play-button-theme-value="<%= content_record.theme || "Untitled" %>"
+  data-content-play-button-audio-url-value="<%= content_record.audio.audio.url %>"
   aria-label="音源を再生"
 >
   <svg class="<%= icon_size_classes %>" fill="currentColor" viewBox="0 0 20 20">

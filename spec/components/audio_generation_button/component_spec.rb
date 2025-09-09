@@ -65,7 +65,7 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
         allow(audio).to receive_message_chain(:audio, :url).and_return('/test/audio.mp3')
         allow(audio).to receive_message_chain(:audio, :present?).and_return(true)
         result = render_inline(component)
-        expect(result.css('[data-controller*="floating-audio-player"]')).to be_present
+        expect(result.css('[data-controller*="content-play-button"]')).to be_present
       end
 
       it 'shows delete button' do
@@ -147,12 +147,12 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
     it 'includes play button with floating player controller' do
       result = render_inline(component)
-      expect(result.css('[data-controller*="floating-audio-player"]')).to be_present
+      expect(result.css('[data-controller*="content-play-button"]')).to be_present
     end
 
     it 'includes audio data for floating player' do
       result = render_inline(component)
-      play_button = result.css('[data-controller*="floating-audio-player"]').first
+      play_button = result.css('[data-controller*="content-play-button"]').first
       expect(play_button).to be_present
     end
   end
