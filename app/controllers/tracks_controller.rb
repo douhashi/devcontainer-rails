@@ -27,6 +27,13 @@ class TracksController < ApplicationController
     redirect_to content_path(@content)
   end
 
+  def destroy
+    @track = @content.tracks.find(params[:id])
+    @track.destroy!
+
+    redirect_to content_path(@content), notice: "Trackを削除しました", status: :see_other
+  end
+
   private
 
   def set_content

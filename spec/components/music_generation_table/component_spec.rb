@@ -36,33 +36,87 @@ RSpec.describe MusicGenerationTable::Component, type: :component do
     end
   end
 
+  describe "Track単位表示" do
+    let(:content) { create(:content) }
+
+    context "複数のMusicGenerationとTracksがある場合" do
+      let!(:music_generation1) { create(:music_generation, content: content, status: :completed) }
+      let!(:music_generation2) { create(:music_generation, content: content, status: :completed) }
+      let!(:track1_1) { create(:track, music_generation: music_generation1, content: content, status: :completed, duration_sec: 180) }
+      let!(:track1_2) { create(:track, music_generation: music_generation1, content: content, status: :completed, duration_sec: 200) }
+      let!(:track2_1) { create(:track, music_generation: music_generation2, content: content, status: :completed, duration_sec: 150) }
+
+      let(:music_generations) { MusicGeneration.includes(:tracks).order(created_at: :desc) }
+      let(:component) { described_class.new(music_generations: music_generations) }
+      let(:rendered) { render_inline(component) }
+
+      it "全てのTrackが個別の行として表示される" do
+        # 各TrackのIDが表示されることを確認
+        expect(rendered).to have_css("td", text: track1_1.id.to_s)
+        expect(rendered).to have_css("td", text: track1_2.id.to_s)
+        expect(rendered).to have_css("td", text: track2_1.id.to_s)
+      end
+
+      it "MusicGenerationのIDが各Track行に表示される" do
+        # 生成リクエストIDが各Track行に表示されることを確認
+        expect(rendered).to have_css("[data-generation-id='#{music_generation1.id}']")
+        expect(rendered).to have_css("[data-generation-id='#{music_generation2.id}']")
+      end
+
+      it "各Trackの曲の長さが適切に表示される" do
+        # duration_secが適切にフォーマットされて表示される
+        expect(rendered).to have_content("3:00") # track1_1: 180秒
+        expect(rendered).to have_content("3:20") # track1_2: 200秒
+        expect(rendered).to have_content("2:30") # track2_1: 150秒
+      end
+
+      it "同一MusicGenerationのTrackがグループ化されて表示される" do
+        # グループ化用のdata属性が適用されることを確認
+        expect(rendered).to have_css("tr[data-generation-id='#{music_generation1.id}']", count: 2)
+        expect(rendered).to have_css("tr[data-generation-id='#{music_generation2.id}']", count: 1)
+      end
+    end
+
+    context "MusicGenerationにTrackがない場合" do
+      let!(:music_generation) { create(:music_generation, content: content, status: :failed) }
+      let(:music_generations) { MusicGeneration.includes(:tracks).where(id: music_generation.id) }
+      let(:component) { described_class.new(music_generations: music_generations) }
+      let(:rendered) { render_inline(component) }
+
+      it "MusicGenerationのみ表示されTrackなしのメッセージが表示される" do
+        expect(rendered).to have_css("[data-generation-id='#{music_generation.id}']")
+        expect(rendered).to have_content("Trackがありません")
+      end
+    end
+  end
+
   describe "レンダリング" do
     subject { rendered_content }
     let(:rendered_content) { render_inline(component) }
 
-    context "MusicGenerationが存在する場合" do
+    context "Track単位でテーブル表示される場合" do
       let(:content) { create(:content) }
-      let(:music_generation1) { create(:music_generation, content: content, status: :completed) }
-      let(:music_generation2) { create(:music_generation, content: content, status: :pending) }
-      let(:music_generations) { MusicGeneration.where(id: [ music_generation1.id, music_generation2.id ]) }
+      let!(:music_generation1) { create(:music_generation, content: content, status: :completed) }
+      let!(:track1) { create(:track, music_generation: music_generation1, content: content) }
+      let!(:track2) { create(:track, music_generation: music_generation1, content: content) }
+      let(:music_generations) { MusicGeneration.includes(:tracks).where(id: music_generation1.id) }
 
       it "テーブルが表示される" do
         expect(subject).to have_css("table.min-w-full")
       end
 
-      it "ヘッダー行が表示される" do
-        expect(subject).to have_css("thead tr th", text: "ID")
-        expect(subject).to have_css("thead tr th", text: "ステータス")
+      it "Track単位用のヘッダー行が表示される" do
+        expect(subject).to have_css("thead tr th", text: "生成リクエストID")
+        expect(subject).to have_css("thead tr th", text: "Track ID")
         expect(subject).to have_css("thead tr th", text: "曲の長さ")
-        expect(subject).to have_css("thead tr th", text: "Track数")
-        expect(subject).to have_css("thead tr th", text: "作成日時")
+        expect(subject).to have_css("thead tr th", text: "プレイヤー")
         expect(subject).to have_css("thead tr th", text: "アクション")
       end
 
-      it "MusicGeneration行が表示される" do
+      it "Track単位で行が表示される" do
         expect(subject).to have_css("tbody tr", count: 2)
-        expect(subject).to have_css("tbody tr#music_generation_#{music_generation1.id}")
-        expect(subject).to have_css("tbody tr#music_generation_#{music_generation2.id}")
+        expect(subject).to have_css("tbody tr[data-track-id='#{track1.id}']")
+        expect(subject).to have_css("tbody tr[data-track-id='#{track2.id}']")
       end
     end
 
@@ -132,19 +186,6 @@ RSpec.describe MusicGenerationTable::Component, type: :component do
       it "ヘッダーセルにscope属性が設定される" do
         expect(subject).to have_css('th[scope="col"]')
       end
-    end
-  end
-
-  describe "MusicGenerationRow::Componentとの統合" do
-    let(:content) { create(:content) }
-    let(:music_generation) { create(:music_generation, content: content) }
-    let(:music_generations) { MusicGeneration.where(id: music_generation.id) }
-    let(:rendered_content) { render_inline(component) }
-
-    it "MusicGenerationRow::Componentが使用される" do
-      allow(MusicGenerationRow::Component).to receive(:new).with(music_generation: music_generation).and_call_original
-      rendered_content
-      expect(MusicGenerationRow::Component).to have_received(:new).with(music_generation: music_generation)
     end
   end
 end

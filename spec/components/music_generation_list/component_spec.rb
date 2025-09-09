@@ -44,31 +44,31 @@ RSpec.describe MusicGenerationList::Component, type: :component do
         render_inline(component)
 
         expect(page).to have_css("table.min-w-full")
-        expect(page).to have_text("##{generation1.id}")
-        expect(page).to have_text("##{generation2.id}")
-        expect(page).to have_text("##{generation3.id}")
-
-        expect(page).to have_css("span.px-2")
+        # Track単位表示なので、MusicGeneration IDはセルに表示される
+        expect(page).to have_css("td", text: generation1.id.to_s)
+        expect(page).to have_css("td", text: generation2.id.to_s)
+        expect(page).to have_css("td", text: generation3.id.to_s)
       end
 
-      it "renders table headers" do
+      it "renders table headers for track-based display" do
         render_inline(component)
 
-        expect(page).to have_css("th", text: "ID")
-        expect(page).to have_css("th", text: "ステータス")
+        # Track単位表示用のヘッダー
+        expect(page).to have_css("th", text: "生成リクエストID")
+        expect(page).to have_css("th", text: "Track ID")
         expect(page).to have_css("th", text: "曲の長さ")
-        expect(page).to have_css("th", text: "Track数")
-        expect(page).to have_css("th", text: "作成日時")
+        expect(page).to have_css("th", text: "プレイヤー")
         expect(page).to have_css("th", text: "アクション")
       end
 
-      it "renders table rows for each music generation" do
+      it "renders track rows grouped by music generation" do
         render_inline(component)
 
-        expect(page).to have_css("tbody tr", count: 3)
-        expect(page).to have_css("tr#music_generation_#{generation1.id}")
-        expect(page).to have_css("tr#music_generation_#{generation2.id}")
-        expect(page).to have_css("tr#music_generation_#{generation3.id}")
+        # generation1は2つのTrack、generation2とgeneration3はTrackなし
+        # Track単位表示なので、Trackがある行 + Trackがない行が表示される
+        expect(page).to have_css("tbody tr[data-generation-id='#{generation1.id}']", minimum: 2)
+        expect(page).to have_css("tbody tr[data-generation-id='#{generation2.id}']", minimum: 1)
+        expect(page).to have_css("tbody tr[data-generation-id='#{generation3.id}']", minimum: 1)
       end
     end
 
