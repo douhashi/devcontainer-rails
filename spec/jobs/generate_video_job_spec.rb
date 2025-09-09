@@ -53,12 +53,21 @@ RSpec.describe GenerateVideoJob, type: :job do
         it "starts generation process" do
           job = described_class.new
 
-          # Mock file operations and ffmpeg
+          # Mock file operations
           allow(job).to receive(:download_audio_file).and_return('/tmp/test_audio.mp3')
           allow(job).to receive(:download_artwork_file).and_return('/tmp/test_artwork.jpg')
-          allow(job).to receive(:generate_video_with_ffmpeg)
+
+          # Mock VideoGenerationService
+          service = instance_double(VideoGenerationService)
+          allow(VideoGenerationService).to receive(:new).with(video).and_return(service)
+          allow(service).to receive(:generate).and_return({
+            duration: 10.0,
+            resolution: "1920x1080",
+            file_size: 1024 * 1024
+          })
+
           allow(job).to receive(:attach_video_file)
-          allow(job).to receive(:analyze_video_metadata)
+          allow(job).to receive(:store_video_metadata)
           allow(job).to receive(:cleanup_temp_files)
 
           expect { job.perform(video.id) }.to change { video.reload.status }.from('pending').to('completed')
@@ -108,7 +117,7 @@ RSpec.describe GenerateVideoJob, type: :job do
       end
     end
 
-    context "when ffmpeg command fails" do
+    context "when VideoGenerationService fails" do
       it "marks video as failed" do
         job = described_class.new
 
@@ -120,15 +129,17 @@ RSpec.describe GenerateVideoJob, type: :job do
         allow(job).to receive(:download_audio_file).and_return('/tmp/test_audio.mp3')
         allow(job).to receive(:download_artwork_file).and_return('/tmp/test_artwork.jpg')
 
-        # Mock ffmpeg failure
-        allow(job).to receive(:generate_video_with_ffmpeg).and_raise(StandardError.new("ffmpeg failed"))
+        # Mock VideoGenerationService failure
+        service = instance_double(VideoGenerationService)
+        allow(VideoGenerationService).to receive(:new).with(video).and_return(service)
+        allow(service).to receive(:generate).and_raise(VideoGenerationService::GenerationError.new("FFmpeg error: Invalid codec"))
         allow(job).to receive(:cleanup_temp_files)
 
         job.perform(video.id)
 
         video.reload
         expect(video.status).to eq('failed')
-        expect(video.error_message).to include("ffmpeg failed")
+        expect(video.error_message).to include("FFmpeg error: Invalid codec")
       end
     end
 

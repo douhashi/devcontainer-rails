@@ -44,15 +44,15 @@ class GenerateVideoJob < ApplicationJob
       audio_path = download_audio_file
       artwork_path = download_artwork_file
 
-      # Generate video using ffmpeg
+      # Generate video using VideoGenerationService
       output_path = generate_output_path
-      generate_video_with_ffmpeg(artwork_path, audio_path, output_path)
+      metadata = generate_video_with_ffmpeg(artwork_path, audio_path, output_path)
 
       # Attach the generated video file
       attach_video_file(output_path)
 
-      # Analyze and store metadata
-      analyze_video_metadata(output_path)
+      # Store metadata from VideoGenerationService
+      store_video_metadata(metadata, output_path)
 
       # Mark as completed
       complete_generation
@@ -106,45 +106,22 @@ class GenerateVideoJob < ApplicationJob
   end
 
   def generate_video_with_ffmpeg(artwork_path, audio_path, output_path)
-    Rails.logger.info "Generating video with ffmpeg for Video ##{@video.id}"
+    Rails.logger.info "Generating video with VideoGenerationService for Video ##{@video.id}"
 
-    # YouTube optimized settings:
-    # - H.264 codec with slow preset for quality
-    # - 1920x1080 resolution
-    # - 30fps frame rate
-    # - CRF 18 for high quality
-    # - AAC audio codec at 192kbps, 48kHz
-    ffmpeg_command = [
-      "ffmpeg",
-      "-loop", "1",
-      "-i", artwork_path,
-      "-i", audio_path,
-      "-c:v", "libx264",
-      "-preset", "slow",
-      "-crf", "18",
-      "-r", "30",
-      "-s", "1920x1080",
-      "-c:a", "aac",
-      "-b:a", "192k",
-      "-ar", "48000",
-      "-shortest",
-      "-y", # Overwrite output file if exists
-      output_path
-    ]
-
-    Rails.logger.info "Running ffmpeg command: #{ffmpeg_command.join(' ')}"
-
-    result = system(*ffmpeg_command)
-
-    unless result
-      raise StandardError, "ffmpeg command failed with exit status: #{$?.exitstatus}"
+    service = VideoGenerationService.new(@video)
+    metadata = service.generate(
+      audio_path: audio_path,
+      artwork_path: artwork_path,
+      output_path: output_path
+    ) do |progress|
+      Rails.logger.info "Video generation progress for Video ##{@video.id}: #{(progress * 100).round(2)}%"
     end
 
-    unless File.exist?(output_path)
-      raise StandardError, "Output video file was not created"
-    end
-
-    Rails.logger.info "Successfully generated video file: #{output_path}"
+    Rails.logger.info "Successfully generated video file: #{output_path} with metadata: #{metadata.inspect}"
+    metadata
+  rescue VideoGenerationService::GenerationError => e
+    Rails.logger.error "Video generation failed for Video ##{@video.id}: #{e.message}"
+    raise StandardError, e.message
   end
 
   def attach_video_file(file_path)
@@ -157,25 +134,24 @@ class GenerateVideoJob < ApplicationJob
     Rails.logger.info "Successfully attached video file for Video ##{@video.id}"
   end
 
-  def analyze_video_metadata(video_path)
+  def store_video_metadata(metadata, video_path)
     begin
-      # Get file size
-      file_size = File.size(video_path)
-      @video.file_size = file_size
+      # Store metadata from VideoGenerationService
+      @video.file_size = metadata[:file_size] || File.size(video_path)
+      @video.resolution = metadata[:resolution] || "1920x1080"
 
-      # Set standard YouTube optimized settings
-      @video.resolution = "1920x1080"
-
-      # Calculate duration from audio file
-      if @video.content.audio&.metadata&.dig("duration")
+      # Use duration from metadata if available, otherwise from audio
+      if metadata[:duration]
+        @video.duration_seconds = metadata[:duration].to_i
+      elsif @video.content.audio&.metadata&.dig("duration")
         @video.duration_seconds = @video.content.audio.metadata["duration"].to_i
       end
 
       @video.save!
 
-      Rails.logger.info "Analyzed metadata for Video ##{@video.id}: size=#{file_size}, resolution=1920x1080"
+      Rails.logger.info "Stored metadata for Video ##{@video.id}: size=#{@video.file_size}, resolution=#{@video.resolution}, duration=#{@video.duration_seconds}s"
     rescue StandardError => e
-      Rails.logger.error "Failed to analyze video metadata for Video ##{@video.id}: #{e.message}"
+      Rails.logger.error "Failed to store video metadata for Video ##{@video.id}: #{e.message}"
       # Continue without metadata - not a critical failure
     end
   end

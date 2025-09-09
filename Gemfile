@@ -95,3 +95,6 @@ gem "kaminari", "~> 1.2"
 
 # Search and filtering
 gem "ransack", "~> 4.2"
+
+# Video processing
+gem "streamio-ffmpeg", "~> 3.0"
