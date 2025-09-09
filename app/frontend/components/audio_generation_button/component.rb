@@ -131,5 +131,38 @@ module AudioGenerationButton
         }
       }
     end
+
+    def show_delete_button?
+      return false unless audio_exists?
+      %w[completed failed processing].include?(audio_status)
+    end
+
+    def delete_button_disabled?
+      return false unless audio_exists?
+      audio_status == "processing"
+    end
+
+    def delete_button_classes
+      base_classes = "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200 text-white text-sm"
+
+      if delete_button_disabled?
+        "#{base_classes} bg-gray-400 cursor-not-allowed opacity-50"
+      else
+        "#{base_classes} bg-red-600 hover:bg-red-700"
+      end
+    end
+
+    def delete_confirmation_message
+      return "音源を削除しますか？" unless audio_exists?
+
+      case audio_status
+      when "failed"
+        "失敗した音源を削除しますか？"
+      when "completed"
+        "音源を削除しますか？削除後、再生成が可能になります。"
+      else
+        "音源を削除しますか？"
+      end
+    end
   end
 end

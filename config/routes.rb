@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     resources :artworks, except: [ :index, :show, :edit, :new ]
     resource :artwork, only: [ :destroy ]
     resource :video, only: [ :create, :show, :destroy ]
+    resource :audio, only: [ :destroy ]
     resources :music_generations, only: [ :destroy ]
   end
 

@@ -166,5 +166,142 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
         end
       end
     end
+
+    describe '#show_delete_button?' do
+      context 'when audio does not exist' do
+        it 'returns false' do
+          expect(component.send(:show_delete_button?)).to be false
+        end
+      end
+
+      context 'when audio exists' do
+        let!(:audio) { create(:audio, content: content, status: status) }
+
+        context 'with pending status' do
+          let(:status) { :pending }
+          it 'returns false' do
+            expect(component.send(:show_delete_button?)).to be false
+          end
+        end
+
+        context 'with processing status' do
+          let(:status) { :processing }
+          it 'returns true' do
+            expect(component.send(:show_delete_button?)).to be true
+          end
+        end
+
+        context 'with completed status' do
+          let(:status) { :completed }
+          it 'returns true' do
+            expect(component.send(:show_delete_button?)).to be true
+          end
+        end
+
+        context 'with failed status' do
+          let(:status) { :failed }
+          it 'returns true' do
+            expect(component.send(:show_delete_button?)).to be true
+          end
+        end
+      end
+    end
+
+    describe '#delete_button_disabled?' do
+      context 'when audio does not exist' do
+        it 'returns false' do
+          expect(component.send(:delete_button_disabled?)).to be false
+        end
+      end
+
+      context 'when audio exists' do
+        let!(:audio) { create(:audio, content: content, status: status) }
+
+        context 'with pending status' do
+          let(:status) { :pending }
+          it 'returns false' do
+            expect(component.send(:delete_button_disabled?)).to be false
+          end
+        end
+
+        context 'with processing status' do
+          let(:status) { :processing }
+          it 'returns true' do
+            expect(component.send(:delete_button_disabled?)).to be true
+          end
+        end
+
+        context 'with completed status' do
+          let(:status) { :completed }
+          it 'returns false' do
+            expect(component.send(:delete_button_disabled?)).to be false
+          end
+        end
+
+        context 'with failed status' do
+          let(:status) { :failed }
+          it 'returns false' do
+            expect(component.send(:delete_button_disabled?)).to be false
+          end
+        end
+      end
+    end
+
+    describe '#delete_button_classes' do
+      let!(:audio) { create(:audio, content: content, status: status) }
+
+      context 'when disabled (processing status)' do
+        let(:status) { :processing }
+        it 'returns disabled classes' do
+          classes = component.send(:delete_button_classes)
+          expect(classes).to include('bg-gray-400')
+          expect(classes).to include('cursor-not-allowed')
+          expect(classes).to include('opacity-50')
+        end
+      end
+
+      context 'when enabled (completed status)' do
+        let(:status) { :completed }
+        it 'returns enabled classes' do
+          classes = component.send(:delete_button_classes)
+          expect(classes).to include('bg-red-600')
+          expect(classes).to include('hover:bg-red-700')
+          expect(classes).not_to include('cursor-not-allowed')
+        end
+      end
+    end
+
+    describe '#delete_confirmation_message' do
+      context 'when audio does not exist' do
+        it 'returns default message' do
+          expect(component.send(:delete_confirmation_message)).to eq('音源を削除しますか？')
+        end
+      end
+
+      context 'when audio exists' do
+        let!(:audio) { create(:audio, content: content, status: status) }
+
+        context 'with failed status' do
+          let(:status) { :failed }
+          it 'returns failed-specific message' do
+            expect(component.send(:delete_confirmation_message)).to eq('失敗した音源を削除しますか？')
+          end
+        end
+
+        context 'with completed status' do
+          let(:status) { :completed }
+          it 'returns completed-specific message' do
+            expect(component.send(:delete_confirmation_message)).to eq('音源を削除しますか？削除後、再生成が可能になります。')
+          end
+        end
+
+        context 'with other status' do
+          let(:status) { :processing }
+          it 'returns default message' do
+            expect(component.send(:delete_confirmation_message)).to eq('音源を削除しますか？')
+          end
+        end
+      end
+    end
   end
 end

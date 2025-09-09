@@ -66,5 +66,19 @@
         </svg>
       <% end %>
     <% end %>
+
+    <!-- Delete Button (if audio exists) -->
+    <% if show_delete_button? %>
+      <%= button_to content_audio_path(content_record), 
+            method: :delete,
+            disabled: delete_button_disabled?,
+            class: delete_button_classes,
+            data: {
+              turbo_confirm: delete_confirmation_message
+            } do %>
+        <span class="mr-1">🗑️</span>
+        削除
+      <% end %>
+    <% end %>
   </div>
 </div>
