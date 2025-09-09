@@ -17,6 +17,7 @@ print_subsection "Installing npm global packages"
 # Claude-related packages
 install_npm_globals \
     "@anthropic-ai/claude-code:Claude Code" \
-    "ccmanager:Claude Code Manager"
+    "ccmanager:Claude Code Manager" \
+    "@kimuson/claude-code-viewer:Claude Code Viewer"
 
 print_success "NPM packages installation completed"
