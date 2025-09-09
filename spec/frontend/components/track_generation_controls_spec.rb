@@ -122,20 +122,16 @@ RSpec.describe TrackGenerationControls::Component, type: :component do
         expect(page).to have_text("(15件)")
       end
 
-      it "displays dynamic count in description text" do
-        render_inline(component)
-        expect(page).to have_text("音楽生成を15件追加します（Track 30件が生成されます）")
-      end
+      # Description text has been removed from the component
     end
 
     context "when duration_min is 0" do
       before { content.update_column(:duration_min, 0) }  # Skip validation
 
-      it "displays appropriate message for zero count" do
+      it "displays appropriate count for zero" do
         render_inline(component)
         expect(page).to have_text("一括生成")
         expect(page).to have_text("(0件)")
-        expect(page).to have_text("音楽生成を0件追加します（Track 0件が生成されます）")
       end
     end
   end
