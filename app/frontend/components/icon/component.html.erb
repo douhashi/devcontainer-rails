@@ -1,0 +1,11 @@
+<% if spinner? %>
+  <svg <%= tag.attributes(spinner_svg_attributes) %>>
+    <circle <%= tag.attributes(spinner_circle_attributes) %>></circle>
+    <path <%= tag.attributes(spinner_path_attributes) %>></path>
+  </svg>
+<% else %>
+  <svg <%= tag.attributes(svg_attributes) %>>
+    <path <%= tag.attributes(path_attributes) %> />
+  </svg>
+<% end %>
+
