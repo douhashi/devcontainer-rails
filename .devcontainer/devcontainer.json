@@ -23,6 +23,7 @@
     "PYTHON": "/usr/bin/python3"
   },
   "forwardPorts": [
+    3000,
     5100,
     3036
   ],

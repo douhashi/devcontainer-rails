@@ -8,11 +8,16 @@ github:
   # auto_merge_lgtm: true
   # 処理中のIssueがない場合に自動的に次のIssueをplanフェーズに移行させる機能の有効/無効
   # デフォルト: false（無効）
-  # auto_plan_issue: false
   auto_plan_issue: true
 
 tmux:
   session_prefix: "osoba-"
+  # ウィンドウ内のペイン数上限（デフォルト: 3）
+  # max_panes_per_window: 3
+  # ペイン数制限機能の有効/無効（デフォルト: true）
+  # limit_panes_enabled: true
+  # ペインの自動リサイズ機能の有効/無効（デフォルト: true）
+  # auto_resize_panes: true
 
 claude:
   phases:
