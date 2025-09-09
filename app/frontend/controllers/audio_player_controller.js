@@ -83,10 +83,14 @@ export default class extends Controller {
           global: false
         },
         tooltips: {
-          controls: false,
+          controls: true,
           seek: true
         },
-        debug: false
+        debug: false,
+        // Dark theme specific settings
+        loadSprite: false,
+        iconPrefix: 'plyr',
+        iconUrl: null
       })
 
       // Bind event handlers with error handling

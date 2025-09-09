@@ -47,47 +47,163 @@ body {
 /* Plyr.js dark theme customization */
 .plyr {
   @apply rounded-lg;
+  background: transparent;
 }
 
+/* Audio player wrapper */
+.plyr--audio {
+  max-width: 320px;
+  min-height: 48px;
+  @apply bg-gray-800 rounded-lg;
+}
+
+/* Controls container */
 .plyr--audio .plyr__controls {
-  @apply bg-gray-700 border border-gray-600 rounded-lg;
+  @apply bg-gray-800 border border-gray-600 rounded-lg p-2;
+  background: rgb(31 41 55 / 1); /* gray-800 */
 }
 
+/* Control buttons */
 .plyr__control {
-  @apply text-gray-300;
+  @apply text-gray-300 transition-colors duration-200;
 }
 
 .plyr__control:hover {
-  @apply text-white;
+  @apply text-white bg-gray-700;
 }
 
-.plyr__control--pressed {
-  @apply text-blue-400;
+.plyr__control:focus {
+  @apply text-white bg-gray-700 outline-none ring-2 ring-blue-500 ring-opacity-50;
 }
 
+.plyr__control--pressed,
+.plyr__control[aria-pressed="true"] {
+  @apply text-blue-400 bg-gray-700;
+}
+
+/* Play button */
+.plyr__control[data-plyr="play"] {
+  @apply text-gray-300 hover:text-white hover:bg-gray-700;
+}
+
+.plyr__control[data-plyr="play"]:focus {
+  @apply ring-2 ring-blue-500 ring-opacity-50;
+}
+
+/* Progress bar container */
 .plyr__progress {
-  @apply bg-gray-600;
+  @apply bg-gray-600 rounded-full h-1;
+  background: rgb(75 85 99 / 1); /* gray-600 */
 }
 
-.plyr__progress--played {
-  @apply bg-blue-500;
+.plyr__progress::-webkit-progress-bar {
+  @apply bg-gray-600 rounded-full;
+  background: rgb(75 85 99 / 1); /* gray-600 */
 }
 
+.plyr__progress::-webkit-progress-value {
+  @apply bg-blue-500 rounded-full transition-all duration-200;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+}
+
+.plyr__progress::-moz-progress-bar {
+  @apply bg-blue-500 rounded-full;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+}
+
+/* Progress played indicator */
+.plyr__progress--played,
+.plyr__progress--buffer {
+  @apply bg-blue-500 rounded-full;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+}
+
+/* Volume controls */
 .plyr__volume {
-  @apply bg-gray-600;
+  @apply bg-gray-600 rounded-full;
+  background: rgb(75 85 99 / 1); /* gray-600 */
 }
 
 .plyr__volume--value {
-  @apply bg-blue-500;
+  @apply bg-blue-500 rounded-full;
+  background: rgb(59 130 246 / 1); /* blue-500 */
 }
 
+.plyr__volume input[type="range"] {
+  @apply bg-gray-600;
+  background: rgb(75 85 99 / 1); /* gray-600 */
+}
+
+.plyr__volume input[type="range"]::-webkit-slider-thumb {
+  @apply bg-blue-500 border-0 rounded-full cursor-pointer;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+}
+
+.plyr__volume input[type="range"]::-moz-range-thumb {
+  @apply bg-blue-500 border-0 rounded-full cursor-pointer;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+}
+
+/* Time display */
 .plyr__time {
-  @apply text-gray-300 text-xs;
+  @apply text-gray-300 text-xs font-mono;
 }
 
-.plyr--audio {
-  max-width: 320px;
-  height: 48px;
+/* Tooltip styling */
+.plyr__tooltip {
+  @apply bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600;
+}
+
+/* Mute button */
+.plyr__control[data-plyr="mute"] {
+  @apply text-gray-300 hover:text-white hover:bg-gray-700;
+}
+
+.plyr__control[data-plyr="mute"][aria-pressed="true"] {
+  @apply text-red-400 bg-gray-700;
+}
+
+/* Range inputs */
+.plyr input[type="range"] {
+  @apply bg-gray-600;
+  background: rgb(75 85 99 / 1); /* gray-600 */
+}
+
+.plyr input[type="range"]::-webkit-slider-track {
+  @apply bg-gray-600 rounded-full;
+  background: rgb(75 85 99 / 1); /* gray-600 */
+}
+
+.plyr input[type="range"]::-webkit-slider-thumb {
+  @apply appearance-none bg-blue-500 rounded-full cursor-pointer border-0;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+  width: 16px;
+  height: 16px;
+}
+
+.plyr input[type="range"]::-moz-range-track {
+  @apply bg-gray-600 rounded-full border-0;
+  background: rgb(75 85 99 / 1); /* gray-600 */
+}
+
+.plyr input[type="range"]::-moz-range-thumb {
+  @apply bg-blue-500 rounded-full cursor-pointer border-0;
+  background: rgb(59 130 246 / 1); /* blue-500 */
+  width: 16px;
+  height: 16px;
+}
+
+/* Focus states for accessibility */
+.plyr input[type="range"]:focus {
+  @apply outline-none;
+}
+
+.plyr input[type="range"]:focus::-webkit-slider-thumb {
+  @apply ring-2 ring-blue-500 ring-opacity-50;
+}
+
+.plyr input[type="range"]:focus::-moz-range-thumb {
+  @apply ring-2 ring-blue-500 ring-opacity-50;
 }
 
 @media (max-width: 768px) {
