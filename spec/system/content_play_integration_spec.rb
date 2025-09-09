@@ -74,11 +74,11 @@ RSpec.describe 'Content Play Integration', type: :system, js: true do
 
         // Add content play button and manually handle the click
         const button = document.createElement('button');
-        button.setAttribute('data-controller', 'content-play-button');
-        button.setAttribute('data-action', 'click->content-play-button#playContent');
-        button.setAttribute('data-content-play-button-content-id-value', '#{content.id}');
-        button.setAttribute('data-content-play-button-theme-value', '#{content.theme}');
-        button.setAttribute('data-content-play-button-audio-url-value', 'test-audio.mp3');
+        button.setAttribute('data-controller', 'audio-play-button');
+        button.setAttribute('data-action', 'click->audio-play-button#playContent');
+        button.setAttribute('data-audio-play-button-content-id-value', '#{content.id}');
+        button.setAttribute('data-audio-play-button-theme-value', '#{content.theme}');
+        button.setAttribute('data-audio-play-button-audio-url-value', 'test-audio.mp3');
         button.textContent = 'Play Content';
         button.id = 'content-play-test-button';
         button.className = 'bg-blue-600 text-white px-4 py-2 rounded';
@@ -88,7 +88,7 @@ RSpec.describe 'Content Play Integration', type: :system, js: true do
           event.preventDefault();
           window.contentPlayEventDispatched = true;
         #{'  '}
-          // Manual implementation of content-play-button behavior
+          // Manual implementation of audio-play-button behavior
           const theme = '#{content.theme}' || 'Untitled';
           const customEvent = new CustomEvent('content:play', {
             detail: {
@@ -161,11 +161,11 @@ RSpec.describe 'Content Play Integration', type: :system, js: true do
 
         // Add content play button with empty theme and manual click handler
         const button = document.createElement('button');
-        button.setAttribute('data-controller', 'content-play-button');
-        button.setAttribute('data-action', 'click->content-play-button#playContent');
-        button.setAttribute('data-content-play-button-content-id-value', '#{content.id}');
-        button.setAttribute('data-content-play-button-theme-value', '');
-        button.setAttribute('data-content-play-button-audio-url-value', 'test-audio.mp3');
+        button.setAttribute('data-controller', 'audio-play-button');
+        button.setAttribute('data-action', 'click->audio-play-button#playContent');
+        button.setAttribute('data-audio-play-button-content-id-value', '#{content.id}');
+        button.setAttribute('data-audio-play-button-theme-value', '');
+        button.setAttribute('data-audio-play-button-audio-url-value', 'test-audio.mp3');
         button.textContent = 'Play Content (No Theme)';
         button.id = 'content-play-no-theme-button';
         button.className = 'bg-red-600 text-white px-4 py-2 rounded ml-2';

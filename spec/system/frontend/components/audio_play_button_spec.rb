@@ -2,9 +2,9 @@
 
 require "rails_helper"
 
-describe "content_play_button component" do
+describe "audio_play_button component" do
   it "default preview" do
-    visit("/rails/view_components/content_play_button/default")
+    visit("/rails/view_components/audio_play_button/default")
 
     # is_expected.to have_text "Hello!"
     # click_on "Click me"

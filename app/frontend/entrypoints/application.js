@@ -16,6 +16,7 @@ import SingleTrackGenerationController from '../controllers/single_track_generat
 import AudioPlayerController from '../controllers/audio_player_controller'
 import ArtworkDragDropController from '../controllers/artwork_drag_drop_controller'
 import FloatingAudioPlayerController from '../controllers/floating_audio_player_controller'
+import AudioPlayButtonController from '../controllers/audio_play_button_controller'
 
 // Import global store
 import '../stores/floating_player_store'
@@ -31,5 +32,6 @@ application.register('single-track-generation', SingleTrackGenerationController)
 application.register('audio-player', AudioPlayerController)
 application.register('artwork-drag-drop', ArtworkDragDropController)
 application.register('floating-audio-player', FloatingAudioPlayerController)
+application.register('audio-play-button', AudioPlayButtonController)
 
 console.log('Vite ⚡️ Rails with Stimulus & Turbo ready')

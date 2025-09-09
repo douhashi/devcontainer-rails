@@ -2,11 +2,11 @@
 
 require "rails_helper"
 
-RSpec.describe ContentPlayButton::Component, type: :component do
+RSpec.describe AudioPlayButton::Component, type: :component do
   let(:content) { create(:content) }
   let(:audio) { create(:audio, :completed, content: content) }
   let(:options) { { content_record: content } }
-  let(:component) { ContentPlayButton::Component.new(**options) }
+  let(:component) { AudioPlayButton::Component.new(**options) }
 
   describe "when audio is present and completed" do
     before do
@@ -30,18 +30,18 @@ RSpec.describe ContentPlayButton::Component, type: :component do
       expect(result.css("svg path")).to be_present
     end
 
-    it "has content-play-button controller data attributes" do
+    it "has audio-play-button controller data attributes" do
       result = render_inline(component)
       button = result.css("button").first
 
-      expect(button.attributes["data-controller"].value).to include("content-play-button")
-      expect(button.attributes["data-content-play-button-content-id-value"].value).to eq(content.id.to_s)
-      expect(button.attributes["data-content-play-button-audio-url-value"].value).to eq("/test/audio.mp3")
+      expect(button.attributes["data-controller"].value).to include("audio-play-button")
+      expect(button.attributes["data-audio-play-button-content-id-value"].value).to eq(content.id.to_s)
+      expect(button.attributes["data-audio-play-button-audio-url-value"].value).to eq("/test/audio.mp3")
     end
 
     context "with different sizes" do
       it "renders small size" do
-        component = ContentPlayButton::Component.new(content_record: content, size: :small)
+        component = AudioPlayButton::Component.new(content_record: content, size: :small)
         result = render_inline(component)
 
         expect(result.css("button")).to be_present
@@ -49,7 +49,7 @@ RSpec.describe ContentPlayButton::Component, type: :component do
       end
 
       it "renders large size" do
-        component = ContentPlayButton::Component.new(content_record: content, size: :large)
+        component = AudioPlayButton::Component.new(content_record: content, size: :large)
         result = render_inline(component)
 
         expect(result.css("button")).to be_present

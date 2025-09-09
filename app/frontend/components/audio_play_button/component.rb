@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ContentPlayButton::Component < ApplicationViewComponent
+class AudioPlayButton::Component < ApplicationViewComponent
   attr_reader :content_record, :size
 
   def initialize(content_record:, size: :medium)
@@ -18,7 +18,7 @@ class ContentPlayButton::Component < ApplicationViewComponent
   private
 
   def button_id
-    "content-play-button-#{content_record.id}"
+    "audio-play-button-#{content_record.id}"
   end
 
   def button_variant
@@ -44,11 +44,11 @@ class ContentPlayButton::Component < ApplicationViewComponent
 
   def button_data
     {
-      controller: "content-play-button",
-      action: "click->content-play-button#playContent",
-      "content-play-button-content-id-value": content_record.id,
-      "content-play-button-theme-value": content_record.theme || "Untitled",
-      "content-play-button-audio-url-value": content_record.audio.audio.url
+      controller: "audio-play-button",
+      action: "click->audio-play-button#playContent",
+      "audio-play-button-content-id-value": content_record.id,
+      "audio-play-button-theme-value": content_record.theme || "Untitled",
+      "audio-play-button-audio-url-value": content_record.audio.audio.url
     }
   end
 

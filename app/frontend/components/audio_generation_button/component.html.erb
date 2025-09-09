@@ -8,7 +8,7 @@
         
         <!-- Play Button (only for completed audio) -->
         <% if audio_status == "completed" && audio_file_url %>
-          <%= render ContentPlayButton::Component.new(content_record: content_record, size: :small) %>
+          <%= render AudioPlayButton::Component.new(content_record: content_record, size: :small) %>
         <% end %>
       </div>
       
