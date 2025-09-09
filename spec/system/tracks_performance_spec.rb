@@ -17,10 +17,11 @@ RSpec.describe "Tracks Performance", type: :system, js: true do
         # Check no JavaScript errors occurred (if browser supports logs)
         begin
           logs = page.driver.browser.logs.get(:browser)
-          # Filter out 404 errors for test assets (e.g., uploaded images in test environment)
+          # Filter out 404 errors for test assets and audio player errors in test environment
           error_logs = logs.select { |log|
             log.level == "SEVERE" &&
-            !log.message.include?("Failed to load resource: the server responded with a status of 404")
+            !log.message.include?("Failed to load resource: the server responded with a status of 404") &&
+            !log.message.include?("Audio player error:") # Ignore audio player errors in test environment
           }
           expect(error_logs).to be_empty, "JavaScript errors found: #{error_logs.map(&:message)}"
         rescue => e

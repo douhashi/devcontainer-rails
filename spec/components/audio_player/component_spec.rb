@@ -17,7 +17,7 @@ RSpec.describe AudioPlayer::Component, type: :component do
       render_inline described_class.new(track: track)
 
       expect(page).to have_css("audio[data-audio-player-target='player']")
-      expect(page).to have_css("audio[preload='none']")
+      expect(page).to have_css("audio[preload='metadata']")
       expect(page).to have_css("audio[data-audio-url='https://example.com/test.mp3']")
     end
 

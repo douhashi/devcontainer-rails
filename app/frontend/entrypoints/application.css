@@ -47,20 +47,22 @@ body {
 /* Plyr.js dark theme customization */
 .plyr {
   @apply rounded-lg;
-  background: transparent;
+  background: transparent !important;
 }
 
-/* Audio player wrapper */
+/* Audio player wrapper - remove white background completely */
 .plyr--audio {
-  max-width: 320px;
+  max-width: 400px; /* Increased from 320px for better seek bar visibility */
   min-height: 48px;
-  @apply bg-gray-800 rounded-lg;
+  background: transparent !important; /* Force transparent background */
+  @apply rounded-lg;
 }
 
-/* Controls container */
+/* Controls container - ensure dark theme */
 .plyr--audio .plyr__controls {
-  @apply bg-gray-800 border border-gray-600 rounded-lg p-2;
-  background: rgb(31 41 55 / 1); /* gray-800 */
+  @apply border border-gray-600 rounded-lg p-2;
+  background: rgb(31 41 55 / 1) !important; /* gray-800 - force override */
+  color: rgb(209 213 219 / 1) !important; /* gray-300 */
 }
 
 /* Control buttons */
@@ -118,8 +120,9 @@ body {
   background: rgb(59 130 246 / 1); /* blue-500 */
 }
 
-/* Volume controls */
+/* Volume controls - optimize size */
 .plyr__volume {
+  max-width: 80px; /* Limit volume control width */
   @apply bg-gray-600 rounded-full;
   background: rgb(75 85 99 / 1); /* gray-600 */
 }
@@ -130,6 +133,7 @@ body {
 }
 
 .plyr__volume input[type="range"] {
+  max-width: 60px; /* Limit volume slider width */
   @apply bg-gray-600;
   background: rgb(75 85 99 / 1); /* gray-600 */
 }
@@ -206,7 +210,37 @@ body {
   @apply ring-2 ring-blue-500/50;
 }
 
-@media (max-width: 768px) {
+/* Tablet responsive styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Audio player tablet optimizations */
+  .plyr--audio {
+    max-width: 350px; /* Intermediate width for tablets */
+  }
+
+  /* Show volume control but optimize size */
+  .plyr--audio .plyr__volume {
+    max-width: 60px; /* Smaller volume control for tablets */
+  }
+
+  /* Comfortable touch targets for tablets */
+  .plyr--audio .plyr__control {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Medium progress bar for tablets */
+  .plyr--audio .plyr__progress {
+    height: 5px;
+  }
+
+  /* Optimize time display for tablets */
+  .plyr--audio .plyr__time {
+    @apply text-xs font-mono;
+  }
+}
+
+/* Mobile responsive styles */
+@media (max-width: 767px) {
   .layout-grid {
     grid-template-areas: 
       "header"
@@ -223,5 +257,31 @@ body {
   
   .layout-sidebar.open {
     @apply translate-x-0;
+  }
+
+  /* Audio player mobile optimizations */
+  .plyr--audio {
+    max-width: 100%; /* Full width on mobile */
+  }
+
+  /* Hide volume control on mobile to save space */
+  .plyr--audio .plyr__volume {
+    display: none;
+  }
+
+  /* Larger touch targets for mobile */
+  .plyr--audio .plyr__control {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Adjust progress bar for better mobile interaction */
+  .plyr--audio .plyr__progress {
+    height: 6px; /* Slightly larger for easier touch */
+  }
+
+  /* Adjust time display for mobile */
+  .plyr--audio .plyr__time {
+    @apply text-xs;
   }
 }

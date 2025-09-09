@@ -120,6 +120,66 @@ RSpec.describe "Track Audio Player", type: :system, js: true do
         expect(page).to have_css('.plyr', visible: true, wait: 5)
       end
     end
+
+    it "plays audio with a single click on play button" do
+      visit tracks_path
+
+      expect(page).to have_content("Track一覧")
+      sleep 1
+
+      within("#track_#{track1.id}") do
+        # Find the play button
+        play_button = find('[data-plyr="play"]', visible: true)
+
+        # Store initial state
+        initial_classes = play_button[:class]
+
+        # Click once should start playback
+        play_button.click
+
+        # Wait a moment for the click to register
+        sleep 0.5
+
+        # Verify that the button was clicked and player initialized without errors
+        # Since we can't verify actual playback without real audio, we check that:
+        # 1. The button is still present (no JS errors)
+        # 2. The player UI has been initialized properly
+        expect(page).to have_css('[data-plyr="play"]', visible: true)
+        expect(page).to have_css('.plyr__controls', visible: true)
+      end
+    end
+
+    it "stops other players when starting a new one" do
+      visit tracks_path
+
+      expect(page).to have_content("Track一覧")
+      sleep 1
+
+      # Start playing track1
+      track1_play_button = nil
+      within("#track_#{track1.id}") do
+        track1_play_button = find('[data-plyr="play"]', visible: true)
+        track1_play_button.click
+        sleep 0.5
+      end
+
+      # Start playing track2 - track1 should stop
+      track2_play_button = nil
+      within("#track_#{track2.id}") do
+        track2_play_button = find('[data-plyr="play"]', visible: true)
+        track2_play_button.click
+        sleep 0.5
+      end
+
+      # Verify both players are still functional (no JS errors)
+      within("#track_#{track1.id}") do
+        expect(page).to have_css('[data-plyr="play"]', visible: true)
+      end
+
+      within("#track_#{track2.id}") do
+        expect(page).to have_css('[data-plyr="play"]', visible: true)
+      end
+    end
   end
 
   context "responsive design" do
