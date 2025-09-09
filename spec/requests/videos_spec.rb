@@ -65,53 +65,10 @@ RSpec.describe "Videos", type: :request do
     end
   end
 
-  describe "GET /contents/:content_id/video" do
-    context "when video does not exist" do
-      it "redirects with error message" do
-        get content_video_path(content)
-        expect(response).to redirect_to(content)
-        follow_redirect!
-        expect(response.body).to include("動画が見つかりません")
-      end
-    end
-
-    context "when video exists" do
-      let(:video) { create(:video, content: content) }
-
-      before do
-        create(:audio, :completed, content: content)
-        create(:artwork, content: content)
-      end
-
-      it "responds correctly based on video status" do
-        # Test pending status
-        video.update!(status: :pending)
-        get content_video_path(content)
-        expect(response).to redirect_to(content)
-        follow_redirect!
-        expect(response.body).to include("動画生成待機中です")
-
-        # Test processing status
-        video.update!(status: :processing)
-        get content_video_path(content)
-        expect(response).to redirect_to(content)
-        follow_redirect!
-        expect(response.body).to include("動画生成中です")
-
-        # Test completed status - should show video page
-        video.update!(status: :completed)
-        get content_video_path(content)
-        expect(response).to have_http_status(:success)
-        expect(response.body).to include(content.theme)
-
-        # Test failed status
-        video.update!(status: :failed, error_message: "ffmpeg error")
-        get content_video_path(content)
-        expect(response).to redirect_to(content)
-        follow_redirect!
-        expect(response.body).to include("動画生成に失敗しました")
-        expect(response.body).to include("ffmpeg error")
-      end
+  describe "GET /contents/:content_id/video (deleted endpoint)" do
+    it "returns 404 when trying to access video detail page" do
+      get "/contents/#{content.id}/video"
+      expect(response).to have_http_status(404)
     end
   end
 

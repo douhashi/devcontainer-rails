@@ -42,22 +42,22 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
 
         context 'pending' do
           let(:status) { :pending }
-          it { expect(component.send(:button_text)).to eq('動画生成待機中...') }
+          it { expect(component.send(:button_text)).to be_nil }
         end
 
         context 'processing' do
           let(:status) { :processing }
-          it { expect(component.send(:button_text)).to eq('動画生成中...') }
+          it { expect(component.send(:button_text)).to be_nil }
         end
 
         context 'completed' do
           let(:status) { :completed }
-          it { expect(component.send(:button_text)).to eq('動画を再生成') }
+          it { expect(component.send(:button_text)).to be_nil }
         end
 
         context 'failed' do
           let(:status) { :failed }
-          it { expect(component.send(:button_text)).to eq('動画生成をリトライ') }
+          it { expect(component.send(:button_text)).to eq('削除') }
         end
       end
     end
@@ -126,31 +126,10 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
       context 'when video exists' do
         let!(:video) { create(:video, content: content_record, status: status) }
 
-        context 'with pending status' do
-          let(:status) { :pending }
-          it 'returns false' do
-            expect(component.send(:show_delete_button?)).to be false
-          end
-        end
-
-        context 'with processing status' do
-          let(:status) { :processing }
-          it 'returns true' do
-            expect(component.send(:show_delete_button?)).to be true
-          end
-        end
-
-        context 'with completed status' do
+        context 'with any status' do
           let(:status) { :completed }
-          it 'returns true' do
-            expect(component.send(:show_delete_button?)).to be true
-          end
-        end
-
-        context 'with failed status' do
-          let(:status) { :failed }
-          it 'returns true' do
-            expect(component.send(:show_delete_button?)).to be true
+          it 'returns false (integrated into main button)' do
+            expect(component.send(:show_delete_button?)).to be false
           end
         end
       end
@@ -249,6 +228,42 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
           it 'returns default message' do
             expect(component.send(:delete_confirmation_message)).to eq('動画を削除しますか？')
           end
+        end
+      end
+    end
+
+    describe '#technical_specs' do
+      it 'returns correct technical specifications' do
+        specs = component.send(:technical_specs)
+        expect(specs).to include(
+          video_codec: 'H.264 (libx264)',
+          audio_codec: 'AAC (192kbps, 48kHz)',
+          frame_rate: '30fps',
+          optimization: 'YouTube推奨設定'
+        )
+      end
+    end
+
+    describe '#button_classes' do
+      context 'when button shows delete (completed or failed)' do
+        let!(:video) { create(:video, content: content_record, status: :completed) }
+
+        it 'returns red button classes' do
+          classes = component.send(:button_classes)
+          expect(classes).to include('bg-red-600')
+          expect(classes).to include('hover:bg-red-700')
+        end
+      end
+
+      context 'when button shows generate' do
+        before do
+          allow(content_record).to receive(:video_generation_prerequisites_met?).and_return(true)
+        end
+
+        it 'returns green button classes' do
+          classes = component.send(:button_classes)
+          expect(classes).to include('bg-green-600')
+          expect(classes).to include('hover:bg-green-700')
         end
       end
     end

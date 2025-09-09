@@ -24,26 +24,26 @@ class VideoGenerationButton::Component < ApplicationViewComponent
 
   def button_text
     case video_status
-    when "pending"
-      "動画生成待機中..."
-    when "processing"
-      "動画生成中..."
+    when "pending", "processing"
+      nil  # No button text when processing
     when "completed"
-      "動画を再生成"
+      nil  # Show delete button instead
     when "failed"
-      "動画生成をリトライ"
+      "削除"
     else
       "動画を生成"
     end
   end
 
   def button_classes
-    base_classes = "inline-flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-200"
+    base_classes = "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200"
 
-    if can_generate_video? && !processing?
-      "#{base_classes} bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl"
+    if video_status == "completed" || video_status == "failed"
+      "#{base_classes} bg-red-600 hover:bg-red-700 text-white"
+    elsif can_generate_video? && !processing?
+      "#{base_classes} bg-green-600 hover:bg-green-700 text-white"
     else
-      "#{base_classes} bg-gray-600 text-gray-400 cursor-not-allowed"
+      "#{base_classes} bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
     end
   end
 
@@ -120,22 +120,32 @@ class VideoGenerationButton::Component < ApplicationViewComponent
   end
 
   def button_attributes
-    {
-      disabled: disabled?,
-      title: disabled? ? tooltip_text : nil,
-      class: button_classes,
-      data: {
-        controller: "video-generation",
-        action: "click->video-generation#generate",
-        video_generation_content_id_value: content_record.id,
-        turbo_confirm: (video_status == "completed" ? "既存の動画を置き換えます。よろしいですか？" : nil)
+    if video_status == "completed" || video_status == "failed"
+      # Delete button attributes
+      {
+        disabled: delete_button_disabled?,
+        class: button_classes,
+        data: {
+          turbo_confirm: delete_confirmation_message
+        }
       }
-    }
+    else
+      # Generate button attributes
+      {
+        disabled: disabled?,
+        title: disabled? ? tooltip_text : nil,
+        class: button_classes,
+        data: {
+          controller: "video-generation",
+          action: "click->video-generation#generate",
+          video_generation_content_id_value: content_record.id
+        }
+      }
+    end
   end
 
   def show_delete_button?
-    return false unless video_exists?
-    %w[completed failed processing].include?(video_status)
+    false  # Integrated into main button
   end
 
   def delete_button_disabled?
@@ -164,5 +174,14 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     else
       "動画を削除しますか？"
     end
+  end
+
+  def technical_specs
+    {
+      video_codec: "H.264 (libx264)",
+      audio_codec: "AAC (192kbps, 48kHz)",
+      frame_rate: "30fps",
+      optimization: "YouTube推奨設定"
+    }
   end
 end

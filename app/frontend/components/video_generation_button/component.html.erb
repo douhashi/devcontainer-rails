@@ -1,96 +1,139 @@
 <div class="video-generation-section">
-  <!-- Current Video Status (if exists) -->
   <% if video_exists? %>
-    <div class="mb-4 p-4 bg-gray-900 rounded-lg">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-medium text-gray-200 flex items-center">
-          <span class="mr-2"><%= status_icon %></span>
-          動画ステータス
-        </h3>
-        <span class="text-sm text-gray-400">
-          <%= time_tag video_info[:created_at], "#{video_info[:created_at].strftime('%Y/%m/%d %H:%M')}" %>
-        </span>
-      </div>
-      
-      <div class="flex items-center justify-between">
-        <div class="flex-1">
-          <% case video_status %>
-          <% when 'pending' %>
-            <p class="text-yellow-400">生成待機中です</p>
-          <% when 'processing' %>
-            <p class="text-blue-400">動画を生成しています...</p>
-            <p class="text-sm text-gray-400 mt-1">YouTube最適化設定で処理中（数分かかります）</p>
-          <% when 'completed' %>
-            <p class="text-green-400">動画が正常に生成されました</p>
-            <% if video_file_url %>
-              <div class="mt-2">
-                <video controls class="w-full max-w-md rounded-lg">
-                  <source src="<%= video_file_url %>" type="video/mp4">
-                  お使いのブラウザは動画再生をサポートしていません。
-                </video>
-              </div>
-              <div class="mt-2 flex gap-4">
-                <%= link_to "ダウンロード", video_file_url, 
-                      class: "text-blue-400 hover:text-blue-300 text-sm underline",
-                      target: "_blank",
-                      download: "#{content_record.theme}_video.mp4" %>
-                <%= link_to "動画詳細", content_video_path(content_record), 
-                      class: "text-purple-400 hover:text-purple-300 text-sm underline" %>
-              </div>
-            <% end %>
-            <% if video_info[:resolution] || video_info[:file_size] || video_info[:duration_seconds] %>
-              <div class="mt-2 text-sm text-gray-500 space-y-1">
-                <% if video_info[:resolution] %>
-                  <div>解像度: <%= video_info[:resolution] %></div>
+    <!-- Video Player and Information Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+      <!-- Left: Video Player -->
+      <div class="aspect-video">
+        <% if video_status == "completed" && video_file_url %>
+          <video controls class="w-full h-full rounded-lg bg-gray-900">
+            <source src="<%= video_file_url %>" type="video/mp4">
+            お使いのブラウザは動画再生をサポートしていません。
+          </video>
+        <% else %>
+          <div class="w-full h-full bg-gray-900 rounded-lg flex items-center justify-center">
+            <div class="text-center">
+              <div class="text-4xl mb-2">🎬</div>
+              <p class="text-gray-400 text-sm">
+                <% case video_status %>
+                <% when 'pending' %>
+                  生成待機中
+                <% when 'processing' %>
+                  生成中...
+                <% when 'failed' %>
+                  生成失敗
+                <% else %>
+                  動画なし
                 <% end %>
-                <% if video_info[:file_size] %>
-                  <div>ファイルサイズ: <%= formatted_file_size(video_info[:file_size]) %></div>
-                <% end %>
-                <% if video_info[:duration_seconds] %>
-                  <div>再生時間: <%= formatted_duration(video_info[:duration_seconds]) %></div>
-                <% end %>
-              </div>
-            <% end %>
-          <% when 'failed' %>
-            <p class="text-red-400">動画生成に失敗しました</p>
-            <% if content_record.video.error_message %>
-              <p class="text-sm text-red-300 mt-1">
-                エラー: <%= content_record.video.error_message %>
               </p>
-            <% end %>
-          <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Right: Information and Actions -->
+      <div class="space-y-4">
+        <!-- Status Badge and Creation Time -->
+        <div class="flex items-center justify-between">
+          <%= render StatusBadge::Component.new(status: video_status.to_sym, size: :small) %>
+          <span class="text-xs text-gray-500">
+            <%= time_ago_in_words(video_info[:created_at]) %>前
+          </span>
         </div>
+
+        <!-- Video Information -->
+        <% if video_info[:resolution] || video_info[:file_size] || video_info[:duration_seconds] %>
+          <div class="bg-gray-900 rounded-lg p-3 space-y-2">
+            <% if video_info[:resolution] %>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-400">解像度:</span>
+                <span class="text-gray-200"><%= video_info[:resolution] %></span>
+              </div>
+            <% end %>
+            <% if video_info[:file_size] %>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-400">ファイルサイズ:</span>
+                <span class="text-gray-200"><%= formatted_file_size(video_info[:file_size]) %></span>
+              </div>
+            <% end %>
+            <% if video_info[:duration_seconds] %>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-400">再生時間:</span>
+                <span class="text-gray-200"><%= formatted_duration(video_info[:duration_seconds]) %></span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Download Button (for completed videos) -->
+        <% if video_status == "completed" && video_file_url %>
+          <%= link_to video_file_url, 
+                class: "inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors w-full justify-center",
+                target: "_blank",
+                download: "#{content_record.theme}_video.mp4" do %>
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            ダウンロード
+          <% end %>
+        <% end %>
+
+        <!-- Technical Specifications -->
+        <div class="bg-gray-900 rounded-lg p-3">
+          <h4 class="text-sm font-medium text-gray-200 mb-2">技術仕様</h4>
+          <div class="space-y-1 text-xs">
+            <% technical_specs.each do |key, value| %>
+              <div class="flex justify-between">
+                <span class="text-gray-400"><%= key.to_s.humanize %>:</span>
+                <span class="text-gray-200"><%= value %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Error Message (for failed videos) -->
+        <% if video_status == "failed" && content_record.video.error_message %>
+          <div class="bg-red-900 bg-opacity-20 border border-red-500 rounded-lg p-3">
+            <p class="text-red-400 text-sm">
+              エラー: <%= content_record.video.error_message %>
+            </p>
+          </div>
+        <% end %>
       </div>
     </div>
   <% end %>
 
-  <!-- Generation Button -->
-  <div class="flex items-center gap-4">
-    <%= button_to content_video_path(content_record), 
-          method: :post,
-          **button_attributes do %>
-      <span class="mr-2"><%= status_icon %></span>
-      <%= button_text %>
-      <% if processing? %>
-        <svg class="animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+  <!-- Action Button -->
+  <div class="flex items-center gap-2">
+    <% if video_status == "completed" || video_status == "failed" %>
+      <!-- Delete Button -->
+      <%= button_to content_video_path(content_record), 
+            method: :delete,
+            **button_attributes do %>
+        削除
+      <% end %>
+    <% elsif processing? %>
+      <!-- Processing State -->
+      <button disabled class="<%= button_classes %>">
+        <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
+        作成中
+      </button>
+    <% else %>
+      <!-- Generate Button -->
+      <%= button_to content_video_path(content_record), 
+            method: :post,
+            **button_attributes do %>
+        動画を生成
       <% end %>
     <% end %>
-
-    <!-- Delete Button (if video exists) -->
-    <% if show_delete_button? %>
-      <%= button_to content_video_path(content_record), 
-            method: :delete,
-            disabled: delete_button_disabled?,
-            class: delete_button_classes,
-            data: {
-              turbo_confirm: delete_confirmation_message
-            } do %>
-        <span class="mr-1">🗑️</span>
-        削除
-      <% end %>
+    
+    <!-- Prerequisites hint (when disabled) -->
+    <% if !video_exists? && !can_generate_video? && prerequisite_errors.any? %>
+      <span class="text-xs text-gray-500">
+        <%= prerequisite_errors.join(" / ") %>
+      </span>
     <% end %>
   </div>
 </div>

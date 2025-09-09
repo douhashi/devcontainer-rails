@@ -46,17 +46,18 @@ describe "video_generation_button component", type: :system do
       visit content_path(content)
     end
 
-    it "shows delete button that is disabled" do
+    it "shows processing button that is disabled" do
       within(".video-generation-section") do
-        expect(page).to have_button("削除", disabled: true)
+        expect(page).to have_button("作成中", disabled: true)
+        expect(page).not_to have_button("削除")
       end
     end
 
-    it "has disabled appearance" do
+    it "has disabled appearance with spinner" do
       within(".video-generation-section") do
-        delete_button = find("button", text: "削除")
-        expect(delete_button[:class]).to include("cursor-not-allowed")
-        expect(delete_button[:class]).to include("opacity-50")
+        processing_button = find("button", text: "作成中")
+        expect(processing_button[:class]).to include("cursor-not-allowed")
+        expect(processing_button[:class]).to include("opacity-50")
       end
     end
   end
@@ -68,8 +69,9 @@ describe "video_generation_button component", type: :system do
       visit content_path(content)
     end
 
-    it "does not show delete button" do
+    it "shows processing button that is disabled" do
       within(".video-generation-section") do
+        expect(page).to have_button("作成中", disabled: true)
         expect(page).not_to have_button("削除")
       end
     end
@@ -80,8 +82,9 @@ describe "video_generation_button component", type: :system do
       visit content_path(content)
     end
 
-    it "does not show delete button" do
+    it "shows generate button" do
       within(".video-generation-section") do
+        expect(page).to have_button("動画を生成", disabled: false)
         expect(page).not_to have_button("削除")
       end
     end
