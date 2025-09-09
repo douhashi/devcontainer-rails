@@ -86,6 +86,32 @@ export default class extends Controller {
     button.dispatchEvent(customEvent)
   }
 
+  playContent(event) {
+    event.preventDefault()
+    const button = event.currentTarget
+    
+    const contentData = {
+      contentId: parseInt(button.dataset.floatingAudioPlayerContentIdValue),
+      contentTitle: button.dataset.floatingAudioPlayerContentTitleValue,
+      audioUrl: button.dataset.floatingAudioPlayerAudioUrlValue
+    }
+    
+    // Create single track for content audio
+    const trackData = {
+      id: `content-${contentData.contentId}`,
+      title: contentData.contentTitle,
+      url: contentData.audioUrl,
+      contentId: contentData.contentId,
+      contentTitle: contentData.contentTitle
+    }
+    
+    this.trackList = [trackData]
+    this.currentTrackIndex = 0
+    
+    this.playTrack(trackData)
+    this.show()
+  }
+
   playTrack(trackData) {
     if (!trackData) return
     

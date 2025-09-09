@@ -1,84 +1,64 @@
-<div class="audio-generation-section">
-  <!-- Current Audio Status (if exists) -->
+<div class="audio-generation-section space-y-3">
+  <!-- Status Badge and Play Button Row -->
   <% if audio_exists? %>
-    <div class="mb-4 p-4 bg-gray-900 rounded-lg">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-medium text-gray-200 flex items-center">
-          <span class="mr-2"><%= status_icon %></span>
-          音源ステータス
-        </h3>
-        <span class="text-sm text-gray-400">
-          <%= time_tag audio_info[:created_at], "#{audio_info[:created_at].strftime('%Y/%m/%d %H:%M')}" %>
-        </span>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- Status Badge -->
+        <%= render StatusBadge::Component.new(status: audio_status.to_sym, size: :small) %>
+        
+        <!-- Play Button (only for completed audio) -->
+        <% if audio_status == "completed" && audio_file_url %>
+          <%= render ContentPlayButton::Component.new(content_record: content_record, size: :small) %>
+        <% end %>
       </div>
       
-      <div class="flex items-center justify-between">
-        <div class="flex-1">
-          <% case audio_status %>
-          <% when 'pending' %>
-            <p class="text-yellow-400">生成待機中です</p>
-          <% when 'processing' %>
-            <p class="text-blue-400">音源を生成しています...</p>
-          <% when 'completed' %>
-            <p class="text-green-400">音源が正常に生成されました</p>
-            <% if audio_file_url %>
-              <div class="mt-2">
-                <audio controls class="w-full max-w-md">
-                  <source src="<%= audio_file_url %>" type="audio/mpeg">
-                  お使いのブラウザは音声再生をサポートしていません。
-                </audio>
-              </div>
-            <% end %>
-            <% if audio_info[:metadata].any? %>
-              <div class="mt-2 text-sm text-gray-500">
-                <% if audio_info[:metadata]['tracks_used'] %>
-                  使用トラック数: <%= audio_info[:metadata]['tracks_used'] %>個
-                <% end %>
-                <% if audio_info[:metadata]['total_duration'] %>
-                  • 総再生時間: <%= audio_info[:metadata]['total_duration'] %>秒
-                <% end %>
-              </div>
-            <% end %>
-          <% when 'failed' %>
-            <p class="text-red-400">音源生成に失敗しました</p>
-            <% if audio_info[:metadata]['error'] %>
-              <p class="text-sm text-red-300 mt-1">
-                エラー: <%= audio_info[:metadata]['error'] %>
-              </p>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
+      <!-- Audio creation time -->
+      <% if audio_info %>
+        <span class="text-xs text-gray-500">
+          <%= time_ago_in_words(audio_info[:created_at]) %>前
+        </span>
+      <% end %>
     </div>
   <% end %>
 
-  <!-- Generation Button -->
-  <div class="flex items-center gap-4">
-    <%= button_to generate_audio_content_path(content_record), 
-          method: :post,
-          **button_attributes do %>
-      <span class="mr-2"><%= status_icon %></span>
-      <%= button_text %>
-      <% if processing? %>
-        <svg class="animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+  <!-- Action Button -->
+  <div class="flex items-center gap-2">
+    <% if audio_status == "completed" || audio_status == "failed" %>
+      <!-- Delete Button -->
+      <%= button_to content_audio_path(content_record), 
+            method: :delete,
+            **button_attributes do %>
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        削除
+      <% end %>
+    <% elsif processing? %>
+      <!-- Processing State -->
+      <button disabled class="<%= button_classes %>">
+        <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
+        作成中
+      </button>
+    <% else %>
+      <!-- Generate Button -->
+      <%= button_to generate_audio_content_path(content_record), 
+            method: :post,
+            **button_attributes do %>
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+        </svg>
+        音源を生成
       <% end %>
     <% end %>
-
-    <!-- Delete Button (if audio exists) -->
-    <% if show_delete_button? %>
-      <%= button_to content_audio_path(content_record), 
-            method: :delete,
-            disabled: delete_button_disabled?,
-            class: delete_button_classes,
-            data: {
-              turbo_confirm: delete_confirmation_message
-            } do %>
-        <span class="mr-1">🗑️</span>
-        削除
-      <% end %>
+    
+    <!-- Prerequisites hint (when disabled) -->
+    <% if !audio_exists? && !can_generate_audio? && prerequisite_errors.any? %>
+      <span class="text-xs text-gray-500">
+        <%= prerequisite_errors.join(" / ") %>
+      </span>
     <% end %>
   </div>
 </div>

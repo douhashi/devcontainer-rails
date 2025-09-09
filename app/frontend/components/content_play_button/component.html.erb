@@ -1,0 +1,15 @@
+<button
+  id="<%= button_id %>"
+  type="button"
+  class="<%= button_classes %>"
+  data-controller="floating-audio-player"
+  data-action="click->floating-audio-player#playContent"
+  data-floating-audio-player-content-id-value="<%= content_record.id %>"
+  data-floating-audio-player-content-title-value="<%= content_record.theme || "Untitled" %>"
+  data-floating-audio-player-audio-url-value="<%= content_record.audio.audio.url %>"
+  aria-label="音源を再生"
+>
+  <svg class="<%= icon_size_classes %>" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M5 4.5v11a1 1 0 001.5.866l9-5.5a1 1 0 000-1.732l-9-5.5A1 1 0 005 4.5z" />
+  </svg>
+</button>

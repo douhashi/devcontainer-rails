@@ -89,22 +89,22 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
         context 'pending' do
           let(:status) { :pending }
-          it { expect(component.send(:button_text)).to eq('音源生成待機中...') }
+          it { expect(component.send(:button_text)).to be_nil }
         end
 
         context 'processing' do
           let(:status) { :processing }
-          it { expect(component.send(:button_text)).to eq('音源生成中...') }
+          it { expect(component.send(:button_text)).to be_nil }
         end
 
         context 'completed' do
           let(:status) { :completed }
-          it { expect(component.send(:button_text)).to eq('音源を再生成') }
+          it { expect(component.send(:button_text)).to be_nil }
         end
 
         context 'failed' do
           let(:status) { :failed }
-          it { expect(component.send(:button_text)).to eq('音源生成をリトライ') }
+          it { expect(component.send(:button_text)).to eq('削除') }
         end
       end
     end
@@ -115,9 +115,9 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
         it 'returns multiple errors' do
           errors = component_without_prereqs.send(:prerequisite_errors)
-          expect(errors).to include('完成したトラックが必要です')
-          expect(errors).to include('アートワークの設定が必要です')
-          expect(errors.any? { |e| e.include?('最低2つの完成したトラックが必要です') }).to be true
+          expect(errors).to include('トラックが必要')
+          expect(errors).to include('アートワークが必要')
+          expect(errors.any? { |e| e.include?('トラック2個以上必要') }).to be true
         end
       end
 
@@ -135,7 +135,7 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
         it 'returns concatenated error messages' do
           tooltip = component_without_prereqs.send(:tooltip_text)
-          expect(tooltip).to include('完成したトラックが必要です')
+          expect(tooltip).to include('トラックが必要')
         end
       end
 
@@ -186,22 +186,22 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
         context 'with processing status' do
           let(:status) { :processing }
-          it 'returns true' do
-            expect(component.send(:show_delete_button?)).to be true
+          it 'returns false' do
+            expect(component.send(:show_delete_button?)).to be false
           end
         end
 
         context 'with completed status' do
           let(:status) { :completed }
-          it 'returns true' do
-            expect(component.send(:show_delete_button?)).to be true
+          it 'returns false' do
+            expect(component.send(:show_delete_button?)).to be false
           end
         end
 
         context 'with failed status' do
           let(:status) { :failed }
-          it 'returns true' do
-            expect(component.send(:show_delete_button?)).to be true
+          it 'returns false' do
+            expect(component.send(:show_delete_button?)).to be false
           end
         end
       end

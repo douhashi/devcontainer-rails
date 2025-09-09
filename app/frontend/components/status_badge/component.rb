@@ -16,6 +16,19 @@ module StatusBadge
       not_started: {
         text: "未着手",
         color_classes: "bg-gray-100 text-gray-800 border-gray-200"
+      },
+      # Audio statuses
+      pending: {
+        text: "未作成",
+        color_classes: "bg-gray-100 text-gray-600 border-gray-200"
+      },
+      processing: {
+        text: "作成中",
+        color_classes: "bg-blue-100 text-blue-800 border-blue-200 animate-pulse"
+      },
+      failed: {
+        text: "失敗",
+        color_classes: "bg-red-100 text-red-800 border-red-200"
       }
     }.freeze
 

@@ -28,26 +28,26 @@ module AudioGenerationButton
 
     def button_text
       case audio_status
-      when "pending"
-        "音源生成待機中..."
-      when "processing"
-        "音源生成中..."
+      when "pending", "processing"
+        nil  # No button text when processing
       when "completed"
-        "音源を再生成"
+        nil  # Show delete button instead
       when "failed"
-        "音源生成をリトライ"
+        "削除"
       else
         "音源を生成"
       end
     end
 
     def button_classes
-      base_classes = "inline-flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-200"
+      base_classes = "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200"
 
-      if can_generate_audio? && !processing?
-        "#{base_classes} bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl"
+      if audio_status == "completed" || audio_status == "failed"
+        "#{base_classes} bg-red-600 hover:bg-red-700 text-white"
+      elsif can_generate_audio? && !processing?
+        "#{base_classes} bg-blue-600 hover:bg-blue-700 text-white"
       else
-        "#{base_classes} bg-gray-600 text-gray-400 cursor-not-allowed"
+        "#{base_classes} bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
       end
     end
 
@@ -60,34 +60,23 @@ module AudioGenerationButton
     end
 
     def status_icon
-      case audio_status
-      when "pending"
-        "⏳"
-      when "processing"
-        "🔄"
-      when "completed"
-        "✅"
-      when "failed"
-        "❌"
-      else
-        "🎵"
-      end
+      nil  # We'll use SVG icons instead of emoji
     end
 
     def prerequisite_errors
       errors = []
 
       unless content_record.tracks.completed.exists?
-        errors << "完成したトラックが必要です"
+        errors << "トラックが必要"
       end
 
       unless content_record.artwork.present?
-        errors << "アートワークの設定が必要です"
+        errors << "アートワークが必要"
       end
 
       completed_tracks_count = content_record.tracks.completed.where.not(duration_sec: nil).count
       if completed_tracks_count < 2
-        errors << "最低2つの完成したトラックが必要です（現在: #{completed_tracks_count}個）"
+        errors << "トラック2個以上必要"
       end
 
       errors
@@ -119,22 +108,32 @@ module AudioGenerationButton
     end
 
     def button_attributes
-      {
-        disabled: disabled?,
-        title: disabled? ? tooltip_text : nil,
-        class: button_classes,
-        data: {
-          controller: "audio-generation",
-          action: "click->audio-generation#generate",
-          audio_generation_content_id_value: content_record.id,
-          turbo_confirm: (audio_status == "completed" ? "既存の音源を置き換えます。よろしいですか？" : nil)
+      if audio_status == "completed" || audio_status == "failed"
+        # Delete button attributes
+        {
+          disabled: delete_button_disabled?,
+          class: button_classes,
+          data: {
+            turbo_confirm: delete_confirmation_message
+          }
         }
-      }
+      else
+        # Generate button attributes
+        {
+          disabled: disabled?,
+          title: disabled? ? tooltip_text : nil,
+          class: button_classes,
+          data: {
+            controller: "audio-generation",
+            action: "click->audio-generation#generate",
+            audio_generation_content_id_value: content_record.id
+          }
+        }
+      end
     end
 
     def show_delete_button?
-      return false unless audio_exists?
-      %w[completed failed processing].include?(audio_status)
+      false  # Integrated into main button
     end
 
     def delete_button_disabled?

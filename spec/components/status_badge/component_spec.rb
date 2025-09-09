@@ -66,6 +66,61 @@ RSpec.describe StatusBadge::Component, type: :component do
         expect(subject.to_html).to include('text-gray-800')
       end
     end
+
+    context 'with audio statuses' do
+      context 'with pending status' do
+        let(:status) { :pending }
+
+        it 'displays pending text' do
+          expect(subject.text).to include('未作成')
+        end
+
+        it 'applies gray color classes' do
+          expect(subject.to_html).to include('bg-gray-100')
+          expect(subject.to_html).to include('text-gray-600')
+        end
+      end
+
+      context 'with processing status' do
+        let(:status) { :processing }
+
+        it 'displays processing text' do
+          expect(subject.text).to include('作成中')
+        end
+
+        it 'applies blue color classes with animation' do
+          expect(subject.to_html).to include('bg-blue-100')
+          expect(subject.to_html).to include('text-blue-800')
+          expect(subject.to_html).to include('animate-pulse')
+        end
+      end
+
+      context 'with completed status for audio' do
+        let(:status) { :completed }
+
+        it 'displays completed text' do
+          expect(subject.text).to include('完了')
+        end
+
+        it 'applies green color classes' do
+          expect(subject.to_html).to include('bg-green-100')
+          expect(subject.to_html).to include('text-green-800')
+        end
+      end
+
+      context 'with failed status' do
+        let(:status) { :failed }
+
+        it 'displays failed text' do
+          expect(subject.text).to include('失敗')
+        end
+
+        it 'applies red color classes' do
+          expect(subject.to_html).to include('bg-red-100')
+          expect(subject.to_html).to include('text-red-800')
+        end
+      end
+    end
   end
 
   describe 'size variants' do
