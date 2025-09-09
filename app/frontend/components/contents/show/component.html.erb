@@ -8,7 +8,8 @@
   <!-- Toast notification container -->
   <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-  <div class="bg-gray-800 rounded-lg p-8">
+  <!-- 1. コンテンツ概要セクション -->
+  <div class="bg-gray-800 rounded-lg p-6 mb-6">
     <!-- Header with title and status -->
     <div class="flex justify-between items-start mb-6">
       <h1 class="text-3xl font-bold text-gray-100 flex-grow">
@@ -19,16 +20,9 @@
       </div>
     </div>
 
-    <!-- Artwork Section (moved to top) -->
-    <div class="artwork-section mb-8">
-      <div class="bg-gray-800 rounded-lg p-6">
-        <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
-        <%= render ArtworkDragDrop::Component.new(content_record: item) %>
-      </div>
-    </div>
 
     <!-- Work Overview (combined Audio Prompt and Basic Info) -->
-    <div class="work-overview-section mb-8">
+    <div class="work-overview-section">
       <h2 class="text-xl font-bold text-gray-200 mb-4">作品概要</h2>
       
       <!-- Audio Prompt -->
@@ -57,7 +51,7 @@
     </div>
 
     <!-- Actions (moved to after Work Overview) -->
-    <div class="flex gap-4 mb-8">
+    <div class="flex gap-4 mt-6">
       <%= link_to "編集", edit_content_path(item), 
           class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>
       <%= link_to "削除", content_path(item),
@@ -69,31 +63,37 @@
           },
           class: "px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" %>
     </div>
+  </div>
 
-    <!-- Music Generation List -->
-    <div class="music-generations-section mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">音楽生成リクエスト</h2>
-      <div class="mb-4">
-        <%= render TrackGenerationControls::Component.new(
-          content_record: item,
-          can_generate_more: true
-        ) %>
-      </div>
-      <%= render MusicGenerationList::Component.new(
-        music_generations: item.music_generations.order(created_at: :desc)
+  <!-- 2. アートワークセクション -->
+  <div class="bg-gray-800 rounded-lg p-6 mb-6 artwork-section">
+    <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
+    <%= render ArtworkDragDrop::Component.new(content_record: item) %>
+  </div>
+
+  <!-- 3. 音楽生成リクエストセクション -->
+  <div class="bg-gray-800 rounded-lg p-6 mb-6 music-generations-section">
+    <h2 class="text-xl font-bold text-gray-200 mb-4">音楽生成リクエスト</h2>
+    <div class="mb-4">
+      <%= render TrackGenerationControls::Component.new(
+        content_record: item,
+        can_generate_more: true
       ) %>
     </div>
+    <%= render MusicGenerationList::Component.new(
+      music_generations: item.music_generations.order(created_at: :desc)
+    ) %>
+  </div>
 
-    <!-- Audio Generation section -->
-    <div class="mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">音源生成</h2>
-      <%= render AudioGenerationButton::Component.new(content_record: item) %>
-    </div>
+  <!-- 4. 音源生成セクション -->
+  <div class="bg-gray-800 rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-bold text-gray-200 mb-4">音源生成</h2>
+    <%= render AudioGenerationButton::Component.new(content_record: item) %>
+  </div>
 
-    <!-- Video Generation section -->
-    <div class="mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">動画生成</h2>
-      <%= render VideoGenerationButton::Component.new(content_record: item) %>
-    </div>
+  <!-- 5. 動画生成セクション -->
+  <div class="bg-gray-800 rounded-lg p-6">
+    <h2 class="text-xl font-bold text-gray-200 mb-4">動画生成</h2>
+    <%= render VideoGenerationButton::Component.new(content_record: item) %>
   </div>
 </div>

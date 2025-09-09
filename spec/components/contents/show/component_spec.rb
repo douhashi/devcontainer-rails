@@ -114,22 +114,22 @@ RSpec.describe Contents::Show::Component, type: :component do
     it 'renders sections in correct order' do
       html = subject.to_html
       header_pos = html.index('Study Music')
-      artwork_pos = html.index('アートワーク')
       prompt_pos = html.index('音楽生成プロンプト')
       edit_button_pos = html.index('編集')
+      artwork_pos = html.index('アートワーク')
       music_generation_pos = html.index('音楽生成リクエスト')
       audio_generation_pos = html.index('音源生成')
       video_generation_pos = html.index('動画生成')
 
-      # アートワークがヘッダーの直後に配置
-      expect(artwork_pos).to be > header_pos
-      # 作品概要（プロンプト）がアートワークの後に配置
-      expect(prompt_pos).to be > artwork_pos
-      # 編集ボタンが作品概要の後、音楽生成リクエストの前に配置
+      # 作品概要（プロンプト）がヘッダーの後に配置
+      expect(prompt_pos).to be > header_pos
+      # 編集ボタンが作品概要の後、アートワークの前に配置
       expect(edit_button_pos).to be > prompt_pos
-      expect(edit_button_pos).to be < music_generation_pos
-      # 音楽生成リクエストが編集ボタンの後に配置
-      expect(music_generation_pos).to be > edit_button_pos
+      expect(edit_button_pos).to be < artwork_pos
+      # アートワークが編集ボタンの後に配置
+      expect(artwork_pos).to be > edit_button_pos
+      # 音楽生成リクエストがアートワークの後に配置
+      expect(music_generation_pos).to be > artwork_pos
       # 音源生成が音楽生成リクエストの後に配置
       expect(audio_generation_pos).to be > music_generation_pos
       # 動画生成が音源生成の後に配置
@@ -200,6 +200,60 @@ RSpec.describe Contents::Show::Component, type: :component do
     it 'includes responsive grid layouts' do
       expect(subject.css('.grid')).to be_present
       expect(subject.css('.md\\:grid-cols-3')).to be_present
+    end
+  end
+
+  describe 'section-based layout' do
+    subject { render_inline(component) }
+
+    it 'has independent card sections with proper styling' do
+      # Each section should have its own bg-gray-800 rounded-lg card
+      cards = subject.css('.bg-gray-800.rounded-lg')
+      # Should have at least 5 independent sections (excluding nested artwork section)
+      expect(cards.size).to be >= 5
+    end
+
+    it 'has proper spacing between sections' do
+      # Check that sections have mb-6 spacing (except the last one)
+      sections_with_spacing = subject.css('.bg-gray-800.rounded-lg.mb-6')
+      expect(sections_with_spacing.size).to be >= 4
+    end
+
+    it 'has content overview as first card section' do
+      cards = subject.css('.bg-gray-800.rounded-lg')
+      first_card = cards.first
+      expect(first_card.text).to include('Study Music')
+      expect(first_card.css('.text-3xl').text).to include('Study Music')
+    end
+
+    it 'has artwork as second independent card section' do
+      cards = subject.css('.bg-gray-800.rounded-lg')
+      # The second card should be artwork
+      artwork_card = cards[1]
+      expect(artwork_card).to be_present
+      expect(artwork_card.text).to include('アートワーク')
+    end
+
+    it 'has music generation request as independent card section' do
+      # Check for music generation section as independent card
+      music_gen_cards = subject.css('.bg-gray-800.rounded-lg').select { |card|
+        card.text.include?('音楽生成リクエスト')
+      }
+      expect(music_gen_cards).not_to be_empty
+    end
+
+    it 'has audio generation as independent card section' do
+      audio_gen_cards = subject.css('.bg-gray-800.rounded-lg').select { |card|
+        card.text.include?('音源生成')
+      }
+      expect(audio_gen_cards).not_to be_empty
+    end
+
+    it 'has video generation as independent card section' do
+      video_gen_cards = subject.css('.bg-gray-800.rounded-lg').select { |card|
+        card.text.include?('動画生成')
+      }
+      expect(video_gen_cards).not_to be_empty
     end
   end
 end
