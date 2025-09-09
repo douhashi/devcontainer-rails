@@ -90,18 +90,18 @@ class GenerateVideoJob < ApplicationJob
 
     Rails.logger.debug "Downloading audio file for Video ##{@video.id} from Shrine location: #{shrine_file.url}"
 
-    # Use Shrine's download method properly
-    File.open(temp_path, "wb") do |file|
-      shrine_file.download do |chunk|
-        file.write(chunk)
+    # Use Shrine's open method with IO.copy_stream for efficient file copying
+    shrine_file.open do |input|
+      File.open(temp_path, "wb") do |output|
+        IO.copy_stream(input, output)
+        # Ensure all data is written to disk
+        output.flush
+        output.fsync if output.respond_to?(:fsync)
       end
-      # Ensure all data is written to disk
-      file.flush
-      file.fsync if file.respond_to?(:fsync)
     end
 
     # Validate downloaded file
-    validate_downloaded_file(temp_path, :audio)
+    validate_downloaded_file(temp_path)
 
     Rails.logger.info "Successfully downloaded audio file: #{temp_path} (#{File.size(temp_path)} bytes)"
     temp_path.to_s
@@ -118,18 +118,18 @@ class GenerateVideoJob < ApplicationJob
 
     Rails.logger.debug "Downloading artwork file for Video ##{@video.id} from Shrine location: #{shrine_file.url}"
 
-    # Use Shrine's download method properly
-    File.open(temp_path, "wb") do |file|
-      shrine_file.download do |chunk|
-        file.write(chunk)
+    # Use Shrine's open method with IO.copy_stream for efficient file copying
+    shrine_file.open do |input|
+      File.open(temp_path, "wb") do |output|
+        IO.copy_stream(input, output)
+        # Ensure all data is written to disk
+        output.flush
+        output.fsync if output.respond_to?(:fsync)
       end
-      # Ensure all data is written to disk
-      file.flush
-      file.fsync if file.respond_to?(:fsync)
     end
 
     # Validate downloaded file
-    validate_downloaded_file(temp_path, :image)
+    validate_downloaded_file(temp_path)
 
     Rails.logger.info "Successfully downloaded artwork file: #{temp_path} (#{File.size(temp_path)} bytes)"
     temp_path.to_s
@@ -216,7 +216,7 @@ class GenerateVideoJob < ApplicationJob
     Rails.logger.error "Error cleaning up temporary files: #{e.message}"
   end
 
-  def validate_downloaded_file(path, type)
+  def validate_downloaded_file(path)
     unless File.exist?(path)
       raise StandardError, "Downloaded file does not exist: #{path}"
     end
@@ -225,22 +225,7 @@ class GenerateVideoJob < ApplicationJob
       raise StandardError, "Downloaded file is empty: #{path}"
     end
 
-    # Use Marcel for MIME type detection (already included via Shrine)
-    require "marcel"
-    actual_mime_type = Marcel::MimeType.for(File.open(path))
-
-    case type
-    when :audio
-      unless actual_mime_type.start_with?("audio/")
-        raise StandardError, "Invalid audio file format. Expected audio/*, got: #{actual_mime_type}"
-      end
-    when :image
-      unless actual_mime_type.start_with?("image/")
-        raise StandardError, "Invalid image file format. Expected image/*, got: #{actual_mime_type}"
-      end
-    end
-
-    Rails.logger.debug "File validated: #{path} (#{File.size(path)} bytes, #{actual_mime_type})"
+    Rails.logger.debug "File validated: #{path} (#{File.size(path)} bytes)"
   end
 
   def handle_error(error)

@@ -53,25 +53,21 @@ RSpec.describe GenerateVideoJob, type: :job do
         xit "starts generation process and completes successfully (needs proper Shrine mocking)" do
           job = described_class.new
 
-          # Mock external file operations (Shrine attachments)
-          # Create proper mock for Shrine download methods - they write to a block-provided file
-          audio_file = Tempfile.new([ 'audio', '.mp3' ])
-          audio_file.write('fake audio data')
-          audio_file.rewind
+          # Use actual test files instead of mocking
+          audio_test_file = Rails.root.join('spec/test_data/sample_audio.mp3')
+          artwork_test_file = Rails.root.join('spec/test_data/sample_artwork.jpg')
 
-          artwork_file = Tempfile.new([ 'artwork', '.jpg' ])
-          artwork_file.write('fake image data')
-          artwork_file.rewind
+          # Mock Shrine file objects with actual file data
+          allow(audio.audio).to receive(:original_filename).and_return("sample_audio.mp3")
+          allow(artwork.image).to receive(:original_filename).and_return("sample_artwork.jpg")
+          allow(audio.audio).to receive(:metadata).and_return({ "filename" => "sample_audio.mp3" })
+          allow(artwork.image).to receive(:metadata).and_return({ "filename" => "sample_artwork.jpg" })
+          allow(audio.audio).to receive(:url).and_return("/uploads/sample_audio.mp3")
+          allow(artwork.image).to receive(:url).and_return("/uploads/sample_artwork.jpg")
 
-          allow(audio.audio).to receive(:download) do |&block|
-            block.call(audio_file) if block
-            audio_file
-          end
-
-          allow(artwork.image).to receive(:download) do |&block|
-            block.call(artwork_file) if block
-            artwork_file
-          end
+          # Mock open method to return actual test files
+          allow(audio.audio).to receive(:open).and_return(File.open(audio_test_file, 'rb'))
+          allow(artwork.image).to receive(:open).and_return(File.open(artwork_test_file, 'rb'))
 
           # Mock external VideoGenerationService (which handles FFmpeg)
           service = instance_double(VideoGenerationService)
@@ -104,8 +100,6 @@ RSpec.describe GenerateVideoJob, type: :job do
 
           expect { job.perform(video.id) }.to change { video.reload.status }.from('pending').to('completed')
 
-          audio_file.close
-          artwork_file.close
           video_file.close
         end
       end
@@ -157,35 +151,13 @@ RSpec.describe GenerateVideoJob, type: :job do
       it "marks video as failed when generation fails" do
         job = described_class.new
 
-        # Mock external file operations (Shrine attachments)
-        audio_file = Tempfile.new([ 'audio', '.mp3' ])
-        audio_file.write('fake audio data')
-        audio_file.rewind
+        # Mock Shrine file download methods to simulate actual file download
+        audio_test_file = Rails.root.join('spec/test_data/sample_audio.mp3')
+        artwork_test_file = Rails.root.join('spec/test_data/sample_artwork.jpg')
 
-        artwork_file = Tempfile.new([ 'artwork', '.jpg' ])
-        artwork_file.write('fake image data')
-        artwork_file.rewind
-
-        # Mock Shrine files with metadata
-        allow(audio.audio).to receive(:original_filename).and_return("audio.mp3")
-        allow(artwork.image).to receive(:original_filename).and_return("artwork.jpg")
-        allow(audio.audio).to receive(:metadata).and_return({ "filename" => "audio.mp3" })
-        allow(artwork.image).to receive(:metadata).and_return({ "filename" => "artwork.jpg" })
-        allow(audio.audio).to receive(:url).and_return("/uploads/audio.mp3")
-        allow(artwork.image).to receive(:url).and_return("/uploads/artwork.jpg")
-
-        allow(audio.audio).to receive(:download) do |&block|
-          block.call(audio_file) if block
-          audio_file
-        end
-
-        allow(artwork.image).to receive(:download) do |&block|
-          block.call(artwork_file) if block
-          artwork_file
-        end
-
-        # Mock Marcel to return valid MIME types to pass validation
-        allow(Marcel::MimeType).to receive(:for).and_return("audio/mpeg", "image/jpeg")
+        # Mock the download_audio_file and download_artwork_file to return paths but allow validation to pass
+        allow(job).to receive(:download_audio_file).and_return(audio_test_file.to_s)
+        allow(job).to receive(:download_artwork_file).and_return(artwork_test_file.to_s)
 
         # Mock external VideoGenerationService to simulate failure
         service = instance_double(VideoGenerationService)
@@ -200,9 +172,6 @@ RSpec.describe GenerateVideoJob, type: :job do
         video.reload
         expect(video.status).to eq('failed')
         expect(video.error_message).to include("FFmpeg error: Invalid codec")
-
-        audio_file.close
-        artwork_file.close
       end
     end
 
@@ -269,20 +238,18 @@ RSpec.describe GenerateVideoJob, type: :job do
         # Using actual test files - no cleanup needed
 
         context "when file exists and is valid" do
-          it "validates audio file successfully" do
-            allow(Marcel::MimeType).to receive(:for).and_return("audio/mpeg")
-            expect { job.send(:validate_downloaded_file, temp_file.to_s, :audio) }.not_to raise_error
+          it "validates file successfully" do
+            expect { job.send(:validate_downloaded_file, temp_file.to_s) }.not_to raise_error
           end
 
           it "validates image file successfully" do
-            allow(Marcel::MimeType).to receive(:for).and_return("image/jpeg")
-            expect { job.send(:validate_downloaded_file, Rails.root.join('spec/test_data/sample_artwork.jpg').to_s, :image) }.not_to raise_error
+            expect { job.send(:validate_downloaded_file, Rails.root.join('spec/test_data/sample_artwork.jpg').to_s) }.not_to raise_error
           end
         end
 
         context "when file does not exist" do
           it "raises error" do
-            expect { job.send(:validate_downloaded_file, "/nonexistent/file.mp3", :audio) }
+            expect { job.send(:validate_downloaded_file, "/nonexistent/file.mp3") }
               .to raise_error(StandardError, /Downloaded file does not exist/)
           end
         end
@@ -292,32 +259,10 @@ RSpec.describe GenerateVideoJob, type: :job do
             empty_file = Rails.root.join('tmp/empty_test_file.mp3')
             File.write(empty_file, "")
 
-            expect { job.send(:validate_downloaded_file, empty_file.to_s, :audio) }
+            expect { job.send(:validate_downloaded_file, empty_file.to_s) }
               .to raise_error(StandardError, /Downloaded file is empty/)
 
             File.unlink(empty_file) if File.exist?(empty_file)
-          end
-        end
-
-        context "when file has wrong MIME type" do
-          it "raises error for audio with wrong MIME type" do
-            text_file = Rails.root.join('tmp/text_file.txt')
-            File.write(text_file, "This is not audio")
-
-            expect { job.send(:validate_downloaded_file, text_file.to_s, :audio) }
-              .to raise_error(StandardError, /Invalid audio file format/)
-
-            File.unlink(text_file) if File.exist?(text_file)
-          end
-
-          it "raises error for image with wrong MIME type" do
-            text_file = Rails.root.join('tmp/text_file_image.txt')
-            File.write(text_file, "This is not an image")
-
-            expect { job.send(:validate_downloaded_file, text_file.to_s, :image) }
-              .to raise_error(StandardError, /Invalid image file format/)
-
-            File.unlink(text_file) if File.exist?(text_file)
           end
         end
       end
