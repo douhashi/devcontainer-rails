@@ -1,25 +1,12 @@
-<button 
-  id="<%= button_id %>"
-  type="button"
-  class="<%= button_classes %>"
-  onclick="this.dispatchEvent(new CustomEvent('track:play', { bubbles: true }))"
-  data-track-id="<%= track_data[:track_id] %>"
-  data-track-title="<%= track_data[:track_title] %>"
-  data-track-url="<%= track_data[:track_url] %>"
-  data-content-id="<%= track_data[:content_id] %>"
-  data-content-title="<%= track_data[:content_title] %>"
-  data-track-list="<%= track_data[:track_list] %>"
-  data-playing="<%= track_data[:playing] %>"
-  aria-label="<%= playing ? 'Pause' : 'Play' %> <%= track_data[:track_title] %>"
->
-  <% if playing %>
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-    </svg>
-  <% else %>
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-    </svg>
-  <% end %>
-</button>
+<%= render Button::Component.new(
+      variant: button_variant,
+      size: button_size,
+      class: button_custom_class,
+      data: button_data,
+      id: button_id,
+      aria_label: button_aria_label,
+      onclick: "this.dispatchEvent(new CustomEvent('track:play', { bubbles: true }))"
+    ) do %>
+  <%= render Icon::Component.new(name: icon_name, size: :md) %>
+<% end %>
 

@@ -9,7 +9,10 @@ class ContentPlayButton::Component < ApplicationViewComponent
   end
 
   def render?
-    content_record.audio&.completed? && content_record.audio&.audio&.present?
+    return false unless content_record.audio&.completed?
+    return false unless content_record.audio&.audio&.present?
+
+    true
   end
 
   private
@@ -18,10 +21,15 @@ class ContentPlayButton::Component < ApplicationViewComponent
     "content-play-button-#{content_record.id}"
   end
 
+  def button_variant
+    :primary
+  end
 
-  def button_classes
-    base_classes = "rounded-full transition-all duration-200 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md"
+  def button_size
+    :md
+  end
 
+  def button_custom_class
     size_classes = case size
     when :small
       "p-1.5 w-8 h-8"
@@ -31,17 +39,24 @@ class ContentPlayButton::Component < ApplicationViewComponent
       "p-2 w-10 h-10"
     end
 
-    "#{base_classes} #{size_classes}"
+    "rounded-full shadow-sm hover:shadow-md #{size_classes}"
   end
 
-  def icon_size_classes
+  def button_data
+    {
+      controller: "content-play-button",
+      action: "click->content-play-button#playContent",
+      "content-play-button-content-id-value": content_record.id,
+      "content-play-button-theme-value": content_record.theme || "Untitled",
+      "content-play-button-audio-url-value": content_record.audio.audio.url
+    }
+  end
+
+  def icon_size
     case size
-    when :small
-      "w-4 h-4"
-    when :large
-      "w-6 h-6"
-    else
-      "w-5 h-5"
+    when :small then :sm
+    when :large then :lg
+    else :md
     end
   end
 end

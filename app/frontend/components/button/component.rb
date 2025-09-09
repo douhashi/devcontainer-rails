@@ -24,13 +24,19 @@ module Button
     option :href, optional: true
     option :data, default: proc { {} }
     option :class, default: proc { "" }, as: :custom_class
+    option :id, optional: true
+    option :aria_label, optional: true
+    option :onclick, optional: true
 
     private
 
     def css_classes
+      base_rounded = custom_class.present? && custom_class.match?(/rounded-\w+/) ? "" : "rounded-lg"
+
       classes = [
         "inline-flex items-center justify-center",
-        "font-medium rounded-lg",
+        "font-medium",
+        base_rounded,
         "transition-all duration-200",
         "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
         variant_classes,
@@ -69,6 +75,10 @@ module Button
         data: data
       }
 
+      attrs[:id] = id if id.present?
+      attrs[:"aria-label"] = aria_label if aria_label.present?
+      attrs[:onclick] = onclick if onclick.present?
+
       if loading
         attrs[:"aria-busy"] = "true"
       end
@@ -85,6 +95,10 @@ module Button
         class: css_classes,
         data: data
       }
+
+      attrs[:id] = id if id.present?
+      attrs[:"aria-label"] = aria_label if aria_label.present?
+      attrs[:onclick] = onclick if onclick.present?
 
       if disabled
         attrs[:"aria-disabled"] = "true"

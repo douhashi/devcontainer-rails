@@ -44,20 +44,47 @@ class PlayButton::Component < ApplicationViewComponent
     tracks.to_json
   end
 
-  def button_classes
-    [
+  def button_variant
+    :primary
+  end
+
+  def button_size
+    :md
+  end
+
+  def button_custom_class
+    classes = [
       "p-2",
       "rounded-full",
-      "transition-all",
-      "duration-200",
-      "flex",
-      "items-center",
-      "justify-center",
-      playing ? "bg-blue-700" : "bg-blue-600",
-      "hover:bg-blue-700",
-      "text-white",
       "shadow-sm",
       "hover:shadow-md"
-    ].join(" ")
+    ]
+
+    if playing
+      # Override the default bg-blue-600 from primary variant
+      classes << "!bg-blue-700 hover:!bg-blue-800"
+    end
+
+    classes.join(" ")
+  end
+
+  def button_data
+    {
+      "track-id" => track_data[:track_id],
+      "track-title" => track_data[:track_title],
+      "track-url" => track_data[:track_url],
+      "content-id" => track_data[:content_id],
+      "content-title" => track_data[:content_title],
+      "track-list" => track_data[:track_list],
+      "playing" => track_data[:playing]
+    }
+  end
+
+  def button_aria_label
+    "#{playing ? 'Pause' : 'Play'} #{track_data[:track_title]}"
+  end
+
+  def icon_name
+    playing ? :pause : :play
   end
 end

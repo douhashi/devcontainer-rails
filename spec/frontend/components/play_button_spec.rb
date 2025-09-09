@@ -34,8 +34,10 @@ RSpec.describe PlayButton::Component, type: :component do
   describe "rendered component" do
     subject(:rendered) { render_inline(component) }
 
-    it "renders a play button" do
+    it "renders a play button using ButtonComponent" do
       expect(rendered).to have_css("button[onclick]")
+      expect(rendered).to have_css("button.rounded-full")
+      expect(rendered).to have_css("button.bg-blue-600")
     end
 
     it "includes track data attributes" do
@@ -49,21 +51,24 @@ RSpec.describe PlayButton::Component, type: :component do
       expect(rendered).to have_css("button[data-content-title='#{content.theme}']")
     end
 
-    it "includes play icon" do
+    it "includes play icon using IconComponent" do
       expect(rendered).to have_css("button svg")
+      expect(rendered).to have_css("button svg path")
     end
 
-    it "has proper styling" do
+    it "has proper ButtonComponent styling" do
       expect(rendered).to have_css("button.bg-blue-600")
       expect(rendered).to have_css("button.hover\\:bg-blue-700")
       expect(rendered).to have_css("button.rounded-full")
+      expect(rendered).to have_css("button.p-2")
     end
 
     context "when playing state is true" do
       let(:component) { described_class.new(track: track, playing: true) }
 
-      it "shows pause icon instead" do
+      it "shows pause icon and playing styles" do
         expect(rendered).to have_css("button[data-playing='true']")
+        expect(rendered).to have_css("button", class: /bg-blue-700/)
       end
     end
   end
