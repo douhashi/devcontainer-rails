@@ -1,0 +1,27 @@
+<div class="<%= css_classes %>">
+  <% if title.present? || header.present? || actions.present? %>
+    <div class="card-header flex justify-between items-start mb-4">
+      <div class="flex-grow">
+        <% if title.present? %>
+          <h3 class="text-xl font-bold text-gray-100"><%= title %></h3>
+        <% end %>
+        <%= header if header.present? %>
+      </div>
+      <% if actions.present? %>
+        <div class="ml-4 flex-shrink-0">
+          <%= actions %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="card-body">
+    <%= content %>
+  </div>
+
+  <% if footer.present? %>
+    <div class="card-footer mt-4 pt-4 border-t border-gray-700">
+      <%= footer %>
+    </div>
+  <% end %>
+</div>
