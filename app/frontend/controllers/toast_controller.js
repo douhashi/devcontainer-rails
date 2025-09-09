@@ -1,35 +1,23 @@
 import { Controller } from "@hotwired/stimulus"
+import { FadeOutMixin } from "../mixins"
 
-export default class extends Controller {
+class ToastController extends Controller {
   static values = { duration: Number }
   
   connect() {
     this.setupAutoClose()
   }
   
-  setupAutoClose() {
-    if (this.hasDurationValue && this.durationValue > 0) {
-      this.timeout = setTimeout(() => {
-        this.close()
-      }, this.durationValue)
-    }
-  }
-  
   close() {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
-    
-    this.element.classList.add("opacity-0", "transition-opacity", "duration-300")
-    
-    setTimeout(() => {
-      this.element.remove()
-    }, 300)
+    this.cleanupTimeout()
+    this.fadeOut()
   }
   
   disconnect() {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
+    this.cleanupTimeout()
   }
 }
+
+Object.assign(ToastController.prototype, FadeOutMixin)
+
+export default ToastController

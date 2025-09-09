@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
+import { ErrorHandlingMixin } from "../mixins"
 
-export default class extends Controller {
+class TrackGenerationController extends Controller {
   static values = {
     trackCount: Number,
     url: String,
@@ -77,13 +78,14 @@ export default class extends Controller {
   }
 
   handleError(error) {
-    console.error('Track generation failed:', error)
-    
-    // Show user-friendly error message
     const message = error.message.includes('HTTP') ? 
       'サーバーエラーが発生しました。しばらく後に再試行してください。' :
       'BGM生成に失敗しました。ネットワーク接続を確認してください。'
     
-    alert(message)
+    ErrorHandlingMixin.handleError.call(this, new Error(message))
   }
 }
+
+Object.assign(TrackGenerationController.prototype, ErrorHandlingMixin)
+
+export default TrackGenerationController

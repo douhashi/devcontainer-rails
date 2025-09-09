@@ -1,40 +1,32 @@
 import { Controller } from "@hotwired/stimulus"
+import { CharCountMixin } from "../mixins"
 
-export default class extends Controller {
+class FormValidationController extends Controller {
   static targets = ["input", "charCount", "error", "promptInput", "promptCharCount"]
   
   connect() {
-    this.updateCharCount()
-    this.updatePromptCharCount()
+    if (this.hasInputTarget && this.hasCharCountTarget) {
+      this.initCharCounter(this.inputTarget, this.charCountTarget, 240)
+    }
+    
+    if (this.hasPromptInputTarget && this.hasPromptCharCountTarget) {
+      this.initCharCounter(this.promptInputTarget, this.promptCharCountTarget, 900)
+    }
   }
   
   updateCharCount() {
-    if (!this.hasInputTarget) return
-    
-    const currentLength = this.inputTarget.value.length
-    this.charCountTarget.textContent = currentLength
-    
-    if (currentLength >= 240) {
-      this.charCountTarget.classList.remove("text-gray-400")
-      this.charCountTarget.classList.add("text-yellow-400")
-    } else {
-      this.charCountTarget.classList.remove("text-yellow-400")
-      this.charCountTarget.classList.add("text-gray-400")
+    if (this.hasInputTarget && this.hasCharCountTarget) {
+      CharCountMixin.updateCharCount.call(this, this.inputTarget, this.charCountTarget, 240)
     }
   }
   
   updatePromptCharCount() {
-    if (!this.hasPromptInputTarget) return
-    
-    const currentLength = this.promptInputTarget.value.length
-    this.promptCharCountTarget.textContent = currentLength
-    
-    if (currentLength >= 900) {
-      this.promptCharCountTarget.classList.remove("text-gray-400")
-      this.promptCharCountTarget.classList.add("text-yellow-400")
-    } else {
-      this.promptCharCountTarget.classList.remove("text-yellow-400")
-      this.promptCharCountTarget.classList.add("text-gray-400")
+    if (this.hasPromptInputTarget && this.hasPromptCharCountTarget) {
+      CharCountMixin.updateCharCount.call(this, this.promptInputTarget, this.promptCharCountTarget, 900)
     }
   }
 }
+
+Object.assign(FormValidationController.prototype, CharCountMixin)
+
+export default FormValidationController

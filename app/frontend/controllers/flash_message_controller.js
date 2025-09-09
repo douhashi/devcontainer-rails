@@ -1,26 +1,27 @@
 import { Controller } from "@hotwired/stimulus"
+import { FadeOutMixin } from "../mixins"
 
-export default class extends Controller {
-  static values = { delay: Number }
+class FlashMessageController extends Controller {
+  static values = { duration: Number }
   
   connect() {
-    const delay = this.delayValue || 5000
-    
-    setTimeout(() => {
-      this.fadeOut()
-    }, delay)
-  }
-  
-  fadeOut() {
-    this.element.style.transition = "opacity 0.5s ease-out"
-    this.element.style.opacity = "0"
-    
-    setTimeout(() => {
-      this.element.remove()
-    }, 500)
+    if (!this.hasDurationValue) {
+      this.durationValue = 5000
+      this.hasDurationValue = true
+    }
+    this.setupAutoClose()
   }
   
   close() {
-    this.fadeOut()
+    this.cleanupTimeout()
+    this.fadeOut(500)
+  }
+  
+  disconnect() {
+    this.cleanupTimeout()
   }
 }
+
+Object.assign(FlashMessageController.prototype, FadeOutMixin)
+
+export default FlashMessageController

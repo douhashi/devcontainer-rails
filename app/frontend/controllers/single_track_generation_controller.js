@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
+import { ErrorHandlingMixin } from "../mixins"
 
-export default class extends Controller {
+class SingleTrackGenerationController extends Controller {
   static values = {
     url: String,
     confirmationMessage: String
@@ -76,13 +77,14 @@ export default class extends Controller {
   }
 
   handleError(error) {
-    console.error('Single track generation failed:', error)
-    
-    // Show user-friendly error message
     const message = error.message.includes('HTTP') ? 
       'サーバーエラーが発生しました。しばらく後に再試行してください。' :
       '1件生成に失敗しました。ネットワーク接続を確認してください。'
     
-    alert(message)
+    ErrorHandlingMixin.handleError.call(this, new Error(message))
   }
 }
+
+Object.assign(SingleTrackGenerationController.prototype, ErrorHandlingMixin)
+
+export default SingleTrackGenerationController
