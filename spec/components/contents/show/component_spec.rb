@@ -32,15 +32,6 @@ RSpec.describe Contents::Show::Component, type: :component do
       end
     end)
 
-    stub_const('TrackCounter::Component', Class.new(ApplicationViewComponent) do
-      def initialize(content_record:, current_count: nil, max_count: 100)
-        @content_record = content_record
-      end
-
-      def call
-        '<div>Track Counter</div>'.html_safe
-      end
-    end)
 
     stub_const('TrackGenerationControls::Component', Class.new(ApplicationViewComponent) do
       def initialize(content_record:, can_generate_more: true)
@@ -74,6 +65,14 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(result.text).to include('音楽生成リクエスト')
     end
 
+    it 'does not show Track Counter section' do
+      expect(subject.text).not_to include('Track Counter')
+    end
+
+    it 'does not show BGM generation section' do
+      expect(subject.text).not_to include('BGM生成')
+    end
+
     it 'displays artwork status with preview' do
       expect(subject.css('.artwork-section')).to be_present
       expect(subject.text).to include('アートワーク')
@@ -101,6 +100,25 @@ RSpec.describe Contents::Show::Component, type: :component do
     it 'shows creation and update dates' do
       expect(subject.text).to include('作成日時')
       expect(subject.text).to include('更新日時')
+    end
+
+    it 'renders sections in correct order' do
+      html = subject.to_html
+      music_generation_pos = html.index('音楽生成リクエスト')
+      artwork_pos = html.index('アートワーク')
+      audio_generation_pos = html.index('音源生成')
+      video_generation_pos = html.index('動画生成')
+
+      # 音楽生成リクエストがアートワークより前に配置
+      expect(music_generation_pos).to be < artwork_pos
+      # アートワークが音源生成より前に配置
+      expect(artwork_pos).to be < audio_generation_pos
+      # 音源生成が動画生成より前に配置
+      expect(audio_generation_pos).to be < video_generation_pos
+    end
+
+    it 'shows Track Generation Controls in music generation section' do
+      expect(subject.css('.music-generations-section').text).to include('Track Generation Controls')
     end
 
     context 'with completed content' do

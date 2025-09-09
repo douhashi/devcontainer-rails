@@ -43,26 +43,26 @@
       </div>
     </div>
 
+    <!-- Music Generation List -->
+    <div class="music-generations-section mb-8">
+      <h2 class="text-xl font-bold text-gray-200 mb-4">音楽生成リクエスト</h2>
+      <div class="mb-4">
+        <%= render TrackGenerationControls::Component.new(
+          content_record: item,
+          can_generate_more: true
+        ) %>
+      </div>
+      <%= render MusicGenerationList::Component.new(
+        music_generations: item.music_generations.order(created_at: :desc)
+      ) %>
+    </div>
+
     <!-- Artwork Section -->
     <div class="artwork-section mb-8">
       <div class="bg-gray-800 rounded-lg p-6">
         <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
         <%= render ArtworkDragDrop::Component.new(content_record: item) %>
       </div>
-    </div>
-
-    <!-- Track Counter -->
-    <div class="mb-6">
-      <%= render TrackCounter::Component.new(content_record: item) %>
-    </div>
-    
-    <!-- Track Generation section -->
-    <div class="mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">BGM生成</h2>
-      <%= render TrackGenerationControls::Component.new(
-        content_record: item,
-        can_generate_more: true
-      ) %>
     </div>
 
     <!-- Audio Generation section -->
@@ -75,14 +75,6 @@
     <div class="mb-8">
       <h2 class="text-xl font-bold text-gray-200 mb-4">動画生成</h2>
       <%= render VideoGenerationButton::Component.new(content_record: item) %>
-    </div>
-
-    <!-- Music Generation List -->
-    <div class="music-generations-section mb-8">
-      <h2 class="text-xl font-bold text-gray-200 mb-4">音楽生成リクエスト</h2>
-      <%= render MusicGenerationList::Component.new(
-        music_generations: item.music_generations.order(created_at: :desc)
-      ) %>
     </div>
 
     <!-- Next Actions -->
