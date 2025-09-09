@@ -33,4 +33,12 @@ class TrackGenerationControls::Component < ApplicationViewComponent
     color = "bg-green-600 hover:bg-green-700"  # Always active color
     "#{base} #{color}"
   end
+
+  def required_music_generation_count
+    MusicGenerationQueueingService.calculate_music_generation_count(content_record.duration_min)
+  end
+
+  def required_track_count
+    required_music_generation_count * MusicGenerationQueueingService::TRACKS_PER_GENERATION
+  end
 end
