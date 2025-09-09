@@ -106,7 +106,7 @@ RSpec.describe MusicGenerationRow::Component, type: :component do
       end
 
       it "削除確認メッセージが設定される" do
-        expect(subject).to have_css("button[data-confirm]")
+        expect(subject).to have_css("button[data-turbo-confirm]")
       end
 
       it "Turbo Frame属性が設定される" do

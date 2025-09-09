@@ -19,7 +19,7 @@
       <%= form.button type: "submit",
           class: "text-red-400 hover:text-red-300 hover:bg-red-900/20 px-3 py-1 rounded text-sm transition-colors",
           data: { 
-            confirm: delete_confirmation_message,
+            turbo_confirm: delete_confirmation_message,
             method: "delete"
           } do %>
         削除

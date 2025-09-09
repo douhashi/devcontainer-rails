@@ -132,4 +132,37 @@ class VideoGenerationButton::Component < ApplicationViewComponent
       }
     }
   end
+
+  def show_delete_button?
+    return false unless video_exists?
+    %w[completed failed processing].include?(video_status)
+  end
+
+  def delete_button_disabled?
+    return false unless video_exists?
+    video_status == "processing"
+  end
+
+  def delete_button_classes
+    base_classes = "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200 text-white text-sm"
+
+    if delete_button_disabled?
+      "#{base_classes} bg-gray-400 cursor-not-allowed opacity-50"
+    else
+      "#{base_classes} bg-red-600 hover:bg-red-700"
+    end
+  end
+
+  def delete_confirmation_message
+    return "動画を削除しますか？" unless video_exists?
+
+    case video_status
+    when "failed"
+      "失敗した動画を削除しますか？"
+    when "completed"
+      "動画を削除しますか？削除後、再生成が可能になります。"
+    else
+      "動画を削除しますか？"
+    end
+  end
 end

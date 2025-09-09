@@ -73,7 +73,7 @@ body {
 }
 
 .plyr__control:focus {
-  @apply text-white bg-gray-700 outline-none ring-2 ring-blue-500 ring-opacity-50;
+  @apply text-white bg-gray-700 outline-none ring-2 ring-blue-500/50;
 }
 
 .plyr__control--pressed,
@@ -87,7 +87,7 @@ body {
 }
 
 .plyr__control[data-plyr="play"]:focus {
-  @apply ring-2 ring-blue-500 ring-opacity-50;
+  @apply ring-2 ring-blue-500/50;
 }
 
 /* Progress bar container */
@@ -199,11 +199,11 @@ body {
 }
 
 .plyr input[type="range"]:focus::-webkit-slider-thumb {
-  @apply ring-2 ring-blue-500 ring-opacity-50;
+  @apply ring-2 ring-blue-500/50;
 }
 
 .plyr input[type="range"]:focus::-moz-range-thumb {
-  @apply ring-2 ring-blue-500 ring-opacity-50;
+  @apply ring-2 ring-blue-500/50;
 }
 
 @media (max-width: 768px) {

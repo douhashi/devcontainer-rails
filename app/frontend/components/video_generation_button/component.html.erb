@@ -80,12 +80,13 @@
     <% end %>
 
     <!-- Delete Button (if video exists) -->
-    <% if video_exists? && video_status == 'completed' %>
+    <% if show_delete_button? %>
       <%= button_to content_video_path(content_record), 
             method: :delete,
-            class: "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-red-600 hover:bg-red-700 text-white text-sm",
+            disabled: delete_button_disabled?,
+            class: delete_button_classes,
             data: {
-              turbo_confirm: "動画を削除しますか？"
+              turbo_confirm: delete_confirmation_message
             } do %>
         <span class="mr-1">🗑️</span>
         削除

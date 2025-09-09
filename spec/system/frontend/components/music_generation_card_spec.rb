@@ -12,12 +12,12 @@ RSpec.describe "MusicGenerationCard", type: :system, js: true do
   describe "削除機能" do
     it "削除ボタンが表示される" do
       expect(page).to have_css("#music_generation_#{music_generation.id}")
-      expect(page).to have_selector("form[data-controller='delete-confirmation'] button", text: "削除")
+      expect(page).to have_button("削除")
     end
 
     it "削除ボタンをクリックすると確認ダイアログが表示される" do
       within("#music_generation_#{music_generation.id}") do
-        delete_button = find("form[data-controller='delete-confirmation'] button", text: "削除")
+        delete_button = find("button[data-turbo-confirm]", text: "削除")
 
         # ダイアログをキャンセルする場合
         page.dismiss_confirm do
@@ -32,7 +32,7 @@ RSpec.describe "MusicGenerationCard", type: :system, js: true do
 
     it "確認ダイアログで削除を選択するとMusicGenerationが削除される" do
       within("#music_generation_#{music_generation.id}") do
-        delete_button = find("form[data-controller='delete-confirmation'] button", text: "削除")
+        delete_button = find("button[data-turbo-confirm]", text: "削除")
 
         # ダイアログを受諾する場合（削除後はページがリダイレクトされる）
         page.accept_confirm do
@@ -56,7 +56,7 @@ RSpec.describe "MusicGenerationCard", type: :system, js: true do
           visit content_path(content)
 
           expect(page).to have_css("#music_generation_#{music_generation.id}")
-          expect(page).to have_selector("form[data-controller='delete-confirmation'] button", text: "削除")
+          expect(page).to have_button("削除")
         end
       end
     end
@@ -68,7 +68,7 @@ RSpec.describe "MusicGenerationCard", type: :system, js: true do
         expect(music_generation.tracks.count).to eq(2)
 
         within("#music_generation_#{music_generation.id}") do
-          delete_button = find("form[data-controller='delete-confirmation'] button", text: "削除")
+          delete_button = find("button[data-turbo-confirm]", text: "削除")
 
           page.accept_confirm do
             delete_button.click
