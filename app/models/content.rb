@@ -98,6 +98,19 @@ class Content < ApplicationRecord
     end
   end
 
+  def tracks_complete?
+    return false if tracks.empty?
+
+    total_duration = tracks.completed.sum { |track| track.duration_sec || 0 }
+    required_duration = duration_min * 60
+
+    total_duration >= required_duration
+  end
+
+  def video_generated?
+    video.present? && video.completed?
+  end
+
   private
 
   def audio_ready?

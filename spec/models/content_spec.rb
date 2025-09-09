@@ -402,6 +402,111 @@ RSpec.describe Content, type: :model do
     end
   end
 
+  describe '#tracks_complete?' do
+    let(:content) { create(:content, duration_min: 10) }
+
+    context 'when total track duration exceeds content duration' do
+      before do
+        # 10分 = 600秒を超える duration を持つトラックを作成
+        create(:track, content: content, status: :completed, duration_sec: 350)
+        create(:track, content: content, status: :completed, duration_sec: 300)
+      end
+
+      it 'returns true' do
+        expect(content.tracks_complete?).to be true
+      end
+    end
+
+    context 'when total track duration equals content duration' do
+      before do
+        # ちょうど10分 = 600秒
+        create(:track, content: content, status: :completed, duration_sec: 300)
+        create(:track, content: content, status: :completed, duration_sec: 300)
+      end
+
+      it 'returns true' do
+        expect(content.tracks_complete?).to be true
+      end
+    end
+
+    context 'when total track duration is less than content duration' do
+      before do
+        # 10分 = 600秒に満たない
+        create(:track, content: content, status: :completed, duration_sec: 200)
+        create(:track, content: content, status: :completed, duration_sec: 300)
+      end
+
+      it 'returns false' do
+        expect(content.tracks_complete?).to be false
+      end
+    end
+
+    context 'when tracks have nil duration_sec' do
+      before do
+        create(:track, content: content, status: :completed, duration_sec: nil)
+        create(:track, content: content, status: :completed, duration_sec: 300)
+      end
+
+      it 'treats nil as 0 and returns false' do
+        expect(content.tracks_complete?).to be false
+      end
+    end
+
+    context 'when no tracks exist' do
+      it 'returns false' do
+        expect(content.tracks_complete?).to be false
+      end
+    end
+
+    context 'when only pending tracks exist' do
+      before do
+        create(:track, content: content, status: :pending, duration_sec: 400)
+        create(:track, content: content, status: :pending, duration_sec: 300)
+      end
+
+      it 'returns false even if total duration would be sufficient' do
+        expect(content.tracks_complete?).to be false
+      end
+    end
+  end
+
+  describe '#video_generated?' do
+    let(:content) { create(:content) }
+
+    context 'when video exists and is completed' do
+      before do
+        create(:video, content: content, status: :completed)
+      end
+
+      it 'returns true' do
+        expect(content.video_generated?).to be true
+      end
+    end
+
+    context 'when video exists but is not completed' do
+      it 'returns false for pending video' do
+        create(:video, content: content, status: :pending)
+        expect(content.video_generated?).to be false
+      end
+
+      it 'returns false for processing video' do
+        create(:video, content: content, status: :processing)
+        expect(content.video_generated?).to be false
+      end
+
+      it 'returns false for failed video' do
+        create(:video, content: content, status: :failed)
+        expect(content.video_generated?).to be false
+      end
+    end
+
+    context 'when no video exists' do
+      it 'returns false' do
+        expect(content.video_generated?).to be false
+      end
+    end
+  end
+
   describe 'video generation methods' do
     let(:content) { create(:content) }
 

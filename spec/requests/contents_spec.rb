@@ -69,6 +69,23 @@ RSpec.describe "Contents", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.body).to include(content.theme)
       end
+
+      it "displays new card design with icons" do
+        content = create(:content, theme: "Test Content with Icons", duration_min: 10)
+        create(:artwork, content: content)
+        create(:track, content: content, status: :completed, duration_sec: 400)
+        create(:track, content: content, status: :completed, duration_sec: 300)
+        create(:video, content: content, status: :completed)
+
+        get contents_path
+
+        expect(response).to have_http_status(:success)
+        # New design includes SVG icons
+        expect(response.body).to include('svg')
+        # Should not include old progress bar elements
+        # Check that new icon-based design is used
+        expect(response.body).not_to include('トラック進捗')
+      end
     end
   end
 

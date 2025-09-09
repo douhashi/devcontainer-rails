@@ -17,7 +17,7 @@ RSpec.describe Content::Card::Component, type: :component do
     it 'renders content card with basic information' do
       expect(subject.text).to include('LoFi Study Music')
       expect(subject.text).to include('12分')
-      expect(subject.text).to include('Chill beats for studying')
+      # audio_prompt は新デザインでは表示されない
     end
 
     it 'includes data attributes for filtering' do
@@ -25,14 +25,11 @@ RSpec.describe Content::Card::Component, type: :component do
       expect(subject.css('[data-completion-status="in_progress"]')).to be_present
     end
 
-    it 'displays track progress bar' do
-      expect(subject.css('[data-percentage]')).to be_present
-      expect(subject.text).to include('トラック進捗')
-      expect(subject.text).to include('3/7')
-    end
-
-    it 'displays artwork status icon' do
-      expect(subject.css('.artwork-status')).to be_present
+    it 'displays progress icons' do
+      # 新デザインではアイコンで進捗を表示
+      expect(subject.css('svg')).to be_present
+      # 3つのアイコン（image, music, video）が存在することを確認
+      expect(subject.css('svg').count).to be >= 3
     end
 
     it 'displays completion status badge' do
@@ -58,9 +55,10 @@ RSpec.describe Content::Card::Component, type: :component do
         expect(result.css('[data-status="completed"]')).to be_present
       end
 
-      it 'shows completed progress bar' do
+      it 'shows completed icons' do
         result = render_inline(component)
-        expect(result.text).to include('7/7')
+        # 完了したコンテンツは緑色のアイコンを持つ
+        expect(result.css('.text-green-500')).to be_present
       end
 
       it 'shows artwork configured status' do
@@ -101,6 +99,105 @@ RSpec.describe Content::Card::Component, type: :component do
     it 'includes responsive classes' do
       expect(subject.css('.flex')).to be_present
       expect(subject.css('.gap-1, .gap-2')).to be_present
+    end
+  end
+
+  describe 'helper methods' do
+    describe '#artwork_thumbnail_url' do
+      context 'when artwork has image' do
+        let(:artwork) { create(:artwork, content: content) }
+
+        before do
+          allow(content).to receive(:artwork).and_return(artwork)
+          allow(artwork).to receive_message_chain(:image, :present?).and_return(true)
+          allow(artwork).to receive_message_chain(:image, :url).and_return('/uploads/artwork.jpg')
+        end
+
+        it 'returns artwork image URL' do
+          expect(component.send(:artwork_thumbnail_url)).to eq('/uploads/artwork.jpg')
+        end
+      end
+
+      context 'when artwork has no image' do
+        let(:artwork) { create(:artwork, content: content) }
+
+        before do
+          allow(content).to receive(:artwork).and_return(artwork)
+          allow(artwork).to receive_message_chain(:image, :present?).and_return(false)
+        end
+
+        it 'returns nil' do
+          expect(component.send(:artwork_thumbnail_url)).to be_nil
+        end
+      end
+
+      context 'when no artwork exists' do
+        before do
+          allow(content).to receive(:artwork).and_return(nil)
+        end
+
+        it 'returns nil' do
+          expect(component.send(:artwork_thumbnail_url)).to be_nil
+        end
+      end
+    end
+
+    describe '#tracks_complete_icon_class' do
+      context 'when tracks are complete' do
+        before do
+          allow(content).to receive(:tracks_complete?).and_return(true)
+        end
+
+        it 'returns green color class' do
+          expect(component.send(:tracks_complete_icon_class)).to eq('text-green-500')
+        end
+      end
+
+      context 'when tracks are incomplete' do
+        before do
+          allow(content).to receive(:tracks_complete?).and_return(false)
+        end
+
+        it 'returns gray color class' do
+          expect(component.send(:tracks_complete_icon_class)).to eq('text-gray-500')
+        end
+      end
+    end
+
+    describe '#video_generated_icon_class' do
+      context 'when video is generated' do
+        before do
+          allow(content).to receive(:video_generated?).and_return(true)
+        end
+
+        it 'returns green color class' do
+          expect(component.send(:video_generated_icon_class)).to eq('text-green-500')
+        end
+      end
+
+      context 'when video is not generated' do
+        before do
+          allow(content).to receive(:video_generated?).and_return(false)
+        end
+
+        it 'returns gray color class' do
+          expect(component.send(:video_generated_icon_class)).to eq('text-gray-500')
+        end
+      end
+    end
+
+    describe '#formatted_duration' do
+      it 'formats duration in minutes' do
+        expect(component.send(:formatted_duration)).to eq('12分')
+      end
+
+      context 'with different durations' do
+        let(:content) { create(:content, duration_min: 60) }
+
+        it 'formats larger durations' do
+          expect(component.send(:formatted_duration)).to eq('60分')
+        end
+      end
     end
   end
 end
