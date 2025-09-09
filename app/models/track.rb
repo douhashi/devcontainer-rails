@@ -18,6 +18,7 @@ class Track < ApplicationRecord
   scope :processing, -> { where(status: :processing) }
   scope :completed, -> { where(status: :completed) }
   scope :failed, -> { where(status: :failed) }
+  scope :with_audio, -> { where.not(audio_data: nil) }
 
 
   # Ransack configuration

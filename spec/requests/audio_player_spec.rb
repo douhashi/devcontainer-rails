@@ -17,9 +17,9 @@ RSpec.describe "Audio Player in Track List", type: :request do
 
         expect(response).to have_http_status(:success)
         expect(response.body).to include('プレイヤー')
-        expect(response.body).to include('data-controller="audio-player"')
-        expect(response.body).to include('data-audio-player-target="player"')
-        expect(response.body).to include('data-audio-url="https://example.com/test.mp3"')
+        # PlayButton is now used instead of AudioPlayer
+        expect(response.body).to include('button')
+        expect(response.body).to include('play-button')
 
         # Test with audio absent
         allow_any_instance_of(Track).to receive(:audio).and_return(double(present?: false))
@@ -27,7 +27,7 @@ RSpec.describe "Audio Player in Track List", type: :request do
 
         expect(response).to have_http_status(:success)
         expect(response.body).to include('音声なし')
-        expect(response.body).not_to include('data-controller="audio-player"')
+        expect(response.body).not_to include('play-button')
       end
     end
 
@@ -41,7 +41,7 @@ RSpec.describe "Audio Player in Track List", type: :request do
         get tracks_path
 
         expect(response).to have_http_status(:success)
-        expect(response.body).not_to include('data-controller="audio-player"')
+        expect(response.body).not_to include('play-button')
         expect(response.body).to include('処理中...')
       end
     end

@@ -118,7 +118,9 @@ RSpec.describe "Tracks", type: :request do
         get tracks_path
 
         expect(response).to have_http_status(:success)
-        expect(response.body).not_to include("Next")
+        # Check for pagination-specific Next link, not just any "Next" text
+        expect(response.body).not_to include('rel="next"')
+        expect(response.body).not_to include('class="pagination"')
       end
     end
 

@@ -15,9 +15,7 @@
   
   <td class="px-6 py-4 text-sm">
     <% if show_audio_player? %>
-      <div class="w-64">
-        <%= render audio_player_component %>
-      </div>
+      <%= render play_button_component %>
     <% elsif track.status.processing? %>
       <span class="text-gray-400">処理中...</span>
     <% else %>

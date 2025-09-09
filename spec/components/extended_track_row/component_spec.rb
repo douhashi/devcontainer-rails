@@ -60,8 +60,8 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
     end
 
     it "プレイヤーコンポーネントが表示される" do
-      # AudioPlayer::Componentがレンダリングされることを確認
-      expect(rendered).to have_css(".w-64")
+      # PlayButton::Componentがレンダリングされることを確認
+      expect(rendered).to have_css("button[id^='play-button-']")
     end
 
     it "削除アクションが表示される" do

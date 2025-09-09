@@ -17,6 +17,11 @@ FactoryBot.define do
       duration_sec { 180 }
       metadata do
         {
+          "music_title" => "Test Track",
+          "music_tags" => "lofi, chill",
+          "model_name" => "test-model",
+          "generated_prompt" => "A chill lofi track",
+          "audio_id" => "test-audio-123",
           "kie_response" => {
             "url" => "https://example.com/track.mp3",
             "duration" => 180,

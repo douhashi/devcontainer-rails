@@ -47,10 +47,10 @@ class TrackRow::Component < ApplicationViewComponent
     track.status.processing?
   end
 
-  def audio_player_component
+  def play_button_component
     return unless show_audio_player?
 
-    AudioPlayer::Component.new(track: track)
+    PlayButton::Component.new(track: track)
   end
 
   def track_status_badge_component

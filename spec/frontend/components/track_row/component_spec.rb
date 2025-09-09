@@ -60,12 +60,12 @@ RSpec.describe TrackRow::Component, type: :component do
           allow(track).to receive(:audio).and_return(audio_mock)
         end
 
-        it "renders AudioPlayer component" do
+        it "renders PlayButton component" do
           render_inline(component)
 
-          # AudioPlayer::Componentがレンダリングされることを確認
-          expect(page).to have_css('div[data-controller="audio-player"]')
-          expect(page).to have_css('audio')
+          # PlayButton::Componentがレンダリングされることを確認
+          expect(page).to have_css('button[onclick]')
+          expect(page).to have_css('button svg')
         end
       end
 
