@@ -57,7 +57,7 @@ describe "video_generation_button component", type: :system do
       within(".video-generation-section") do
         processing_button = find("button", text: "作成中")
         expect(processing_button[:class]).to include("cursor-not-allowed")
-        expect(processing_button[:class]).to include("opacity-50")
+        expect(processing_button[:class]).to include("opacity-75")
       end
     end
   end

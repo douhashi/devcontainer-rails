@@ -25,6 +25,36 @@ class SingleTrackGenerationButton::Component < ApplicationViewComponent
     "音楽生成（2曲）"
   end
 
+  def button_variant
+    :primary
+  end
+
+  def button_size
+    :md
+  end
+
+  def button_loading?
+    processing_tracks?
+  end
+
+  def button_disabled?
+    !can_generate?
+  end
+
+  def button_icon
+    return nil if processing_tracks?  # No icon when loading
+    :music
+  end
+
+  def button_data_attributes
+    {
+      controller: "single-track-generation",
+      action: "click->single-track-generation#generate",
+      single_track_generation_url_value: generate_single_track_url,
+      single_track_generation_confirmation_message_value: confirmation_message
+    }
+  end
+
   def confirmation_message
     "1回のAPI呼び出しで2曲生成します。よろしいですか？"
   end

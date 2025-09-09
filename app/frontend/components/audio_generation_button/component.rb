@@ -29,17 +29,50 @@ module AudioGenerationButton
     def button_text
       case audio_status
       when "pending", "processing"
-        nil  # No button text when processing
-      when "completed"
-        nil  # Show delete button instead
-      when "failed"
-        "削除"
+        "作成中"  # Show text when processing
+      when "completed", "failed"
+        "削除"  # Delete button text
       else
         "音源を生成"
       end
     end
 
+    def button_variant
+      if audio_status == "completed" || audio_status == "failed"
+        :danger
+      else
+        :primary
+      end
+    end
+
+    def button_size
+      :md
+    end
+
+    def button_loading?
+      processing?
+    end
+
+    def button_disabled?
+      if audio_status == "completed" || audio_status == "failed"
+        delete_button_disabled?
+      else
+        !can_generate_audio? || processing?
+      end
+    end
+
+    def button_icon
+      if audio_status == "completed" || audio_status == "failed"
+        :delete
+      elsif processing?
+        nil  # No icon when loading (spinner is shown automatically)
+      else
+        :music
+      end
+    end
+
     def button_classes
+      # This method can be removed after migration
       base_classes = "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200"
 
       if audio_status == "completed" || audio_status == "failed"
@@ -107,7 +140,24 @@ module AudioGenerationButton
       errors.join(" / ")
     end
 
+    def button_data_attributes
+      if audio_status == "completed" || audio_status == "failed"
+        # Delete button data attributes
+        {
+          turbo_confirm: delete_confirmation_message
+        }
+      else
+        # Generate button data attributes
+        {
+          controller: "audio-generation",
+          action: "click->audio-generation#generate",
+          audio_generation_content_id_value: content_record.id
+        }
+      end
+    end
+
     def button_attributes
+      # Legacy method for backward compatibility
       if audio_status == "completed" || audio_status == "failed"
         # Delete button attributes
         {

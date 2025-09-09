@@ -16,6 +16,40 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
     is_expected.to have_css "div"
   end
 
+  describe 'rendering with ButtonComponent' do
+    let!(:artwork) { create(:artwork, content: content_record) }
+    let!(:audio) { create(:audio, content: content_record, status: :completed) }
+
+    context 'when can generate video' do
+      before do
+        allow(content_record).to receive(:video_generation_prerequisites_met?).and_return(true)
+      end
+
+      it 'renders generate button with ButtonComponent' do
+        rendered = render_inline(component)
+        expect(rendered.css('button').text).to include('動画を生成')
+      end
+    end
+
+    context 'when video is completed' do
+      let!(:video) { create(:video, content: content_record, status: :completed) }
+
+      it 'renders delete button with ButtonComponent' do
+        rendered = render_inline(component)
+        expect(rendered.css('button').text).to include('削除')
+      end
+    end
+
+    context 'when video is processing' do
+      let!(:video) { create(:video, content: content_record, status: :processing) }
+
+      it 'renders processing button with ButtonComponent' do
+        rendered = render_inline(component)
+        expect(rendered.css('button').text).to include('作成中')
+      end
+    end
+  end
+
   describe 'private methods' do
     let!(:artwork) { create(:artwork, content: content_record) }
     let!(:audio) { create(:audio, content: content_record, status: :completed) }
@@ -42,17 +76,17 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
 
         context 'pending' do
           let(:status) { :pending }
-          it { expect(component.send(:button_text)).to be_nil }
+          it { expect(component.send(:button_text)).to eq('作成中') }
         end
 
         context 'processing' do
           let(:status) { :processing }
-          it { expect(component.send(:button_text)).to be_nil }
+          it { expect(component.send(:button_text)).to eq('作成中') }
         end
 
         context 'completed' do
           let(:status) { :completed }
-          it { expect(component.send(:button_text)).to be_nil }
+          it { expect(component.send(:button_text)).to eq('削除') }
         end
 
         context 'failed' do

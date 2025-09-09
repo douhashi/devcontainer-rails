@@ -141,4 +141,22 @@ RSpec.describe SingleTrackGenerationButton::Component, type: :component do
       end
     end
   end
+
+  describe 'rendering with ButtonComponent' do
+    it 'renders button using ButtonComponent' do
+      rendered = render_inline(component)
+      expect(rendered.css('button').text).to include('音楽生成（2曲）')
+    end
+
+    context 'when processing' do
+      before do
+        create(:track, content: content, status: :processing)
+      end
+
+      it 'renders processing button with ButtonComponent' do
+        rendered = render_inline(component)
+        expect(rendered.css('button').text).to include('生成中...')
+      end
+    end
+  end
 end

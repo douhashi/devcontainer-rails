@@ -1,22 +1,19 @@
 <div class="single-track-generation-section">
-  <% if can_generate? %>
-    <button 
-      type="button"
-      class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors"
-      data-controller="single-track-generation"
-      data-single-track-generation-url-value="<%= generate_single_track_url %>"
-      data-single-track-generation-confirmation-message-value="<%= confirmation_message %>"
-    >
-      <%= button_text %>
-    </button>
-  <% else %>
-    <button 
-      type="button" 
-      class="bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded cursor-not-allowed"
-      disabled
-    >
-      <%= button_text %>
-    </button>
+  <%= render Button::Component.new(
+    text: button_text,
+    variant: button_variant,
+    size: button_size,
+    disabled: button_disabled?,
+    loading: button_loading?,
+    data: button_data_attributes
+  ) do %>
+    <% if !button_loading? && button_icon %>
+      <%= render Icon::Component.new(name: button_icon, size: :sm) %>
+    <% end %>
+    <span class="<%= 'ml-1.5' if button_icon && !button_loading? %>"><%= button_text %></span>
+  <% end %>
+  
+  <% if disability_reason %>
     <p class="text-red-600 text-sm mt-1">
       <%= disability_reason %>
     </p>

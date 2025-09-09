@@ -105,27 +105,40 @@
   <!-- Action Button -->
   <div class="flex items-center gap-2">
     <% if video_status == "completed" || video_status == "failed" %>
-      <!-- Delete Button -->
-      <%= button_to content_video_path(content_record), 
-            method: :delete,
-            **button_attributes do %>
-        削除
+      <!-- Delete Button using ButtonComponent -->
+      <%= form_with url: content_video_path(content_record), method: :delete, local: true do |f| %>
+        <%= render Button::Component.new(
+          text: button_text,
+          variant: button_variant,
+          size: button_size,
+          disabled: button_disabled?,
+          loading: button_loading?,
+          type: "submit",
+          data: button_data_attributes
+        ) do %>
+          <% if button_icon %>
+            <%= render Icon::Component.new(name: button_icon, size: :sm) %>
+          <% end %>
+          <span class="ml-1.5"><%= button_text %></span>
+        <% end %>
       <% end %>
-    <% elsif processing? %>
-      <!-- Processing State -->
-      <button disabled class="<%= button_classes %>">
-        <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        作成中
-      </button>
     <% else %>
-      <!-- Generate Button -->
-      <%= button_to content_video_path(content_record), 
-            method: :post,
-            **button_attributes do %>
-        動画を生成
+      <!-- Generate/Processing Button using ButtonComponent -->
+      <%= form_with url: content_video_path(content_record), method: :post, local: true do |f| %>
+        <%= render Button::Component.new(
+          text: button_text,
+          variant: button_variant,
+          size: button_size,
+          disabled: button_disabled?,
+          loading: button_loading?,
+          type: "submit",
+          data: button_data_attributes
+        ) do %>
+          <% if !button_loading? && button_icon %>
+            <%= render Icon::Component.new(name: button_icon, size: :sm) %>
+          <% end %>
+          <span class="<%= 'ml-1.5' if button_icon && !button_loading? %>"><%= button_text %></span>
+        <% end %>
       <% end %>
     <% end %>
     

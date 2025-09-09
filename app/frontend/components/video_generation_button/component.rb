@@ -25,17 +25,50 @@ class VideoGenerationButton::Component < ApplicationViewComponent
   def button_text
     case video_status
     when "pending", "processing"
-      nil  # No button text when processing
-    when "completed"
-      nil  # Show delete button instead
-    when "failed"
-      "削除"
+      "作成中"  # Show text when processing
+    when "completed", "failed"
+      "削除"  # Delete button text
     else
       "動画を生成"
     end
   end
 
+  def button_variant
+    if video_status == "completed" || video_status == "failed"
+      :danger
+    else
+      :primary  # Use primary instead of green for consistency
+    end
+  end
+
+  def button_size
+    :md
+  end
+
+  def button_loading?
+    processing?
+  end
+
+  def button_disabled?
+    if video_status == "completed" || video_status == "failed"
+      delete_button_disabled?
+    else
+      !can_generate_video? || processing?
+    end
+  end
+
+  def button_icon
+    if video_status == "completed" || video_status == "failed"
+      :delete
+    elsif processing?
+      nil  # No icon when loading (spinner is shown automatically)
+    else
+      :video
+    end
+  end
+
   def button_classes
+    # This method can be removed after migration
     base_classes = "inline-flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200"
 
     if video_status == "completed" || video_status == "failed"
@@ -119,7 +152,24 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     errors.join(" / ")
   end
 
+  def button_data_attributes
+    if video_status == "completed" || video_status == "failed"
+      # Delete button data attributes
+      {
+        turbo_confirm: delete_confirmation_message
+      }
+    else
+      # Generate button data attributes
+      {
+        controller: "video-generation",
+        action: "click->video-generation#generate",
+        video_generation_content_id_value: content_record.id
+      }
+    end
+  end
+
   def button_attributes
+    # Legacy method for backward compatibility
     if video_status == "completed" || video_status == "failed"
       # Delete button attributes
       {
