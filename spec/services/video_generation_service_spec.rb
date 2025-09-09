@@ -1,4 +1,5 @@
 require "rails_helper"
+require "open3"
 
 RSpec.describe VideoGenerationService, type: :service do
   let(:video) { create(:video) }
@@ -22,9 +23,13 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        ffmpeg_movie = instance_double(FFMPEG::Movie)
-        allow(FFMPEG::Movie).to receive(:new).with(audio_path).and_return(ffmpeg_movie)
-        allow(ffmpeg_movie).to receive(:transcode).and_return(true)
+        # Mock Open3.capture3 for system command execution
+        allow(Open3).to receive(:capture3).and_return([
+          "ffmpeg output", # stdout
+          "",              # stderr
+          double("status", success?: true) # status
+        ])
+
         allow(File).to receive(:exist?).with(output_path).and_return(true)
         allow(File).to receive(:size).with(output_path).and_return(1024 * 1024)
 
@@ -51,14 +56,12 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        ffmpeg_movie = instance_double(FFMPEG::Movie)
-        allow(FFMPEG::Movie).to receive(:new).with(audio_path).and_return(ffmpeg_movie)
-
-        progress_values = []
-        allow(ffmpeg_movie).to receive(:transcode) do |_, _, _, &block|
-          [ 0.1, 0.5, 1.0 ].each { |value| block&.call(value) }
-          true
-        end
+        # Mock Open3.capture3 for system command execution
+        allow(Open3).to receive(:capture3).and_return([
+          "ffmpeg output", # stdout
+          "",              # stderr
+          double("status", success?: true) # status
+        ])
 
         allow(File).to receive(:exist?).with(output_path).and_return(true)
         allow(File).to receive(:size).with(output_path).and_return(1024 * 1024)
@@ -68,6 +71,7 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(ffmpeg_output_movie).to receive(:duration).and_return(10.0)
         allow(ffmpeg_output_movie).to receive(:resolution).and_return("1920x1080")
 
+        progress_values = []
         service.generate(
           audio_path: audio_path,
           artwork_path: artwork_path,
@@ -76,7 +80,8 @@ RSpec.describe VideoGenerationService, type: :service do
           progress_values << progress
         end
 
-        expect(progress_values).to eq([ 0.1, 0.5, 1.0 ])
+        # New implementation calls progress callback once at the end with 1.0
+        expect(progress_values).to eq([ 1.0 ])
       end
     end
 
@@ -154,10 +159,12 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        ffmpeg_movie = instance_double(FFMPEG::Movie)
-        allow(FFMPEG::Movie).to receive(:new).with(audio_path).and_return(ffmpeg_movie)
-        allow(ffmpeg_movie).to receive(:transcode)
-          .and_raise(FFMPEG::Error, "Invalid codec configuration")
+        # Mock Open3.capture3 to return failure status
+        allow(Open3).to receive(:capture3).and_return([
+          "ffmpeg output",                     # stdout
+          "Invalid codec configuration",      # stderr
+          double("status", success?: false)    # status
+        ])
 
         expect {
           service.generate(
@@ -165,7 +172,7 @@ RSpec.describe VideoGenerationService, type: :service do
             artwork_path: artwork_path,
             output_path: output_path
           )
-        }.to raise_error(VideoGenerationService::GenerationError, /FFmpeg error: Invalid codec configuration/)
+        }.to raise_error(VideoGenerationService::GenerationError, /FFmpeg error: FFmpeg command failed: Invalid codec configuration/)
       end
     end
 
@@ -175,9 +182,13 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        ffmpeg_movie = instance_double(FFMPEG::Movie)
-        allow(FFMPEG::Movie).to receive(:new).with(audio_path).and_return(ffmpeg_movie)
-        allow(ffmpeg_movie).to receive(:transcode).and_return(true)
+        # Mock Open3.capture3 for successful execution
+        allow(Open3).to receive(:capture3).and_return([
+          "ffmpeg output", # stdout
+          "",              # stderr
+          double("status", success?: true) # status
+        ])
+
         allow(File).to receive(:exist?).with(output_path).and_return(false)
 
         expect {
@@ -196,9 +207,13 @@ RSpec.describe VideoGenerationService, type: :service do
         allow(File).to receive(:exist?).with(audio_path).and_return(true)
         allow(File).to receive(:exist?).with(artwork_path).and_return(true)
 
-        ffmpeg_movie = instance_double(FFMPEG::Movie)
-        allow(FFMPEG::Movie).to receive(:new).with(audio_path).and_return(ffmpeg_movie)
-        allow(ffmpeg_movie).to receive(:transcode).and_return(true)
+        # Mock Open3.capture3 for successful execution
+        allow(Open3).to receive(:capture3).and_return([
+          "ffmpeg output", # stdout
+          "",              # stderr
+          double("status", success?: true) # status
+        ])
+
         allow(File).to receive(:exist?).with(output_path).and_return(true)
         allow(File).to receive(:size).with(output_path).and_return(0)
 
@@ -213,29 +228,28 @@ RSpec.describe VideoGenerationService, type: :service do
     end
   end
 
-  describe "#build_transcoding_options" do
-    it "returns correct transcoding options" do
-      options = service.send(:build_transcoding_options)
+  describe "#build_ffmpeg_command" do
+    it "returns correct ffmpeg command array" do
+      command = service.send(:build_ffmpeg_command, audio_path, artwork_path, output_path)
 
-      expect(options).to eq({
-        video_codec: "libx264",
-        audio_codec: "aac",
-        resolution: "1920x1080",
-        video_bitrate: "5000k",
-        audio_bitrate: "192k",
-        audio_sample_rate: 48000,
-        custom: %w[-loop 1 -framerate 30 -preset slow -crf 18 -shortest -pix_fmt yuv420p]
-      })
-    end
-  end
+      expected_command = [
+        "ffmpeg",
+        "-loop", "1",
+        "-i", artwork_path,
+        "-i", audio_path,
+        "-c:v", "libx264",
+        "-preset", "slow",
+        "-crf", "18",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        "-r", "30",
+        "-shortest",
+        "-pix_fmt", "yuv420p",
+        "-y",
+        output_path
+      ]
 
-  describe "#build_encoding_options" do
-    it "returns correct encoding options with artwork path" do
-      options = service.send(:build_encoding_options, artwork_path)
-
-      expect(options).to eq({
-        input_options: [ "-loop", "1", "-i", artwork_path ]
-      })
+      expect(command).to eq(expected_command)
     end
   end
 

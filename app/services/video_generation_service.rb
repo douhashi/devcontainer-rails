@@ -11,19 +11,12 @@ class VideoGenerationService
   def generate(audio_path:, artwork_path:, output_path:, &progress_block)
     validate_input_files!(audio_path, artwork_path)
 
-    transcoding_options = build_transcoding_options
-    encoding_options = build_encoding_options(artwork_path)
-
     Rails.logger.info "Starting video generation for Video ##{@video.id}"
     Rails.logger.info "Audio: #{audio_path}"
     Rails.logger.info "Artwork: #{artwork_path}"
     Rails.logger.info "Output: #{output_path}"
 
-    audio = FFMPEG::Movie.new(audio_path)
-    audio.transcode(output_path, transcoding_options, encoding_options) do |progress|
-      Rails.logger.info "Video generation progress: #{(progress * 100).round(2)}%"
-      progress_block&.call(progress)
-    end
+    generate_video_with_ffmpeg(audio_path, artwork_path, output_path, &progress_block)
 
     validate_output!(output_path)
     extract_metadata(output_path)
@@ -57,22 +50,43 @@ class VideoGenerationService
     end
   end
 
-  def build_transcoding_options
-    {
-      video_codec: "libx264",
-      audio_codec: "aac",
-      resolution: "1920x1080",
-      video_bitrate: "5000k",
-      audio_bitrate: "192k",
-      audio_sample_rate: 48000,
-      custom: %w[-loop 1 -framerate 30 -preset slow -crf 18 -shortest -pix_fmt yuv420p]
-    }
+  def generate_video_with_ffmpeg(audio_path, artwork_path, output_path, &progress_block)
+    # Use system command approach for static image to video conversion
+    # as streamio-ffmpeg is primarily designed for video-to-video transcoding
+
+    command = build_ffmpeg_command(audio_path, artwork_path, output_path)
+    Rails.logger.info "Executing FFmpeg command: #{command.join(' ')}"
+
+    require "open3"
+    stdout, stderr, status = Open3.capture3(*command)
+
+    unless status.success?
+      Rails.logger.error "FFmpeg stderr: #{stderr}"
+      Rails.logger.error "FFmpeg stdout: #{stdout}"
+      raise FFMPEG::Error, "FFmpeg command failed: #{stderr}"
+    end
+
+    Rails.logger.info "Video generation completed successfully"
+    progress_block&.call(1.0) if progress_block
   end
 
-  def build_encoding_options(artwork_path)
-    {
-      input_options: [ "-loop", "1", "-i", artwork_path ]
-    }
+  def build_ffmpeg_command(audio_path, artwork_path, output_path)
+    [
+      "ffmpeg",
+      "-loop", "1",
+      "-i", artwork_path,
+      "-i", audio_path,
+      "-c:v", "libx264",
+      "-preset", "slow",
+      "-crf", "18",
+      "-c:a", "aac",
+      "-b:a", "192k",
+      "-r", "30",
+      "-shortest",
+      "-pix_fmt", "yuv420p",
+      "-y",
+      output_path
+    ]
   end
 
   def validate_output!(output_path)
