@@ -99,10 +99,13 @@ RSpec.describe Contents::Index::Component, type: :component do
   describe 'responsive grid layout' do
     subject { render_inline(component) }
 
-    it 'uses responsive grid classes' do
+    it 'uses 2-column fixed grid layout' do
       expect(subject.css('.grid-cols-1')).to be_present
-      expect(subject.css('.md\\:grid-cols-2')).to be_present
-      expect(subject.css('.lg\\:grid-cols-3')).to be_present
+      expect(subject.css('.sm\\:grid-cols-2')).to be_present
+    end
+
+    it 'does not use 3-column layout' do
+      expect(subject.css('.lg\\:grid-cols-3')).not_to be_present
     end
   end
 end

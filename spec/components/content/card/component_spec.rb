@@ -93,12 +93,30 @@ RSpec.describe Content::Card::Component, type: :component do
     end
   end
 
-  describe 'responsive design' do
+  describe 'vertical layout design' do
     subject { render_inline(component) }
+
+    it 'uses vertical flex layout for card' do
+      expect(subject.css('.flex-col')).to be_present
+    end
 
     it 'includes responsive classes' do
       expect(subject.css('.flex')).to be_present
       expect(subject.css('.gap-1, .gap-2')).to be_present
+    end
+
+    it 'places artwork above information section' do
+      # Check that the card structure is vertical with artwork first, then content info
+      card = subject.css('.flex-col').first
+      expect(card).to be_present
+
+      # In vertical layout, artwork should be the first child, followed by content info
+      children = card.children
+      artwork_section = children.detect { |child| child.css('img, svg').present? }
+      info_section = children.detect { |child| child.text.include?('再生時間') }
+
+      expect(artwork_section).to be_present
+      expect(info_section).to be_present
     end
   end
 

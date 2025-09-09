@@ -2,9 +2,9 @@
      data-content-id="<%= item.id %>"
      data-completion-status="<%= completion_status %>">
   
-  <div class="flex">
+  <div class="flex flex-col">
     <!-- Artwork thumbnail section -->
-    <div class="w-32 h-32 flex-shrink-0 bg-gray-900">
+    <div class="w-full aspect-[4/3] bg-gray-900">
       <% if artwork_thumbnail_url %>
         <%= image_tag artwork_thumbnail_url, 
             alt: item.theme,
@@ -21,22 +21,20 @@
     </div>
 
     <!-- Content information section -->
-    <div class="flex-1 p-4 flex flex-col justify-between">
-      <!-- Header with title and status -->
-      <div>
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="text-lg font-semibold text-gray-100 flex-grow line-clamp-1">
-            <%= link_to item.theme, item, class: "hover:text-blue-400 transition-colors" %>
-          </h3>
-          <div class="ml-2 flex-shrink-0">
-            <%= render StatusBadge::Component.new(status: completion_status, size: :small) %>
-          </div>
-        </div>
-        
-        <!-- Duration info -->
-        <div class="text-sm text-gray-400 mb-3">
+    <div class="p-4">
+      <!-- Title -->
+      <h3 class="text-lg font-semibold text-gray-100 mb-2 line-clamp-1">
+        <%= link_to item.theme, item, class: "hover:text-blue-400 transition-colors" %>
+      </h3>
+      
+      <!-- Status Badge and Duration -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-sm text-gray-400">
           <span>再生時間: </span>
           <span class="text-gray-300"><%= formatted_duration %></span>
+        </div>
+        <div class="flex-shrink-0">
+          <%= render StatusBadge::Component.new(status: completion_status, size: :small) %>
         </div>
       </div>
 

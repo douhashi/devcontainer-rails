@@ -3,9 +3,24 @@ require 'rails_helper'
 RSpec.describe AudioUploader do
   describe 'validations' do
     let(:track) { create(:track) }
-    let(:mp3_file) { File.open(Rails.root.join('spec/fixtures/files/sample.mp3')) }
-    let(:wav_file) { File.open(Rails.root.join('spec/fixtures/files/sample.wav')) }
-    let(:txt_file) { File.open(Rails.root.join('spec/fixtures/files/sample.txt')) }
+    let(:mp3_file) {
+      Rack::Test::UploadedFile.new(
+        Rails.root.join('spec/fixtures/files/sample.mp3'),
+        'audio/mpeg'
+      )
+    }
+    let(:wav_file) {
+      Rack::Test::UploadedFile.new(
+        Rails.root.join('spec/fixtures/files/sample.wav'),
+        'audio/wav'
+      )
+    }
+    let(:txt_file) {
+      Rack::Test::UploadedFile.new(
+        Rails.root.join('spec/fixtures/files/sample.txt'),
+        'text/plain'
+      )
+    }
     let(:large_file) {
       Tempfile.new([ 'large', '.mp3' ]).tap do |file|
         # Write valid MP3 header first
@@ -17,9 +32,6 @@ RSpec.describe AudioUploader do
     }
 
     after do
-      mp3_file.close if mp3_file && !mp3_file.closed?
-      wav_file.close if wav_file && !wav_file.closed?
-      txt_file.close if txt_file && !txt_file.closed?
       large_file.close if large_file && !large_file.closed?
       large_file.unlink if large_file
     end
@@ -58,11 +70,12 @@ RSpec.describe AudioUploader do
 
   describe 'metadata extraction' do
     let(:track) { create(:track) }
-    let(:mp3_file) { File.open(Rails.root.join('spec/fixtures/files/sample.mp3')) }
-
-    after do
-      mp3_file.close if mp3_file && !mp3_file.closed?
-    end
+    let(:mp3_file) {
+      Rack::Test::UploadedFile.new(
+        Rails.root.join('spec/fixtures/files/sample.mp3'),
+        'audio/mpeg'
+      )
+    }
 
     it 'extracts and stores file metadata' do
       track.audio = mp3_file
