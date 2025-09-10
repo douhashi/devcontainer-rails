@@ -132,6 +132,84 @@ RSpec.describe "Contents", type: :request do
 
       expect(response).to have_http_status(:success)
     end
+
+    context "with audio and selected tracks" do
+      let(:tracks) { create_list(:track, 3, content: content, status: :completed, duration_sec: 180) }
+      let!(:audio) do
+        create(:audio,
+               content: content,
+               status: :completed,
+               metadata: { "selected_track_ids" => tracks.map(&:id) })
+      end
+
+      it "displays used tracks table when audio is completed" do
+        get content_path(content)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("音源生成")
+        expect(response.body).to include("使用Track一覧")
+        expect(response.body).to include("#1")
+        expect(response.body).to include("#2")
+        expect(response.body).to include("#3")
+      end
+    end
+
+    context "with audio but not completed" do
+      let!(:audio) do
+        create(:audio,
+               content: content,
+               status: :processing,
+               metadata: { "selected_track_ids" => [ 1, 2, 3 ] })
+      end
+
+      it "does not display used tracks table" do
+        get content_path(content)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("音源生成")
+        expect(response.body).not_to include("使用Track一覧")
+      end
+    end
+
+    context "with completed audio but no selected tracks" do
+      let!(:audio) do
+        create(:audio,
+               content: content,
+               status: :completed,
+               metadata: { "selected_track_ids" => [] })
+      end
+
+      it "does not display used tracks table" do
+        get content_path(content)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("音源生成")
+        expect(response.body).not_to include("使用Track一覧")
+      end
+    end
+
+    context "with selected tracks including deleted tracks" do
+      let(:tracks) { create_list(:track, 3, content: content, status: :completed, duration_sec: 180) }
+      let!(:audio) do
+        # Include non-existent track IDs
+        track_ids = tracks.map(&:id) + [ 999999 ]
+        create(:audio,
+               content: content,
+               status: :completed,
+               metadata: { "selected_track_ids" => track_ids })
+      end
+
+      it "displays only existing tracks" do
+        get content_path(content)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("使用Track一覧")
+        expect(response.body).to include("#1")
+        expect(response.body).to include("#2")
+        expect(response.body).to include("#3")
+        # Should not cause error due to non-existent track
+      end
+    end
   end
 
   describe "GET /contents/new" do
