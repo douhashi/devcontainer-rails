@@ -74,7 +74,7 @@ Each item should represent a meaningful business unit and ideally be completable
 1. **Initialize the working directory**  
    Run the following command to reset the output directory:  
    ```bash
-   rm -rf ./.tmp/requirements && mkdir -p ./.tmp/requirements
+   mkdir -p ./.tmp/requirements
    ```
 
 2. **Analyze requirements and design backlog**  
