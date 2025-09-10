@@ -111,7 +111,7 @@ class YoutubeService
     end
   end
 
-  def self.test_connection(channel_identifier = "@LofiBGM-111")
+  def self.test_connection(channel_identifier = "UC_x5XG1OV2P6uZZ5FSM9Ttw")
     Rails.logger.info "Testing YouTube channel connection for: #{channel_identifier}"
 
     service = new
@@ -129,7 +129,7 @@ class YoutubeService
       view_count: video.view_count,
       like_count: video.like_count,
       duration: video.duration,
-      thumbnail_url: video.thumbnails&.default&.url
+      thumbnail_url: video.respond_to?(:thumbnail_url) ? video.thumbnail_url : nil
     }
   end
 
@@ -268,28 +268,12 @@ class YoutubeService
   end
 
   def resolve_channel_id(channel_identifier)
-    # If it's already a channel ID (starts with UC), return as is
-    return channel_identifier if channel_identifier.start_with?("UC")
-
-    # Handle known channel mappings
-    known_channels = {
-      "@LofiBGM-111" => "UCxYJQNWjcK7pK5JLNfHsz6w"  # Placeholder - would need actual channel ID
-    }
-
-    if known_channels.key?(channel_identifier)
-      return known_channels[channel_identifier]
+    # Only accept channel IDs that start with 'UC'
+    if channel_identifier.start_with?("UC")
+      return channel_identifier
     end
 
-    # For now, if it's a handle but not in our known list,
-    # we'll treat it as a channel ID for testing purposes
-    # In the future, this could use YouTube Search API or handle resolution
-    if channel_identifier.start_with?("@")
-      # Extract the handle part and try to resolve it
-      # For this implementation, we'll raise an error for unknown handles
-      raise ArgumentError, "Unknown channel handle: #{channel_identifier}. Please provide a valid channel ID starting with 'UC' or update the known_channels mapping."
-    end
-
-    # Assume it's a channel ID if it doesn't start with @
-    channel_identifier
+    # Reject handles and other formats for simplicity
+    raise ArgumentError, "Invalid channel identifier: '#{channel_identifier}'. Only YouTube channel IDs starting with 'UC' are supported."
   end
 end

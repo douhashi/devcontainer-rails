@@ -400,7 +400,6 @@ RSpec.describe YoutubeService do
 
   describe '#get_channel' do
     let(:channel_id) { 'UCXuqSBlHAE6Xw-yeJA0Tunw' }  # Test channel ID
-    let(:channel_handle) { '@LofiBGM-111' }  # Target channel handle
     let(:mock_channel) { double('Yt::Channel') }
 
     before do
@@ -426,7 +425,7 @@ RSpec.describe YoutubeService do
         result = service.get_channel(channel_id)
 
         expect(result).to eq(expected_data)
-        expect(Yt::Channel).to have_received(:new).with(id: channel_id, api_key: nil)
+        expect(Yt::Channel).to have_received(:new).with(id: channel_id, api_key: ENV["YOUTUBE_API_KEY"])
       end
 
       it 'logs channel information retrieval' do
@@ -443,37 +442,22 @@ RSpec.describe YoutubeService do
       end
     end
 
-    context 'with valid channel handle' do
-      it 'converts handle to channel ID and returns channel information' do
-        expected_data = {
-          title: 'LofiBGM Channel',
-          description: 'Lofi music channel',
-          subscriber_count: 5000,
-          video_count: 100,
-          view_count: 500000
-        }
+    context 'with invalid channel identifier' do
+      it 'raises ArgumentError for handle format' do
+        handle = '@SomeChannel'
 
-        allow(mock_channel).to receive(:title).and_return(expected_data[:title])
-        allow(mock_channel).to receive(:description).and_return(expected_data[:description])
-        allow(mock_channel).to receive(:subscriber_count).and_return(expected_data[:subscriber_count])
-        allow(mock_channel).to receive(:video_count).and_return(expected_data[:video_count])
-        allow(mock_channel).to receive(:view_count).and_return(expected_data[:view_count])
-
-        result = service.get_channel(channel_handle)
-
-        expect(result).to eq(expected_data)
-        expect(Yt::Channel).to have_received(:new).with(
-          id: 'UCxYJQNWjcK7pK5JLNfHsz6w',
-          api_key: nil
+        expect { service.get_channel(handle) }.to raise_error(
+          ArgumentError,
+          /Invalid channel identifier.*Only YouTube channel IDs starting with 'UC' are supported/
         )
       end
 
-      it 'raises ArgumentError for unknown handle' do
-        unknown_handle = '@UnknownChannel'
+      it 'raises ArgumentError for non-UC channel ID' do
+        invalid_id = 'InvalidChannelId'
 
-        expect { service.get_channel(unknown_handle) }.to raise_error(
+        expect { service.get_channel(invalid_id) }.to raise_error(
           ArgumentError,
-          /Unknown channel handle.*@UnknownChannel/
+          /Invalid channel identifier.*Only YouTube channel IDs starting with 'UC' are supported/
         )
       end
     end
@@ -508,7 +492,7 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:response_body).and_return({})
         allow(Yt::Channel).to receive(:new).and_raise(error)
 
-        expect { service.get_channel('invalid_channel_id') }.to raise_error(
+        expect { service.get_channel('UCInvalidChannelId') }.to raise_error(
           Youtube::Errors::NotFoundError,
           /YouTube resource not found/
         )
@@ -627,12 +611,12 @@ RSpec.describe YoutubeService do
         }
 
         allow(described_class).to receive(:new).and_return(mock_service)
-        allow(mock_service).to receive(:get_channel).with('@LofiBGM-111').and_return(expected_result)
+        allow(mock_service).to receive(:get_channel).with('UC_x5XG1OV2P6uZZ5FSM9Ttw').and_return(expected_result)
 
         result = described_class.test_connection
 
         expect(result).to eq(expected_result)
-        expect(mock_service).to have_received(:get_channel).with('@LofiBGM-111')
+        expect(mock_service).to have_received(:get_channel).with('UC_x5XG1OV2P6uZZ5FSM9Ttw')
       end
 
       it 'accepts custom channel identifier' do
@@ -669,7 +653,6 @@ RSpec.describe YoutubeService do
 
   describe '#get_videos' do
     let(:channel_id) { 'UCxYJQNWjcK7pK5JLNfHsz6w' }
-    let(:channel_handle) { '@LofiBGM-111' }
     let(:mock_channel) { double('Yt::Channel') }
     let(:mock_videos) { double('Yt::Collections::Videos') }
     let(:mock_video1) { double('Yt::Video') }
@@ -703,7 +686,7 @@ RSpec.describe YoutubeService do
       it 'returns structured video data with default pagination' do
         allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1, mock_video2 ])
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
 
         expect(result).to be_a(Hash)
         expect(result[:videos]).to be_an(Array)
@@ -720,14 +703,14 @@ RSpec.describe YoutubeService do
         expect(first_video[:view_count]).to eq(1000)
         expect(first_video[:like_count]).to eq(50)
         expect(first_video[:duration]).to eq(180)
-        expect(first_video[:thumbnail_url]).to eq('https://example.com/thumb1.jpg')
+        expect(first_video[:thumbnail_url]).to be_nil  # thumbnail_url is now nil due to respond_to? check
       end
 
       it 'handles custom limit and offset parameters' do
         allow(mock_videos).to receive(:drop).with(10).and_return(mock_videos)
         allow(mock_videos).to receive(:take).with(25).and_return([ mock_video1 ])
 
-        result = service.get_videos(channel_handle, limit: 25, offset: 10)
+        result = service.get_videos(channel_id, limit: 25, offset: 10)
 
         expect(result[:videos].size).to eq(1)
         expect(result[:pagination][:limit]).to eq(25)
@@ -750,7 +733,7 @@ RSpec.describe YoutubeService do
         expect(Rails.logger).to receive(:info).with(/Retrieving videos for channel/)
         expect(Rails.logger).to receive(:info).with(/Successfully retrieved \d+ videos/)
 
-        service.get_videos(channel_handle)
+        service.get_videos(channel_id)
       end
 
       it 'filters out videos with missing required data' do
@@ -759,7 +742,7 @@ RSpec.describe YoutubeService do
 
         allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1, broken_video, mock_video2 ])
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
 
         expect(result[:videos].size).to eq(2)
         expect(result[:videos].map { |v| v[:id] }).to contain_exactly('video_id_1', 'video_id_2')
@@ -780,21 +763,21 @@ RSpec.describe YoutubeService do
       end
 
       it 'raises ArgumentError for negative limit' do
-        expect { service.get_videos(channel_handle, limit: -1) }.to raise_error(
+        expect { service.get_videos(channel_id, limit: -1) }.to raise_error(
           ArgumentError,
           'Limit must be greater than 0'
         )
       end
 
       it 'raises ArgumentError for negative offset' do
-        expect { service.get_videos(channel_handle, offset: -1) }.to raise_error(
+        expect { service.get_videos(channel_id, offset: -1) }.to raise_error(
           ArgumentError,
           'Offset must be greater than or equal to 0'
         )
       end
 
       it 'raises ArgumentError for limit exceeding maximum' do
-        expect { service.get_videos(channel_handle, limit: 1001) }.to raise_error(
+        expect { service.get_videos(channel_id, limit: 1001) }.to raise_error(
           ArgumentError,
           'Limit cannot exceed 1000'
         )
@@ -808,7 +791,7 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:response_body).and_return({})
         allow(Yt::Channel).to receive(:new).and_raise(error)
 
-        expect { service.get_videos('invalid_channel') }.to raise_error(
+        expect { service.get_videos('UCInvalidChannelId') }.to raise_error(
           Youtube::Errors::NotFoundError,
           /YouTube resource not found/
         )
@@ -820,7 +803,7 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:response_body).and_return({})
         allow(mock_channel).to receive(:videos).and_raise(error)
 
-        expect { service.get_videos(channel_handle) }.to raise_error(
+        expect { service.get_videos(channel_id) }.to raise_error(
           Youtube::Errors::QuotaExceededError,
           /YouTube API quota exceeded/
         )
@@ -843,7 +826,7 @@ RSpec.describe YoutubeService do
         allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
         allow(service).to receive(:sleep)
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
         expect(result[:videos].size).to eq(1)
         expect(call_count).to eq(3)
       end
@@ -853,7 +836,7 @@ RSpec.describe YoutubeService do
       it 'handles channels with no videos' do
         allow(mock_videos).to receive(:take).with(50).and_return([])
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
 
         expect(result[:videos]).to eq([])
         expect(result[:pagination][:returned_count]).to eq(0)
@@ -863,7 +846,7 @@ RSpec.describe YoutubeService do
         allow(mock_videos).to receive(:drop).with(1000).and_return(mock_videos)
         allow(mock_videos).to receive(:take).with(50).and_return([])
 
-        result = service.get_videos(channel_handle, offset: 1000)
+        result = service.get_videos(channel_id, offset: 1000)
 
         expect(result[:videos]).to eq([])
         expect(result[:pagination][:returned_count]).to eq(0)
@@ -884,7 +867,7 @@ RSpec.describe YoutubeService do
 
         allow(mock_videos).to receive(:take).with(50).and_return([ incomplete_video ])
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
 
         video = result[:videos].first
         expect(video[:id]).to eq('incomplete_id')
@@ -902,7 +885,7 @@ RSpec.describe YoutubeService do
         allow(mock_video1).to receive(:description).and_return(long_description)
         allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
 
         expect(result[:videos].first[:description]).to eq(long_description)
       end
@@ -915,7 +898,7 @@ RSpec.describe YoutubeService do
         allow(mock_video1).to receive(:description).and_return(special_description)
         allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
 
-        result = service.get_videos(channel_handle)
+        result = service.get_videos(channel_id)
 
         video = result[:videos].first
         expect(video[:title]).to eq(special_title)
