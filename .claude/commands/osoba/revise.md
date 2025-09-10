@@ -168,3 +168,4 @@ Refer to the following documentation:
 - Keep the commit history clean and meaningful
 - Always verify the changes work as expected before updating labels
 - **Task completion requirement: CI must pass completely**
+- **CRITICAL: Always update Issue labels upon task completion, regardless of any circumstances. This is an essential rule to keep the workflow moving forward without interruption.**
