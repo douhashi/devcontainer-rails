@@ -97,7 +97,15 @@
 
   <!-- 5. 動画生成セクション -->
   <div class="bg-gray-800 rounded-lg p-6">
-    <h2 class="text-xl font-bold text-gray-200 mb-4">動画生成</h2>
-    <%= render VideoGenerationButton::Component.new(content_record: item) %>
-  </div>
+    <!-- Header with title and status -->
+    <div class="flex justify-between items-start mb-6">
+      <h2 class="text-xl font-bold text-gray-200 flex-grow">動画生成</h2>
+      <% video_component = VideoGenerationButton::Component.new(content_record: item) %>
+      <% if video_component.video_exists? %>
+        <div class="ml-4 flex-shrink-0">
+          <%= render StatusBadge::Component.new(status: video_component.video_status.to_sym, size: :small) %>
+        </div>
+      <% end %>
+    </div>
+    <%= render video_component %>
 </div>

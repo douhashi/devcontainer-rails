@@ -278,6 +278,65 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
       end
     end
 
+    describe '#generation_duration' do
+      context 'when video does not exist' do
+        it 'returns nil' do
+          expect(component.send(:generation_duration)).to be_nil
+        end
+      end
+
+      context 'when video exists with timestamps' do
+        let!(:video) { create(:video, content: content_record, created_at: 1.hour.ago, updated_at: 30.minutes.ago) }
+
+        it 'returns duration in seconds' do
+          expect(component.send(:generation_duration)).to eq(1800) # 30 minutes
+        end
+      end
+
+      context 'when video was created and updated at the same time' do
+        let!(:video) do
+          time = Time.current
+          create(:video, content: content_record, created_at: time, updated_at: time)
+        end
+
+        it 'returns zero duration' do
+          expect(component.send(:generation_duration)).to eq(0)
+        end
+      end
+    end
+
+    describe '#formatted_generation_duration' do
+      context 'when duration is less than 60 seconds' do
+        before do
+          allow(component).to receive(:generation_duration).and_return(45)
+        end
+
+        it 'returns formatted seconds' do
+          expect(component.send(:formatted_generation_duration)).to eq('45秒')
+        end
+      end
+
+      context 'when duration is more than 60 seconds' do
+        before do
+          allow(component).to receive(:generation_duration).and_return(150) # 2 minutes 30 seconds
+        end
+
+        it 'returns formatted minutes and seconds' do
+          expect(component.send(:formatted_generation_duration)).to eq('2分30秒')
+        end
+      end
+
+      context 'when duration is nil' do
+        before do
+          allow(component).to receive(:generation_duration).and_return(nil)
+        end
+
+        it 'returns nil' do
+          expect(component.send(:formatted_generation_duration)).to be_nil
+        end
+      end
+    end
+
     describe '#button_classes' do
       context 'when button shows delete (completed or failed)' do
         let!(:video) { create(:video, content: content_record, status: :completed) }

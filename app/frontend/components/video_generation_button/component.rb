@@ -234,4 +234,24 @@ class VideoGenerationButton::Component < ApplicationViewComponent
       optimization: "YouTube推奨設定"
     }
   end
+
+  def generation_duration
+    return nil unless video_exists?
+    return nil if content_record.video.created_at.blank? || content_record.video.updated_at.blank?
+
+    (content_record.video.updated_at - content_record.video.created_at).to_i
+  end
+
+  def formatted_generation_duration
+    duration = generation_duration
+    return nil unless duration
+
+    if duration < 60
+      "#{duration}秒"
+    else
+      minutes = duration / 60
+      seconds = duration % 60
+      "#{minutes}分#{seconds}秒"
+    end
+  end
 end
