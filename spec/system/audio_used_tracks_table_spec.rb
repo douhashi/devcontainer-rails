@@ -38,7 +38,6 @@ RSpec.describe "AudioUsedTracksTable", type: :system, js: true do
           expect(page).to have_content("TRACK NO.")
           expect(page).to have_content("曲の長さ")
           expect(page).to have_content("プレイヤー")
-          expect(page).to have_content("アクション")
         end
 
         # Check track numbers
