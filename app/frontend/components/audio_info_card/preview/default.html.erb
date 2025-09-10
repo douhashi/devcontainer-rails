@@ -1,0 +1,63 @@
+<div class="p-8 bg-gray-900 min-h-screen">
+  <div class="max-w-4xl mx-auto space-y-8">
+    <h1 class="text-2xl font-bold text-white mb-8">AudioInfoCard Component Preview</h1>
+    
+    <section>
+      <h2 class="text-xl font-semibold text-gray-300 mb-4">All States</h2>
+      <div class="grid gap-6">
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Pending Status</h3>
+          <%= render AudioInfoCard::Component.new(
+            audio: Audio.new(
+              status: "pending",
+              created_at: 1.hour.ago,
+              updated_at: 1.hour.ago,
+              metadata: {}
+            )
+          ) %>
+        </div>
+
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Processing Status</h3>
+          <%= render AudioInfoCard::Component.new(
+            audio: Audio.new(
+              status: "processing",
+              created_at: 2.hours.ago,
+              updated_at: 30.minutes.ago,
+              metadata: { "duration" => 120 }
+            )
+          ) %>
+        </div>
+
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Completed Status</h3>
+          <%= render AudioInfoCard::Component.new(
+            audio: Audio.new(
+              status: "completed",
+              created_at: 1.day.ago,
+              updated_at: 1.day.ago,
+              metadata: { "duration" => 180 }
+            )
+          ) %>
+        </div>
+
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Failed Status</h3>
+          <%= render AudioInfoCard::Component.new(
+            audio: Audio.new(
+              status: "failed",
+              created_at: 3.hours.ago,
+              updated_at: 2.hours.ago,
+              metadata: {}
+            )
+          ) %>
+        </div>
+
+        <div>
+          <h3 class="text-sm text-gray-400 mb-2">Empty State (No Audio)</h3>
+          <%= render AudioInfoCard::Component.new(audio: nil) %>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

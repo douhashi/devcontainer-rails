@@ -88,7 +88,10 @@
   <!-- 4. 音源生成セクション -->
   <div class="bg-gray-800 rounded-lg p-6 mb-6">
     <h2 class="text-xl font-bold text-gray-200 mb-4">音源生成</h2>
-    <%= render AudioGenerationButton::Component.new(content_record: item) %>
+    <div class="space-y-4">
+      <%= render AudioGenerationButton::Component.new(content_record: item) %>
+      <%= render AudioInfoCard::Component.new(audio: item.audio) %>
+    </div>
   </div>
 
   <!-- 5. 動画生成セクション -->
