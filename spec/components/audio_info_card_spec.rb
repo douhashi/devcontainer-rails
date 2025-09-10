@@ -32,23 +32,19 @@ RSpec.describe AudioInfoCard::Component, type: :component do
         expect(page).to have_text("3:00")
       end
 
-      it "displays formatted created_at" do
+      it "displays processing time" do
         render_inline(component)
 
-        expect(page).to have_text("2025年01月15日 10:00")
+        expect(page).to have_text("作成時間:")
+        expect(page).to have_text("5分0秒")
       end
 
-      it "displays formatted updated_at" do
-        render_inline(component)
-
-        expect(page).to have_text("2025年01月15日 10:05")
-      end
-
-      it "displays delete button" do
+      it "displays delete icon button" do
         render_inline(component)
 
         expect(page).to have_css("[data-turbo-method='delete']")
-        expect(page).to have_text("削除")
+        # 削除アイコンのみでテキストは表示されない
+        expect(page).not_to have_text("削除")
       end
     end
 

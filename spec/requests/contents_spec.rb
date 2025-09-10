@@ -210,6 +210,91 @@ RSpec.describe "Contents", type: :request do
         # Should not cause error due to non-existent track
       end
     end
+
+    context "with audio info card refactoring" do
+      context "when content has completed audio" do
+        let!(:audio) do
+          create(:audio,
+            content: content,
+            status: "completed",
+            metadata: {
+              "duration" => 180,
+              "file_url" => "https://example.com/audio.mp3"
+            }
+          )
+        end
+
+        before do
+          audio.update!(created_at: 2.minutes.ago, updated_at: Time.current)
+          allow(audio).to receive(:audio_url).and_return("https://example.com/audio.mp3")
+        end
+
+        it "displays audio info in horizontal layout" do
+          get content_path(content)
+
+          expect(response).to have_http_status(:success)
+          expect(response.body).to include("音源情報")
+          expect(response.body).to include("長さ:")
+          expect(response.body).to include("3:00")
+          expect(response.body).to include("作成時間:")
+          expect(response.body).to include("2分0秒")
+        end
+
+        it "includes delete icon button for completed audio" do
+          get content_path(content)
+
+          expect(response.body).to include("この音源を削除してもよろしいですか？")
+        end
+
+        it "includes play button for completed audio" do
+          get content_path(content)
+
+          # AudioPlayButtonコンポーネント特有のdata属性を確認
+          expect(response.body).to include("play_circle")
+        end
+      end
+
+      context "when content has processing audio" do
+        let!(:audio) do
+          create(:audio,
+            content: content,
+            status: "processing",
+            metadata: {}
+          )
+        end
+
+        it "does not display delete button for processing audio" do
+          get content_path(content)
+
+          expect(response).to have_http_status(:success)
+          expect(response.body).not_to include("この音源を削除してもよろしいですか？")
+        end
+
+        it "does not display play button for processing audio" do
+          get content_path(content)
+
+          # play_circleアイコンが音源情報カードに表示されない
+          expect(response.body.scan("play_circle").count).to be <= 1
+        end
+      end
+
+      context "when content has failed audio" do
+        let!(:audio) do
+          create(:audio,
+            content: content,
+            status: "failed",
+            metadata: {}
+          )
+        end
+
+        it "displays delete button for failed audio" do
+          get content_path(content)
+
+          expect(response).to have_http_status(:success)
+          expect(response.body).to include("この音源を削除してもよろしいですか？")
+        end
+      end
+    end
   end
 
   describe "GET /contents/new" do

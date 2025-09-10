@@ -11,8 +11,7 @@ RSpec.describe AudioPlayButton::Component, type: :component do
 
     describe "when audio is present and completed" do
       before do
-        allow(audio).to receive_message_chain(:audio, :url).and_return('/test/audio.mp3')
-        allow(audio).to receive_message_chain(:audio, :present?).and_return(true)
+        allow(audio).to receive(:audio_url).and_return('/test/audio.mp3')
         content.audio = audio
       end
 

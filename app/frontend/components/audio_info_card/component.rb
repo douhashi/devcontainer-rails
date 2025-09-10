@@ -19,6 +19,23 @@ module AudioInfoCard
       sprintf("%d:%02d", minutes, seconds)
     end
 
+    def processing_time
+      return "-" unless audio&.persisted?
+      return "-" unless audio.created_at && audio.updated_at
+
+      diff = (audio.updated_at - audio.created_at).to_i
+      return "0秒" if diff == 0
+
+      minutes = diff / 60
+      seconds = diff % 60
+
+      if minutes > 0
+        "#{minutes}分#{seconds}秒"
+      else
+        "#{seconds}秒"
+      end
+    end
+
     def formatted_date(datetime)
       return "-" unless datetime
 

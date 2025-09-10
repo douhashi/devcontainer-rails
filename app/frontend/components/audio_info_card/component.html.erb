@@ -1,6 +1,7 @@
 <div class="audio-info-card">
   <% if audio.present? %>
-    <div class="bg-gray-800 rounded-lg p-6 space-y-4">
+    <div class="bg-gray-800 rounded-lg p-6">
+      <!-- Header with title and status badge -->
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-white">音源情報</h3>
         <%= render StatusBadge::Component.new(
@@ -8,47 +9,43 @@
         ) %>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="space-y-3">
-          <div>
-            <p class="text-sm text-gray-400 mb-1">長さ</p>
-            <p class="text-white font-medium"><%= formatted_duration %></p>
+      <!-- Horizontal layout for audio info -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <!-- Audio info items -->
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+          <!-- Duration -->
+          <div class="flex items-center gap-2">
+            <span class="text-gray-400">長さ:</span>
+            <span class="text-white font-medium"><%= formatted_duration %></span>
           </div>
-          
-          <div>
-            <p class="text-sm text-gray-400 mb-1">作成日時</p>
-            <p class="text-white font-medium"><%= formatted_date(audio.created_at) %></p>
+
+          <!-- Processing time -->
+          <div class="flex items-center gap-2">
+            <span class="text-gray-400">作成時間:</span>
+            <span class="text-white font-medium"><%= processing_time %></span>
           </div>
+
+          <!-- Play button -->
+          <% if audio.status == "completed" %>
+            <%= render AudioPlayButton::Component.new(content_record: audio.content, size: :small) %>
+          <% end %>
         </div>
 
-        <div class="space-y-3">
-          <div>
-            <p class="text-sm text-gray-400 mb-1">ステータス</p>
-            <div class="mt-1">
-              <%= render StatusBadge::Component.new(status: status_symbol, size: :small) %>
-            </div>
-          </div>
-          
-          <div>
-            <p class="text-sm text-gray-400 mb-1">更新日時</p>
-            <p class="text-white font-medium"><%= formatted_date(audio.updated_at) %></p>
-          </div>
-        </div>
-      </div>
-
-      <div class="pt-4 border-t border-gray-700">
-        <%= render Button::Component.new(
-          text: "削除",
-          variant: :danger,
-          size: :sm,
-          data: {
-            turbo_method: :delete,
-            turbo_confirm: "この音源を削除してもよろしいですか？",
-            controller: "delete-confirmation",
-            action: "click->delete-confirmation#confirm"
-          },
-          href: delete_path
-        ) %>
+        <!-- Delete icon button -->
+        <% if audio.status == "completed" || audio.status == "failed" %>
+          <%= button_to delete_path, 
+              method: :delete,
+              form: { 
+                data: { 
+                  turbo_method: "delete",
+                  turbo_confirm: "この音源を削除してもよろしいですか？" 
+                },
+                class: "inline"
+              },
+              class: "text-red-500 hover:text-red-600 transition-colors" do %>
+            <%= render Icon::Component.new(name: :delete, size: :sm) %>
+          <% end %>
+        <% end %>
       </div>
     </div>
   <% else %>

@@ -1,28 +1,27 @@
-<div class="audio-generation-section space-y-3">
-  <!-- Status Badge and Play Button Row -->
-  <% if audio_exists? %>
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <!-- Status Badge -->
-        <%= render StatusBadge::Component.new(status: audio_status.to_sym, size: :small) %>
-        
-        <!-- Play Button (only for completed audio) -->
-        <% if audio_status == "completed" && audio_file_url %>
-          <%= render AudioPlayButton::Component.new(content_record: content_record, size: :small) %>
-        <% end %>
-      </div>
+<!-- Status Badge and Play Button Row -->
+<% if audio_exists? %>
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-3">
+      <!-- Status Badge -->
+      <%= render StatusBadge::Component.new(status: audio_status.to_sym, size: :small) %>
       
-      <!-- Audio creation time -->
-      <% if audio_info %>
-        <span class="text-xs text-gray-500">
-          <%= time_ago_in_words(audio_info[:created_at]) %>前
-        </span>
+      <!-- Play Button (only for completed audio) -->
+      <% if audio_status == "completed" && audio_file_url %>
+        <%= render AudioPlayButton::Component.new(content_record: content_record, size: :small) %>
       <% end %>
     </div>
-  <% end %>
+    
+    <!-- Audio creation time -->
+    <% if audio_info %>
+      <span class="text-xs text-gray-500">
+        <%= time_ago_in_words(audio_info[:created_at]) %>前
+      </span>
+    <% end %>
+  </div>
+<% end %>
 
-  <!-- Action Button -->
-  <div class="flex items-center gap-2">
+<!-- Action Button -->
+<div class="flex items-center gap-2">
     <% if audio_status == "completed" || audio_status == "failed" %>
       <!-- Delete Button using ButtonComponent -->
       <%= form_with url: content_audio_path(content_record), method: :delete, local: true do |f| %>
@@ -68,4 +67,3 @@
       </span>
     <% end %>
   </div>
-</div>
