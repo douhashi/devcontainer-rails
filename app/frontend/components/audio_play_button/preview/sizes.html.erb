@@ -1,0 +1,16 @@
+<div class="space-y-4">
+  <div class="flex items-center space-x-4">
+    <span class="text-white">Small:</span>
+    <%= render AudioPlayButton::Component.new(track: track, size: :small) %>
+  </div>
+  
+  <div class="flex items-center space-x-4">
+    <span class="text-white">Medium (default):</span>
+    <%= render AudioPlayButton::Component.new(track: track, size: :medium) %>
+  </div>
+  
+  <div class="flex items-center space-x-4">
+    <span class="text-white">Large:</span>
+    <%= render AudioPlayButton::Component.new(track: track, size: :large) %>
+  </div>
+</div>

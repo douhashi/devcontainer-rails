@@ -130,9 +130,9 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
       # 他のボタンは通常のghostスタイル（bg-blue-600を持たない）
       button1 = find("#audio-play-button-track-#{track1.id}")
       button3 = find("#audio-play-button-track-#{track3.id}")
-      expect(button1[:class]).to include("hover:bg-blue-500/10")
+      expect(button1[:class]).to include("hover:bg-blue-500/20")
       expect(button1[:class]).not_to include("bg-blue-600")
-      expect(button3[:class]).to include("hover:bg-blue-500/10")
+      expect(button3[:class]).to include("hover:bg-blue-500/20")
       expect(button3[:class]).not_to include("bg-blue-600")
     end
   end

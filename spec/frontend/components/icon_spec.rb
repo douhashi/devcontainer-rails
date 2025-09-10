@@ -161,13 +161,23 @@ RSpec.describe Icon::Component, type: :component do
     end
   end
 
-  describe "#icon_path" do
+  describe "#icon_paths" do
     let(:component) { described_class.new(name: :image) }
 
-    it "returns the correct SVG path data" do
-      path_data = component.send(:icon_path)
-      expect(path_data).to be_a(String)
-      expect(path_data).to include("m2.25 15.75")
+    it "returns the correct SVG path data as array" do
+      path_data = component.send(:icon_paths)
+      expect(path_data).to be_an(Array)
+      expect(path_data.first).to include("m2.25 15.75")
+    end
+
+    context "with play_circle icon" do
+      let(:component) { described_class.new(name: :play_circle) }
+
+      it "returns multiple paths as array" do
+        path_data = component.send(:icon_paths)
+        expect(path_data).to be_an(Array)
+        expect(path_data.length).to eq(2)
+      end
     end
   end
 end

@@ -5,7 +5,9 @@
   </svg>
 <% else %>
   <svg <%= tag.attributes(svg_attributes) %>>
-    <path <%= tag.attributes(path_attributes) %> />
+    <% icon_paths.each do |path| %>
+      <path <%= tag.attributes(path_attributes(path)) %> />
+    <% end %>
   </svg>
 <% end %>
 

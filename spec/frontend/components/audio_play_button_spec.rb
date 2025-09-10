@@ -21,14 +21,22 @@ RSpec.describe AudioPlayButton::Component, type: :component do
 
         expect(result.css("button")).to be_present
         expect(result.css("button").first.attributes["class"].value).to include("rounded-full")
-        expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/10")
+        expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/20")
       end
 
-      it "includes play icon using IconComponent" do
+      it "includes play_circle icon using IconComponent" do
         result = render_inline(component)
 
         expect(result.css("svg")).to be_present
-        expect(result.css("svg path")).to be_present
+        # play_circleアイコンは2つのpath要素を持つ（再生ボタンと円）
+        expect(result.css("svg path").length).to eq(2)
+      end
+
+      it "applies blue color styling to the icon" do
+        result = render_inline(component)
+        svg = result.css("svg").first
+
+        expect(svg.attributes["class"].value).to include("text-blue-400")
       end
 
       it "has unified audio-play-button controller data attributes" do
@@ -89,14 +97,22 @@ RSpec.describe AudioPlayButton::Component, type: :component do
 
         expect(result.css("button")).to be_present
         expect(result.css("button").first.attributes["class"].value).to include("rounded-full")
-        expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/10")
+        expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/20")
       end
 
-      it "includes play icon using IconComponent" do
+      it "includes play_circle icon using IconComponent" do
         result = render_inline(component)
 
         expect(result.css("svg")).to be_present
-        expect(result.css("svg path")).to be_present
+        # play_circleアイコンは2つのpath要素を持つ（再生ボタンと円）
+        expect(result.css("svg path").length).to eq(2)
+      end
+
+      it "applies blue color styling to the icon" do
+        result = render_inline(component)
+        svg = result.css("svg").first
+
+        expect(svg.attributes["class"].value).to include("text-blue-400")
       end
 
       it "has unified audio-play-button controller data attributes for track" do

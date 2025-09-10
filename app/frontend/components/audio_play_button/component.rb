@@ -56,7 +56,7 @@ class AudioPlayButton::Component < ApplicationViewComponent
       "p-1.5 w-8 h-8"
     end
 
-    "rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors #{size_classes}"
+    "rounded-full hover:bg-blue-500/20 hover:text-blue-500 transition-all hover:scale-110 #{size_classes}"
   end
 
   def button_data
