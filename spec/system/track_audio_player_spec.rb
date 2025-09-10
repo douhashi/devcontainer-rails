@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe "Track Audio Player", type: :system, js: true, skip: "AudioPlayer component has been replaced with PlayButton and FloatingAudioPlayer" do
+  include_context "ログイン済み"
+
   let(:content) { create(:content) }
 
   context "with completed tracks having audio" do

@@ -1,6 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe "MusicGenerations", type: :request do
+  let(:user) { create(:user) }
+
+  before do
+    # Use post to sign in via Devise's form
+    post user_session_path, params: { user: { email: user.email, password: 'password' } }
+  end
+
   let(:content) { create(:content) }
   let!(:music_generation) { create(:music_generation, content: content) }
   let!(:track) { create(:track, content: content, music_generation: music_generation) }

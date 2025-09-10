@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Unified Audio Play Integration", type: :system do
+  include_context "ログイン済み"
+
   describe "Track and Content audio play functionality" do
     let(:content) { create(:content, theme: "Test Content Theme") }
 
@@ -34,33 +36,23 @@ RSpec.describe "Unified Audio Play Integration", type: :system do
         find('button[data-controller="audio-play-button"]').click
 
         # Wait for floating player to appear
-        expect(page).to have_css('.floating-audio-player', visible: true)
+        expect(page).to have_css('#floating-audio-player:not(.hidden)')
 
         # Check that the floating player shows the correct content
-        within('.floating-audio-player') do
+        within('#floating-audio-player') do
           expect(page).to have_content(content.theme)
         end
       end
     end
 
     context "when playing track audio" do
-      let(:track) do
-        track = create(:track, :completed, content: content)
-        track.update(metadata: { music_title: 'Test Track Title' })
+      let!(:music_generation) { create(:music_generation, :completed, content: content) }
+      let!(:track) do
+        track = create(:track, :completed, :with_audio, content: content, music_generation: music_generation, metadata: { music_title: 'Test Track Title' })
         track
       end
 
       before do
-        # Create a temporary audio file for testing
-        tempfile = Tempfile.new([ 'test_track_audio', '.mp3' ])
-        tempfile.write("dummy track audio content")
-        tempfile.rewind
-
-        track.audio = tempfile
-        track.save!
-        tempfile.close
-        tempfile.unlink
-
         visit content_path(content)
       end
 
@@ -72,10 +64,10 @@ RSpec.describe "Unified Audio Play Integration", type: :system do
         find('button[data-audio-play-button-type-value="track"]').click
 
         # Wait for floating player to appear
-        expect(page).to have_css('.floating-audio-player', visible: true)
+        expect(page).to have_css('#floating-audio-player:not(.hidden)')
 
         # Check that the floating player shows the correct track title
-        within('.floating-audio-player') do
+        within('#floating-audio-player') do
           expect(page).to have_content('Test Track Title')
         end
       end
@@ -105,10 +97,13 @@ RSpec.describe "Unified Audio Play Integration", type: :system do
       # Add a listener for the unified event
       page.execute_script(<<~JS)
         window.testEventReceived = false;
+        window.testEventType = null;
+        window.testEventTitle = null;
         document.addEventListener('audio:play', function(event) {
           console.log('Unified audio:play event received:', event.detail);
           window.testEventReceived = true;
-          window.testEventDetail = event.detail;
+          window.testEventType = event.detail.type;
+          window.testEventTitle = event.detail.title;
         });
       JS
 
@@ -116,14 +111,13 @@ RSpec.describe "Unified Audio Play Integration", type: :system do
       find('button[data-controller="audio-play-button"]').click
 
       # Wait for event to be dispatched
-      wait_for(5.seconds) { page.evaluate_script('window.testEventReceived') }
+      expect(page).to have_css('body', wait: 5) # Give time for event to dispatch
+      sleep 0.5 # Small delay to ensure event processing
 
       # Verify the event was received with correct data
       expect(page.evaluate_script('window.testEventReceived')).to be true
-
-      event_detail = page.evaluate_script('window.testEventDetail')
-      expect(event_detail['type']).to eq('content')
-      expect(event_detail['title']).to eq(content.theme)
+      expect(page.evaluate_script('window.testEventType')).to eq('content')
+      expect(page.evaluate_script('window.testEventTitle')).to eq(content.theme)
     end
   end
 end

@@ -6,7 +6,12 @@
   <% end %>
   
   <td class="px-6 py-4 text-sm text-gray-300">
-    <%= track_id %>
+    <% if track_title.present? %>
+      <div class="font-medium text-gray-200"><%= track_title %></div>
+      <div class="text-xs text-gray-400">ID: <%= track_id %></div>
+    <% else %>
+      <%= track_id %>
+    <% end %>
   </td>
   
   <td class="px-6 py-4 text-sm text-gray-300">

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_08_112409) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_09_211020) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -67,6 +67,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_112409) do
     t.index [ "content_id" ], name: "index_tracks_on_content_id"
     t.index [ "music_generation_id" ], name: "index_tracks_on_music_generation_id"
     t.index [ "status" ], name: "index_tracks_on_status"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.datetime "remember_created_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "email" ], name: "index_users_on_email", unique: true
   end
 
   create_table "videos", force: :cascade do |t|

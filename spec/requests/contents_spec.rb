@@ -1,6 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe "Contents", type: :request do
+  let(:user) { create(:user) }
+
+  before do
+    # Use post to sign in via Devise's form
+    post user_session_path, params: { user: { email: user.email, password: 'password' } }
+  end
   describe "GET /contents" do
     it "displays contents list" do
       create(:content, theme: "朝のリラックスBGM")

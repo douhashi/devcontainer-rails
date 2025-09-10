@@ -1,0 +1,48 @@
+<% content_for :title, "ログイン" %>
+
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <%= render Card::Component.new(variant: :elevated, padding: :lg, class: "w-full") do %>
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-100 mb-2">ログイン</h1>
+        <p class="text-gray-400">アカウントにサインインしてください</p>
+      </div>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), local: true, html: { id: "new_user", class: "space-y-6" }) do |f| %>
+        <div>
+          <%= f.label :email, "メールアドレス", class: "block text-sm font-medium text-gray-200 mb-2" %>
+          <%= f.email_field :email, 
+                autofocus: true, 
+                autocomplete: "email",
+                class: "w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" %>
+        </div>
+
+        <div>
+          <%= f.label :password, "パスワード", class: "block text-sm font-medium text-gray-200 mb-2" %>
+          <%= f.password_field :password, 
+                autocomplete: "current-password",
+                class: "w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" %>
+        </div>
+
+        <% if devise_mapping.rememberable? %>
+          <div class="flex items-center">
+            <%= f.check_box :remember_me, 
+                  class: "h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" %>
+            <%= f.label :remember_me, "ログイン状態を保持する", 
+                  class: "ml-2 block text-sm text-gray-200" %>
+          </div>
+        <% end %>
+
+        <div>
+          <%= render Button::Component.new(
+                text: "ログイン", 
+                type: "submit",
+                variant: :primary,
+                size: :lg,
+                class: "w-full"
+              ) %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

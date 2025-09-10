@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe "Tracks Performance", type: :system, js: true do
+  include_context "ログイン済み"
+
   let!(:content) { create(:content, theme: "Performance Test Content") }
 
   describe "JavaScript Performance" do

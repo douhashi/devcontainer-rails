@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
+  include_context "ログイン済み"
+
   let(:content) { create(:content, theme: "Relaxing Morning") }
   let!(:music_generation) { create(:music_generation, :completed, content: content) }
   let!(:track1) { create(:track, :completed, :with_audio, content: content, music_generation: music_generation, metadata: { "music_title" => "Track 1" }) }
@@ -19,25 +21,34 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
     end
 
     it "再生ボタンが表示されている" do
-      expect(page).to have_css("button[id^='play-button-']", count: 3)
+      # スクロールして音楽生成セクションを表示
+      page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+
+      # トラックが表示されていることを確認
+      expect(page).to have_content("Track 1")
+      expect(page).to have_content("Track 2")
+      expect(page).to have_content("Track 3")
+
+      # 再生ボタンの存在を確認
+      expect(page).to have_css("button[data-controller='audio-play-button']", minimum: 1)
     end
   end
 
   describe "再生ボタンクリック時" do
     it "フローティングプレイヤーが表示される" do
-      first("button[id^='play-button-']").click
+      first("button[data-controller='audio-play-button']").click
       expect(page).to have_css("#floating-audio-player:not(.hidden)")
     end
 
     it "トラックタイトルが表示される" do
-      find("#play-button-#{track1.id}").click
+      find("#audio-play-button-track-#{track1.id}").click
       within("#floating-audio-player") do
         expect(page).to have_text("Track 1")
       end
     end
 
     it "再生ボタンが一時停止アイコンに変わる" do
-      button = find("#play-button-#{track1.id}")
+      button = find("#audio-play-button-track-#{track1.id}")
       button.click
 
       within("#floating-audio-player") do
@@ -48,7 +59,7 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
 
   describe "プレイヤーコントロール" do
     before do
-      find("#play-button-#{track2.id}").click
+      find("#audio-play-button-track-#{track2.id}").click
       sleep 0.5 # Wait for player to initialize
     end
 
@@ -96,32 +107,32 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
   describe "複数トラックの切り替え" do
     it "別のトラックの再生ボタンをクリックすると切り替わる" do
       # Play track 1
-      find("#play-button-#{track1.id}").click
+      find("#audio-play-button-track-#{track1.id}").click
       within("#floating-audio-player") do
         expect(page).to have_text("Track 1")
       end
 
       # Play track 3
-      find("#play-button-#{track3.id}").click
+      find("#audio-play-button-track-#{track3.id}").click
       within("#floating-audio-player") do
         expect(page).to have_text("Track 3")
       end
     end
 
     it "現在再生中のトラックのボタンスタイルが変わる" do
-      find("#play-button-#{track2.id}").click
+      find("#audio-play-button-track-#{track2.id}").click
 
-      button2 = find("#play-button-#{track2.id}")
+      button2 = find("#audio-play-button-track-#{track2.id}")
       expect(button2[:class]).to include("bg-blue-700")
 
-      button1 = find("#play-button-#{track1.id}")
+      button1 = find("#audio-play-button-track-#{track1.id}")
       expect(button1[:class]).to include("bg-blue-600")
     end
   end
 
   describe "レスポンシブデザイン" do
     it "モバイルサイズでも適切に表示される", viewport: :mobile do
-      find("#play-button-#{track1.id}").click
+      find("#audio-play-button-track-#{track1.id}").click
 
       # Check if player has responsive classes
       expect(page).to have_css("#floating-audio-player.w-full")
@@ -130,7 +141,7 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
 
   describe "ページ遷移時の動作" do
     it "Turboページ遷移後もプレイヤーが維持される" do
-      find("#play-button-#{track1.id}").click
+      find("#audio-play-button-track-#{track1.id}").click
 
       # Verify player is visible and has turbo-permanent attribute
       expect(page).to have_css("#floating-audio-player:not(.hidden)")

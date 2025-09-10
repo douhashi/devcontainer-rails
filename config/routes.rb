@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users, skip: [ :registrations, :passwords ]
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   resource :sample, only: [ :show ]
 

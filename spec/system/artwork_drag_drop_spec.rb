@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
+  include_context "ログイン済み"
+
   let(:content) { create(:content) }
   let(:test_image_path) { Rails.root.join('spec', 'fixtures', 'test_image.jpg') }
 

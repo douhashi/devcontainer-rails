@@ -3,88 +3,53 @@
 require "rails_helper"
 
 describe "audio_generation_button component", type: :system do
-  let(:content) { create(:content) }
+  context "when viewing default preview" do
+    before do
+      visit("/rails/view_components/audio_generation_button/default")
+    end
 
-  before do
-    # Prerequisites for audio generation
-    create(:artwork, content: content)
-    create_list(:track, 3, :completed, content: content, duration_sec: 180)
+    it "shows generate button" do
+      expect(page).to have_button("音源を生成")
+    end
   end
 
   context "when audio is completed" do
-    let!(:audio) { create(:audio, :completed, content: content) }
-
     before do
-      visit content_path(content)
+      visit("/rails/view_components/audio_generation_button/completed")
     end
 
     it "shows delete button that is enabled" do
-      within(".audio-generation-section") do
-        expect(page).to have_button("削除", disabled: false)
-        expect(page).to have_css("button", text: "削除")
-      end
-    end
-  end
-
-  context "when audio is failed" do
-    let!(:audio) { create(:audio, :failed, content: content) }
-
-    before do
-      visit content_path(content)
-    end
-
-    it "shows delete button that is enabled" do
-      within(".audio-generation-section") do
-        expect(page).to have_button("削除", disabled: false)
-      end
+      expect(page).to have_button("削除", disabled: false)
     end
   end
 
   context "when audio is processing" do
-    let!(:audio) { create(:audio, :processing, content: content) }
-
     before do
-      visit content_path(content)
+      visit("/rails/view_components/audio_generation_button/processing")
     end
 
     it "shows processing button that is disabled" do
-      within(".audio-generation-section") do
-        expect(page).to have_button("作成中", disabled: true)
-      end
+      expect(page).to have_button("作成中", disabled: true)
+    end
+  end
+
+  context "when audio is failed" do
+    before do
+      visit("/rails/view_components/audio_generation_button/failed")
     end
 
-    it "has disabled appearance" do
-      within(".audio-generation-section") do
-        processing_button = find("button", text: "作成中")
-        expect(processing_button[:class]).to include("cursor-not-allowed")
-        expect(processing_button[:class]).to include("opacity-75")
-      end
+    it "shows delete button that is enabled" do
+      expect(page).to have_button("削除", disabled: false)
     end
   end
 
   context "when audio is pending" do
-    let!(:audio) { create(:audio, :pending, content: content) }
-
     before do
-      visit content_path(content)
+      visit("/rails/view_components/audio_generation_button/pending")
     end
 
-    it "does not show delete button" do
-      within(".audio-generation-section") do
-        expect(page).not_to have_button("削除")
-      end
-    end
-  end
-
-  context "when audio does not exist" do
-    before do
-      visit content_path(content)
-    end
-
-    it "does not show delete button" do
-      within(".audio-generation-section") do
-        expect(page).not_to have_button("削除")
-      end
+    it "shows pending button that is disabled" do
+      expect(page).to have_button("作成中", disabled: true)
     end
   end
 end

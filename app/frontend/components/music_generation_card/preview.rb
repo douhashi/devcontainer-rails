@@ -19,14 +19,16 @@ class MusicGenerationCard::Preview < ApplicationViewComponentPreview
       [
         Track.new(
           id: 1,
-          title: "Mellow Beat #1",
+          content: content,
+          metadata: { "music_title" => "Mellow Beat #1" },
           status: :completed,
           duration_sec: 180,
           created_at: 1.hour.ago
         ),
         Track.new(
           id: 2,
-          title: "Mellow Beat #2",
+          content: content,
+          metadata: { "music_title" => "Mellow Beat #2" },
           status: :completed,
           duration_sec: 185,
           created_at: 1.hour.ago

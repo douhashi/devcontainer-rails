@@ -256,7 +256,7 @@ export default class extends Controller {
 
   updateAllPlayButtons(currentTrackId) {
     // Update all play buttons on the page
-    document.querySelectorAll("[id^='play-button-']").forEach(button => {
+    document.querySelectorAll("[id^='audio-play-button-track-']").forEach(button => {
       const trackId = parseInt(button.dataset.trackId)
       const isPlaying = trackId === currentTrackId
       button.dataset.playing = isPlaying

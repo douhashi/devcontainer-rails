@@ -16,6 +16,10 @@ class ExtendedTrackRow::Component < ApplicationViewComponent
     track.id
   end
 
+  def track_title
+    track.metadata_title
+  end
+
   def music_generation_id
     music_generation.id
   end

@@ -1,6 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe "Contents generate_audio", type: :request do
+  let(:user) { create(:user) }
+
+  before do
+    # Use post to sign in via Devise's form
+    post user_session_path, params: { user: { email: user.email, password: 'password' } }
+  end
+
   let(:content) { create(:content, duration_min: 10) }
   let!(:artwork) { create(:artwork, content: content) }
   let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }

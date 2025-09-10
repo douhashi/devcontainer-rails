@@ -1,9 +1,15 @@
 require 'rails_helper'
 
 RSpec.describe "Artworks", type: :request do
+  let(:user) { create(:user) }
   let(:content) { create(:content) }
   let(:valid_attributes) { { artwork: { image: fixture_file_upload('spec/fixtures/test_image.jpg', 'image/jpeg') } } }
   let(:invalid_attributes) { { artwork: { image: nil } } }
+
+  before do
+    # Use post to sign in via Devise's form
+    post user_session_path, params: { user: { email: user.email, password: 'password' } }
+  end
 
   describe "POST /contents/:content_id/artworks" do
     context "with valid parameters" do

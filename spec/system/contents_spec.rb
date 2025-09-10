@@ -1,9 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Contents Flash Message Controller", type: :system do
-  before do
-    driven_by(:selenium_chrome_headless)
-  end
+  include_context "ログイン済み"
 
   describe "Flash message auto-hide", js: true do
     it "automatically hides flash message after 5 seconds" do
