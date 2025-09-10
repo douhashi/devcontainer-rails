@@ -52,12 +52,16 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(rendered).to have_css("button[data-action='click->floating-audio-player#close']")
     end
 
-    it "has dark theme styling" do
-      expect(rendered).to have_css("div.bg-gray-900")
+    it "has dark theme styling with improved visual separation" do
+      expect(rendered).to have_css("div.bg-gray-800")
     end
 
-    it "has shadow styling" do
-      expect(rendered).to have_css("div.shadow-2xl")
+    it "has border for visual separation" do
+      expect(rendered).to have_css("div.border-t.border-gray-700")
+    end
+
+    it "has adjusted shadow styling" do
+      expect(rendered).to have_css("div.shadow-lg")
     end
 
     it "has full width bottom bar layout" do
@@ -120,6 +124,19 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
     it "includes volume control in Plyr configuration" do
       rendered_html = rendered.to_html
       expect(rendered_html).to include("volume")
+    end
+  end
+
+  describe "button hover states" do
+    subject(:rendered) { render_inline(component) }
+
+    it "control buttons have updated hover state for new background" do
+      expect(rendered).to have_css("button.hover\\:bg-gray-700")
+    end
+
+    it "close button has updated hover state for new background" do
+      close_button = rendered.css("button[data-action='click->floating-audio-player#close']").first
+      expect(close_button["class"]).to include("hover:bg-gray-700")
     end
   end
 end

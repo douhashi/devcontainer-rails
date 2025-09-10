@@ -19,9 +19,11 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
       "right-0",
       "z-50",
       "hidden",
-      "bg-gray-900",
+      "bg-gray-800",
       "text-white",
-      "shadow-2xl",
+      "shadow-lg",
+      "border-t",
+      "border-gray-700",
       "w-full",
       "h-16",
       "flex",
@@ -48,11 +50,11 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
   end
 
   def button_classes
-    "w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors"
+    "w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors"
   end
 
   def close_button_classes
-    "w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors"
+    "w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors"
   end
 
   def track_info_classes
