@@ -132,17 +132,27 @@ RSpec.describe "AudioUsedTracksTable", type: :system, js: true do
       it "displays player icon for tracks with audio" do
         visit content_path(content)
 
+        # Ensure the table with used tracks is visible
+        expect(page).to have_content("使用Track一覧")
+
         within("table tbody") do
           rows = all("tr")
 
-          # First row should have player icon
+          # First row (track with audio) should have player button
           within(rows[0]) do
-            expect(page).to have_css("svg.text-blue-400")
+            # Check that the player column has a button (not a dash)
+            within(all("td")[3]) do  # Player column is 4th column (0-indexed)
+              expect(page).to have_css("button[data-controller='audio-play-button']")
+              expect(page).not_to have_css("span.text-gray-500", text: "-")
+            end
           end
 
-          # Second row should have dash
+          # Second row (track without audio) should have dash
           within(rows[1]) do
-            expect(page).to have_css("span.text-gray-500", text: "-")
+            within(all("td")[3]) do  # Player column
+              expect(page).to have_css("span.text-gray-500", text: "-")
+              expect(page).not_to have_css("button")
+            end
           end
         end
       end

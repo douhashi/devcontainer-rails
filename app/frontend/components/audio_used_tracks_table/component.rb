@@ -37,7 +37,8 @@ class AudioUsedTracksTable::Component < ApplicationViewComponent
     selected_tracks.each_with_index.map do |track, index|
       {
         track: track,
-        track_number: index + 1
+        track_number: index + 1,
+        track_title: track.metadata_title
       }
     end
   end
@@ -46,5 +47,10 @@ class AudioUsedTracksTable::Component < ApplicationViewComponent
 
   def render?
     should_display?
+  end
+
+  def play_button_component(track)
+    return unless track.status.completed? && track.audio.present?
+    AudioPlayButton::Component.new(track: track)
   end
 end
