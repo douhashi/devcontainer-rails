@@ -55,6 +55,7 @@ Be sure to run the version *without* `--comments` first to understand the requir
 - Run `GH_PAGER= gh pr checks <PR number>` to verify CI status
   - All checks must ✅ pass
   - If checks are still running, wait and retry until completed
+  - ⚠️ **Note**: CI can take over 5 minutes to complete. Be patient and ensure all checks are fully finished before proceeding
 
 ### 6. Post Review Result
 
