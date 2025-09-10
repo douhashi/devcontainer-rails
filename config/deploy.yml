@@ -1,14 +1,14 @@
 # Name of your application. Used to uniquely configure containers.
-service: my-app
+service: lofi-bgm
 
 # Name of the container image.
-image: douhashi/my-app
+image: douhashi/lofi-bgm-app
 
 # Deploy to these servers.
 servers:
   web:
     hosts:
-      - 192.168.0.1
+      - lofi-bgm.work
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -20,15 +20,12 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: true
-  host: app.example.com
-  # Proxy connects to your container on port 80 by default.
-  # app_port: 3000
+  host: lofi-bgm.work
+  app_port: 3000
 
 # Credentials for your image host.
 registry:
-  # Specify the registry server, if you're not using Docker Hub
-  # server: registry.digitalocean.com / ghcr.io / ...
-  server: https://nrt.vultrcr.com
+  server: registry.dhs-dev.online:5000
   username:
     - KAMAL_REGISTRY_USERNAME
 
@@ -59,18 +56,23 @@ env:
 #
 # aliases:
 #   shell: app exec --interactive --reuse "bash"
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole"
 
-# Use a different ssh user than root
-#
-# ssh:
-#   user: app
+ssh:
+  user: root
+  config: true
 
 # Use a persistent storage volume.
 #
 # volumes:
 #   - "app_storage:/app/storage"
 volumes:
-  - "storage:/rails/storage"
+  - "db_production:/rails/db/production"
+  - "storage_data:/rails/storage"
 
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
 # hitting 404 on in-flight requests. Combines all files from new and old

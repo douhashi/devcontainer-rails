@@ -58,3 +58,9 @@ CLAUDE.local.md
 .claude/roles/*.local.*
 .claude/cache/
 .claude/tmp/
+
+/config/credentials/development.key
+
+/config/credentials/test.key
+
+/config/credentials/production.key
