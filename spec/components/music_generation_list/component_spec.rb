@@ -44,18 +44,18 @@ RSpec.describe MusicGenerationList::Component, type: :component do
         render_inline(component)
 
         expect(page).to have_css("table.min-w-full")
-        # Track単位表示なので、MusicGeneration IDはセルに表示される
-        expect(page).to have_css("td", text: generation1.id.to_s)
-        expect(page).to have_css("td", text: generation2.id.to_s)
-        expect(page).to have_css("td", text: generation3.id.to_s)
+        # Track番号が表示される（Track No.列）- generation1には2つのTrackがあるので#1と#2が表示される
+        expect(page).to have_css("td", text: "#1")
+        expect(page).to have_css("td", text: "#2")
+        # generation2とgeneration3にはTrackがないので、「Trackがありません」と表示される
+        expect(page).to have_css("td", text: "Trackがありません", count: 2)
       end
 
       it "renders table headers for track-based display" do
         render_inline(component)
 
-        # Track単位表示用のヘッダー
-        expect(page).to have_css("th", text: "生成リクエストID")
-        expect(page).to have_css("th", text: "Track ID")
+        # 新しいヘッダー構成
+        expect(page).to have_css("th", text: "Track No.")
         expect(page).to have_css("th", text: "曲の長さ")
         expect(page).to have_css("th", text: "プレイヤー")
         expect(page).to have_css("th", text: "アクション")
@@ -91,10 +91,12 @@ RSpec.describe MusicGenerationList::Component, type: :component do
     context "responsive design" do
       let(:music_generations) { create_list(:music_generation, 3, content: content) }
 
-      it "includes responsive table container" do
+      it "includes scrollable table container" do
         render_inline(component)
 
-        expect(page).to have_css(".overflow-x-auto")
+        # テーブルがスクロール可能になっている
+        expect(page).to have_css(".overflow-y-auto")
+        expect(page).to have_css(".max-h-96")
       end
     end
   end

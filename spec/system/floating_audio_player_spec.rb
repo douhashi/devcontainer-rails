@@ -24,10 +24,10 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
       # スクロールして音楽生成セクションを表示
       page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
 
-      # トラックが表示されていることを確認
-      expect(page).to have_content("Track 1")
-      expect(page).to have_content("Track 2")
-      expect(page).to have_content("Track 3")
+      # Track番号が表示されていることを確認（Track 1ではなく#1, #2, #3として表示）
+      expect(page).to have_content("#1")
+      expect(page).to have_content("#2")
+      expect(page).to have_content("#3")
 
       # 再生ボタンの存在を確認
       expect(page).to have_css("button[data-controller='audio-play-button']", minimum: 1)
@@ -121,12 +121,19 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
 
     it "現在再生中のトラックのボタンスタイルが変わる" do
       find("#audio-play-button-track-#{track2.id}").click
+      sleep 0.5 # Stimulusコントローラーがクラスを適用するのを待つ
 
+      # ghostバリアントに変更されたため、bg-blue-600が再生中のボタンに適用される
       button2 = find("#audio-play-button-track-#{track2.id}")
-      expect(button2[:class]).to include("bg-blue-700")
+      expect(button2[:class]).to include("bg-blue-600")
 
+      # 他のボタンは通常のghostスタイル（bg-blue-600を持たない）
       button1 = find("#audio-play-button-track-#{track1.id}")
-      expect(button1[:class]).to include("bg-blue-600")
+      button3 = find("#audio-play-button-track-#{track3.id}")
+      expect(button1[:class]).to include("hover:bg-blue-500/10")
+      expect(button1[:class]).not_to include("bg-blue-600")
+      expect(button3[:class]).to include("hover:bg-blue-500/10")
+      expect(button3[:class]).not_to include("bg-blue-600")
     end
   end
 

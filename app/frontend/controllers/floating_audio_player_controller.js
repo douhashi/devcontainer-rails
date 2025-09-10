@@ -266,17 +266,19 @@ export default class extends Controller {
   updateAllPlayButtons(currentTrackId) {
     // Update all play buttons on the page
     document.querySelectorAll("[id^='audio-play-button-track-']").forEach(button => {
-      const trackId = parseInt(button.dataset.trackId)
+      // buttonのIDからtrackIdを抽出 (例: "audio-play-button-track-123" -> 123)
+      const buttonId = button.id
+      const trackId = parseInt(buttonId.replace('audio-play-button-track-', ''))
       const isPlaying = trackId === currentTrackId
       button.dataset.playing = isPlaying
       
       // Update button visual state
       if (isPlaying) {
-        button.classList.remove("bg-blue-600")
-        button.classList.add("bg-blue-700")
-      } else {
-        button.classList.remove("bg-blue-700")
+        // 再生中のボタンにはbg-blue-600を追加
         button.classList.add("bg-blue-600")
+      } else {
+        // 再生中でないボタンからはbg-blue-600を削除
+        button.classList.remove("bg-blue-600")
       }
     })
   }

@@ -42,25 +42,38 @@ RSpec.describe MusicGenerationTable::Component, type: :component do
     context "複数のMusicGenerationとTracksがある場合" do
       let!(:music_generation1) { create(:music_generation, content: content, status: :completed) }
       let!(:music_generation2) { create(:music_generation, content: content, status: :completed) }
-      let!(:track1_1) { create(:track, music_generation: music_generation1, content: content, status: :completed, duration_sec: 180) }
-      let!(:track1_2) { create(:track, music_generation: music_generation1, content: content, status: :completed, duration_sec: 200) }
-      let!(:track2_1) { create(:track, music_generation: music_generation2, content: content, status: :completed, duration_sec: 150) }
+      let!(:track1_1) { create(:track, music_generation: music_generation1, content: content, status: :completed, duration_sec: 180, created_at: 1.hour.ago) }
+      let!(:track1_2) { create(:track, music_generation: music_generation1, content: content, status: :completed, duration_sec: 200, created_at: 30.minutes.ago) }
+      let!(:track2_1) { create(:track, music_generation: music_generation2, content: content, status: :completed, duration_sec: 150, created_at: 10.minutes.ago) }
 
       let(:music_generations) { MusicGeneration.includes(:tracks).order(created_at: :desc) }
       let(:component) { described_class.new(music_generations: music_generations) }
       let(:rendered) { render_inline(component) }
 
       it "全てのTrackが個別の行として表示される" do
-        # 各TrackのIDが表示されることを確認
-        expect(rendered).to have_css("td", text: track1_1.id.to_s)
-        expect(rendered).to have_css("td", text: track1_2.id.to_s)
-        expect(rendered).to have_css("td", text: track2_1.id.to_s)
+        # Track番号が作成日時順で表示されることを確認
+        # MusicGeneration1に2つ、MusicGeneration2に1つあるため
+        expect(rendered).to have_css("td", text: "#1", count: 2)  # 各MusicGenerationで#1が存在
+        expect(rendered).to have_css("td", text: "#2", count: 1)  # MusicGeneration1にのみ#2が存在
       end
 
-      it "MusicGenerationのIDが各Track行に表示される" do
-        # 生成リクエストIDが各Track行に表示されることを確認
-        expect(rendered).to have_css("[data-generation-id='#{music_generation1.id}']")
-        expect(rendered).to have_css("[data-generation-id='#{music_generation2.id}']")
+      it "Track番号が作成日時順で正しく付与される" do
+        # Track番号が各Track行に正しい順序で表示されることを確認
+        # MusicGeneration1のTrack
+        track_row_1_1 = rendered.at_css("tr[data-track-id='#{track1_1.id}']")
+        expect(track_row_1_1).to have_content("#1")
+
+        track_row_1_2 = rendered.at_css("tr[data-track-id='#{track1_2.id}']")
+        expect(track_row_1_2).to have_content("#2")
+
+        # MusicGeneration2のTrack
+        track_row_2_1 = rendered.at_css("tr[data-track-id='#{track2_1.id}']")
+        expect(track_row_2_1).to have_content("#1")
+      end
+
+      it "MusicGenerationのIDが各Track行に表示されない" do
+        # 生成リクエストIDが表示されないことを確認
+        expect(rendered).not_to have_content("生成リクエストID")
       end
 
       it "各Trackの曲の長さが適切に表示される" do
@@ -106,8 +119,9 @@ RSpec.describe MusicGenerationTable::Component, type: :component do
       end
 
       it "Track単位用のヘッダー行が表示される" do
-        expect(subject).to have_css("thead tr th", text: "生成リクエストID")
-        expect(subject).to have_css("thead tr th", text: "Track ID")
+        expect(subject).not_to have_css("thead tr th", text: "生成リクエストID")
+        expect(subject).not_to have_css("thead tr th", text: "Track ID")
+        expect(subject).to have_css("thead tr th", text: "Track No.")
         expect(subject).to have_css("thead tr th", text: "曲の長さ")
         expect(subject).to have_css("thead tr th", text: "プレイヤー")
         expect(subject).to have_css("thead tr th", text: "アクション")
@@ -117,6 +131,10 @@ RSpec.describe MusicGenerationTable::Component, type: :component do
         expect(subject).to have_css("tbody tr", count: 2)
         expect(subject).to have_css("tbody tr[data-track-id='#{track1.id}']")
         expect(subject).to have_css("tbody tr[data-track-id='#{track2.id}']")
+      end
+
+      it "テーブルに固定高さとスクロール設定が適用される" do
+        expect(subject).to have_css(".max-h-96.overflow-y-auto")
       end
     end
 
@@ -173,8 +191,8 @@ RSpec.describe MusicGenerationTable::Component, type: :component do
       let(:music_generation) { create(:music_generation, content: content) }
       let(:music_generations) { MusicGeneration.where(id: music_generation.id) }
 
-      it "横スクロール可能なコンテナに含まれる" do
-        expect(subject).to have_css(".overflow-x-auto")
+      it "縦スクロール可能なコンテナに含まれる" do
+        expect(subject).to have_css(".overflow-y-auto")
       end
     end
 

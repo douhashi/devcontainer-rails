@@ -21,7 +21,7 @@ RSpec.describe AudioPlayButton::Component, type: :component do
 
         expect(result.css("button")).to be_present
         expect(result.css("button").first.attributes["class"].value).to include("rounded-full")
-        expect(result.css("button").first.attributes["class"].value).to include("bg-blue-600")
+        expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/10")
       end
 
       it "includes play icon using IconComponent" do
@@ -48,7 +48,7 @@ RSpec.describe AudioPlayButton::Component, type: :component do
           result = render_inline(component)
 
           expect(result.css("button")).to be_present
-          expect(result.css("button").first.attributes["class"].value).to include("w-8 h-8")
+          expect(result.css("button").first.attributes["class"].value).to include("w-6 h-6")
         end
 
         it "renders large size" do
@@ -56,7 +56,7 @@ RSpec.describe AudioPlayButton::Component, type: :component do
           result = render_inline(component)
 
           expect(result.css("button")).to be_present
-          expect(result.css("button").first.attributes["class"].value).to include("w-12 h-12")
+          expect(result.css("button").first.attributes["class"].value).to include("w-10 h-10")
         end
       end
     end
@@ -89,7 +89,7 @@ RSpec.describe AudioPlayButton::Component, type: :component do
 
         expect(result.css("button")).to be_present
         expect(result.css("button").first.attributes["class"].value).to include("rounded-full")
-        expect(result.css("button").first.attributes["class"].value).to include("bg-blue-600")
+        expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/10")
       end
 
       it "includes play icon using IconComponent" do

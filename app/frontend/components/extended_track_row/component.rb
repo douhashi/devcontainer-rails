@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 class ExtendedTrackRow::Component < ApplicationViewComponent
-  attr_reader :track, :music_generation, :is_group_start, :group_size
+  attr_reader :track, :music_generation, :is_group_start, :group_size, :track_number
 
-  def initialize(track:, music_generation:, is_group_start: false, group_size: 1)
+  def initialize(track:, music_generation:, is_group_start: false, group_size: 1, track_number: nil)
     @track = track
     @music_generation = music_generation
     @is_group_start = is_group_start
     @group_size = group_size
+    @track_number = track_number
   end
 
   private

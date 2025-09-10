@@ -1,22 +1,19 @@
 <% if has_generations? %>
   <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-    <div class="overflow-x-auto">
+    <div class="max-h-96 overflow-y-auto">
       <table class="min-w-full divide-y divide-gray-700">
-        <thead class="bg-gray-900">
+        <thead class="bg-gray-900 sticky top-0 z-10">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              生成リクエストID
+            <th scope="col" class="px-6 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              Track No.
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-              Track ID
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
               曲の長さ
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
               プレイヤー
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
               アクション
             </th>
           </tr>

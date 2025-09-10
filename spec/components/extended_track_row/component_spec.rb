@@ -8,7 +8,8 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
   let(:track) { create(:track, music_generation: music_generation, content: content, duration_sec: 180, status: :completed) }
   let(:is_group_start) { false }
   let(:group_size) { 1 }
-  let(:component) { described_class.new(track: track, music_generation: music_generation, is_group_start: is_group_start, group_size: group_size) }
+  let(:track_number) { 1 }
+  let(:component) { described_class.new(track: track, music_generation: music_generation, is_group_start: is_group_start, group_size: group_size, track_number: track_number) }
   let(:rendered) { render_inline(component) }
 
   before do
@@ -33,10 +34,6 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
       let(:is_group_start) { true }
       let(:group_size) { 3 }
 
-      it "MusicGeneration IDが表示される" do
-        expect(rendered).to have_css("td[rowspan='3']", text: music_generation.id.to_s)
-      end
-
       it "グループ開始用のCSSクラスが適用される" do
         expect(rendered).to have_css("tr.border-t-2.border-gray-600")
       end
@@ -46,13 +43,21 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
       let(:is_group_start) { false }
       let(:group_size) { 1 }
 
-      it "MusicGeneration IDのセルが表示されない" do
-        expect(rendered).not_to have_css("td[rowspan]")
+      it "グループ開始用のCSSクラスが適用されない" do
+        expect(rendered).not_to have_css("tr.border-t-2.border-gray-600")
       end
     end
 
-    it "Track IDが表示される" do
-      expect(rendered).to have_css("td", text: track.id.to_s)
+    it "Track番号が表示される" do
+      expect(rendered).to have_css("td", text: "##{track_number}")
+    end
+
+    context "Track番号が異なる場合" do
+      let(:track_number) { 5 }
+
+      it "正しいTrack番号が表示される" do
+        expect(rendered).to have_css("td", text: "#5")
+      end
     end
 
     it "曲の長さが表示される" do
@@ -61,11 +66,11 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
 
     it "プレイヤーコンポーネントが表示される" do
       # AudioPlayButton::Componentがレンダリングされることを確認
-      expect(rendered).to have_css("button[id^='audio-play-button-']")
+      expect(rendered).to have_css("[id^='audio-play-button-']")
     end
 
     it "削除アクションが表示される" do
-      expect(rendered).to have_css("button", text: "削除")
+      expect(rendered).to have_css("[data-turbo-method='delete']")
     end
 
     it "data-generation-id属性が設定される" do
@@ -101,7 +106,7 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
       end
 
       context "2番目のTrack" do
-        let(:component) { described_class.new(track: track2, music_generation: music_generation, is_group_start: false, group_size: 0) }
+        let(:component) { described_class.new(track: track2, music_generation: music_generation, is_group_start: false, group_size: 0, track_number: 2) }
 
         it "同じ背景色が設定される" do
           expect(rendered).to have_css("tr.bg-gray-800\\/50")

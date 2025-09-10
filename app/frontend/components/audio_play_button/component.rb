@@ -39,7 +39,7 @@ class AudioPlayButton::Component < ApplicationViewComponent
   end
 
   def button_variant
-    :primary
+    :ghost  # アイコンのみの表示にするためghostバリアントを使用
   end
 
   def button_size
@@ -49,14 +49,14 @@ class AudioPlayButton::Component < ApplicationViewComponent
   def button_custom_class
     size_classes = case size
     when :small
-      "p-1.5 w-8 h-8"
+      "p-1 w-6 h-6"
     when :large
-      "p-3 w-12 h-12"
-    else
       "p-2 w-10 h-10"
+    else
+      "p-1.5 w-8 h-8"
     end
 
-    "rounded-full shadow-sm hover:shadow-md #{size_classes}"
+    "rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors #{size_classes}"
   end
 
   def button_data
