@@ -236,12 +236,21 @@ export default class extends Controller {
 
   show() {
     this.element.classList.remove("hidden")
-    this.element.classList.add("translate-y-0")
     this.element.classList.remove("translate-y-full")
+    // Force reflow to ensure the transition works
+    this.element.offsetHeight
+    this.element.classList.add("translate-y-0")
   }
 
   hide() {
-    this.element.classList.add("hidden")
+    this.element.classList.remove("translate-y-0")
+    this.element.classList.add("translate-y-full")
+    // Hide after animation completes
+    setTimeout(() => {
+      if (this.element.classList.contains("translate-y-full")) {
+        this.element.classList.add("hidden")
+      }
+    }, 300)
   }
 
   updatePlayButton(isPlaying) {

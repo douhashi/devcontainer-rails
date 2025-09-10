@@ -4,39 +4,18 @@
   data-controller="floating-audio-player"
   data-turbo-permanent
 >
-  <!-- Close Button -->
-  <button 
-    type="button"
-    class="<%= close_button_classes %>"
-    data-action="click->floating-audio-player#close"
-    aria-label="Close player"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  </button>
-
-  <!-- Track Title -->
-  <div class="mb-3 pr-8">
-    <h3 class="text-sm font-medium text-gray-300">Now Playing</h3>
+  <!-- Left Section: Track Info -->
+  <div class="<%= track_info_classes %>">
     <p 
-      class="text-lg font-semibold truncate"
+      class="text-sm font-medium truncate"
       data-floating-audio-player-target="trackTitle"
     >
-      -
+      Now Playing
     </p>
   </div>
 
-  <!-- Audio Player -->
-  <audio 
-    id="<%= audio_id %>"
-    data-floating-audio-player-target="audio"
-    data-plyr-config='<%= plyr_config %>'
-    controls
-  ></audio>
-
-  <!-- Control Buttons -->
-  <div class="flex items-center justify-center gap-2 mt-3">
+  <!-- Center Section: Audio Player and Controls -->
+  <div class="<%= controls_section_classes %>">
     <!-- Previous Button -->
     <button 
       type="button"
@@ -74,6 +53,29 @@
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062A1.125 1.125 0 013 16.81V8.688zM12.75 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062a1.125 1.125 0 01-1.683-.977V8.688z" />
+      </svg>
+    </button>
+
+    <!-- Audio Player (with Plyr controls) -->
+    <audio 
+      id="<%= audio_id %>"
+      data-floating-audio-player-target="audio"
+      data-plyr-config='<%= plyr_config %>'
+      controls
+      class="flex-1 mx-4 min-w-0"
+    ></audio>
+  </div>
+
+  <!-- Right Section: Close Button -->
+  <div class="<%= close_section_classes %>">
+    <button 
+      type="button"
+      class="<%= close_button_classes %>"
+      data-action="click->floating-audio-player#close"
+      aria-label="Close player"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
   </div>

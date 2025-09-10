@@ -130,12 +130,90 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
     end
   end
 
+  describe "新しい下部バーレイアウト" do
+    before do
+      find("#audio-play-button-track-#{track1.id}").click
+      sleep 0.5 # Wait for player to initialize
+    end
+
+    it "画面下部全体に固定されている" do
+      expect(page).to have_css("#floating-audio-player.fixed.bottom-0.left-0.right-0")
+    end
+
+    it "横長レイアウトでフレックス配置されている" do
+      expect(page).to have_css("#floating-audio-player.flex.items-center")
+    end
+
+    it "コンパクトな高さ(h-16)になっている" do
+      expect(page).to have_css("#floating-audio-player.h-16")
+    end
+
+    it "左側にトラック情報が表示される" do
+      within("#floating-audio-player") do
+        expect(page).to have_css("div.flex-shrink-0.min-w-0", text: "Track 1")
+      end
+    end
+
+    it "中央にコントロールボタンとプレイヤーが配置されている" do
+      within("#floating-audio-player") do
+        expect(page).to have_css("div.flex-1")
+        expect(page).to have_css("button[data-action='click->floating-audio-player#previous']")
+        expect(page).to have_css("button[data-floating-audio-player-target='playButton']")
+        expect(page).to have_css("button[data-action='click->floating-audio-player#next']")
+        # Plyr wraps the audio element, so check for the plyr wrapper instead
+        expect(page).to have_css(".plyr")
+      end
+    end
+
+    it "右側に閉じるボタンが配置されている" do
+      within("#floating-audio-player") do
+        expect(page).to have_css("div.flex-shrink-0 button[data-action='click->floating-audio-player#close']")
+      end
+    end
+  end
+
   describe "レスポンシブデザイン" do
     it "モバイルサイズでも適切に表示される", viewport: :mobile do
       find("#audio-play-button-track-#{track1.id}").click
 
-      # Check if player has responsive classes
-      expect(page).to have_css("#floating-audio-player.w-full")
+      # Check if player has responsive classes and proper sizing
+      expect(page).to have_css("#floating-audio-player.w-full.h-16")
+      expect(page).to have_css("#floating-audio-player.px-4")
+    end
+
+    it "デスクトップサイズで適切な余白が設定されている" do
+      find("#audio-play-button-track-#{track1.id}").click
+
+      expect(page).to have_css("#floating-audio-player.px-4.sm\\:px-6")
+    end
+  end
+
+  describe "スライドアニメーション" do
+    it "表示時にslide-upアニメーションが実行される" do
+      # Initially hidden
+      expect(page).to have_css("#floating-audio-player.hidden", visible: :all)
+
+      # Click to show
+      find("#audio-play-button-track-#{track1.id}").click
+
+      # Should not be hidden and should have proper transform classes
+      expect(page).to have_css("#floating-audio-player:not(.hidden)")
+      expect(page).to have_css("#floating-audio-player.translate-y-0")
+    end
+
+    it "非表示時にslide-downアニメーションが実行される" do
+      # Show player first
+      find("#audio-play-button-track-#{track1.id}").click
+      expect(page).to have_css("#floating-audio-player:not(.hidden)")
+
+      # Click close button
+      within("#floating-audio-player") do
+        find("button[data-action='click->floating-audio-player#close']").click
+      end
+
+      # Should eventually become hidden (after animation)
+      sleep 0.4 # Wait for animation to complete
+      expect(page).to have_css("#floating-audio-player.hidden", visible: :all)
     end
   end
 

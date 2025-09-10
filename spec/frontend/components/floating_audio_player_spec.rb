@@ -12,8 +12,8 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(rendered).to have_css("div#floating-audio-player")
     end
 
-    it "has fixed positioning classes" do
-      expect(rendered).to have_css("div.fixed.bottom-4.right-4")
+    it "has bottom bar positioning classes" do
+      expect(rendered).to have_css("div.fixed.bottom-0.left-0.right-0")
     end
 
     it "includes Stimulus controller" do
@@ -56,12 +56,44 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(rendered).to have_css("div.bg-gray-900")
     end
 
-    it "has rounded corners and shadow" do
-      expect(rendered).to have_css("div.rounded-lg.shadow-2xl")
+    it "has shadow styling" do
+      expect(rendered).to have_css("div.shadow-2xl")
     end
 
-    it "is responsive for mobile" do
-      expect(rendered).to have_css("div.w-full.sm\\:w-96")
+    it "has full width bottom bar layout" do
+      expect(rendered).to have_css("div.w-full")
+    end
+
+    it "has compact height for bottom bar" do
+      expect(rendered).to have_css("div.h-16")
+    end
+
+    it "has responsive padding" do
+      expect(rendered).to have_css("div.px-4")
+    end
+
+    it "has slide animation classes" do
+      expect(rendered).to have_css("div.transform.translate-y-0")
+    end
+  end
+
+  describe "horizontal layout" do
+    subject(:rendered) { render_inline(component) }
+
+    it "uses flex layout for horizontal arrangement" do
+      expect(rendered).to have_css("div.flex.items-center")
+    end
+
+    it "includes left section for track info" do
+      expect(rendered).to have_css("div.flex-shrink-0")
+    end
+
+    it "includes center section for controls" do
+      expect(rendered).to have_css("div.flex-1")
+    end
+
+    it "includes right section for close button" do
+      expect(rendered).to have_css("div.flex-shrink-0")
     end
   end
 
@@ -72,12 +104,22 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(rendered).to have_css("audio[data-plyr-config]")
     end
 
-    it "configures compact controls" do
+    it "configures horizontal layout controls" do
       rendered_html = rendered.to_html
       expect(rendered_html).to include("controls")
       expect(rendered_html).to include("play")
       expect(rendered_html).to include("progress")
       expect(rendered_html).to include("current-time")
+      expect(rendered_html).to include("volume")
+    end
+  end
+
+  describe "volume control" do
+    subject(:rendered) { render_inline(component) }
+
+    it "includes volume control in Plyr configuration" do
+      rendered_html = rendered.to_html
+      expect(rendered_html).to include("volume")
     end
   end
 end

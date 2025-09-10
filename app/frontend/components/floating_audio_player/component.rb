@@ -14,17 +14,20 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
   def container_classes
     [
       "fixed",
-      "bottom-4",
-      "right-4",
+      "bottom-0",
+      "left-0",
+      "right-0",
       "z-50",
       "hidden",
       "bg-gray-900",
       "text-white",
-      "rounded-lg",
       "shadow-2xl",
-      "p-4",
       "w-full",
-      "sm:w-96",
+      "h-16",
+      "flex",
+      "items-center",
+      "px-4",
+      "sm:px-6",
       "transition-all",
       "duration-300",
       "transform",
@@ -34,18 +37,33 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
 
   def plyr_config
     {
-      controls: [ "play", "progress", "current-time" ],
+      controls: [ "progress", "current-time", "volume" ],
       invertTime: false,
       clickToPlay: false,
-      keyboard: { focused: false, global: false }
+      keyboard: { focused: false, global: false },
+      hideControls: false,
+      displayDuration: true,
+      volume: 0.8
     }.to_json
   end
 
   def button_classes
-    "p-2 rounded-full hover:bg-gray-800 transition-colors"
+    "w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors"
   end
 
   def close_button_classes
-    "absolute top-2 right-2 p-1 rounded-full hover:bg-gray-800 transition-colors"
+    "w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors"
+  end
+
+  def track_info_classes
+    "flex-shrink-0 min-w-0 mr-4"
+  end
+
+  def controls_section_classes
+    "flex-1 flex items-center justify-center gap-2"
+  end
+
+  def close_section_classes
+    "flex-shrink-0 ml-4"
   end
 end
