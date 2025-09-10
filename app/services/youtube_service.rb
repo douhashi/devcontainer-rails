@@ -42,6 +42,37 @@ class YoutubeService
     @authenticated_account
   end
 
+  def get_channel(channel_identifier)
+    raise ArgumentError, "Channel identifier cannot be blank" if channel_identifier.blank?
+
+    channel_id = resolve_channel_id(channel_identifier)
+
+    with_error_handling do
+      Rails.logger.info "Retrieving YouTube channel information for: #{channel_identifier} (resolved to: #{channel_id})"
+
+      channel = Yt::Channel.new(id: channel_id, api_key: ENV["YOUTUBE_API_KEY"])
+
+      channel_data = {
+        title: channel.title,
+        description: channel.description,
+        subscriber_count: channel.subscriber_count,
+        video_count: channel.video_count,
+        view_count: channel.view_count
+      }
+
+      Rails.logger.info "Successfully retrieved channel information for '#{channel_data[:title]}' (#{channel_data[:subscriber_count]} subscribers)"
+
+      channel_data
+    end
+  end
+
+  def self.test_connection(channel_identifier = "@LofiBGM-111")
+    Rails.logger.info "Testing YouTube channel connection for: #{channel_identifier}"
+
+    service = new
+    service.get_channel(channel_identifier)
+  end
+
   private
 
   def validate_credentials!
@@ -176,5 +207,31 @@ class YoutubeService
   def is_not_found_error?(reasons, message)
     (reasons.is_a?(Array) && reasons.include?("notFound")) ||
     message.downcase.include?("not found")
+  end
+
+  def resolve_channel_id(channel_identifier)
+    # If it's already a channel ID (starts with UC), return as is
+    return channel_identifier if channel_identifier.start_with?("UC")
+
+    # Handle known channel mappings
+    known_channels = {
+      "@LofiBGM-111" => "UCxYJQNWjcK7pK5JLNfHsz6w"  # Placeholder - would need actual channel ID
+    }
+
+    if known_channels.key?(channel_identifier)
+      return known_channels[channel_identifier]
+    end
+
+    # For now, if it's a handle but not in our known list,
+    # we'll treat it as a channel ID for testing purposes
+    # In the future, this could use YouTube Search API or handle resolution
+    if channel_identifier.start_with?("@")
+      # Extract the handle part and try to resolve it
+      # For this implementation, we'll raise an error for unknown handles
+      raise ArgumentError, "Unknown channel handle: #{channel_identifier}. Please provide a valid channel ID starting with 'UC' or update the known_channels mapping."
+    end
+
+    # Assume it's a channel ID if it doesn't start with @
+    channel_identifier
   end
 end

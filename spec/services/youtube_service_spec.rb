@@ -397,4 +397,273 @@ RSpec.describe YoutubeService do
       end
     end
   end
+
+  describe '#get_channel' do
+    let(:channel_id) { 'UCXuqSBlHAE6Xw-yeJA0Tunw' }  # Test channel ID
+    let(:channel_handle) { '@LofiBGM-111' }  # Target channel handle
+    let(:mock_channel) { double('Yt::Channel') }
+
+    before do
+      allow(Yt::Channel).to receive(:new).and_return(mock_channel)
+    end
+
+    context 'with valid channel ID' do
+      it 'returns channel information successfully' do
+        expected_data = {
+          title: 'Test Channel',
+          description: 'Test Description',
+          subscriber_count: 1000,
+          video_count: 50,
+          view_count: 100000
+        }
+
+        allow(mock_channel).to receive(:title).and_return(expected_data[:title])
+        allow(mock_channel).to receive(:description).and_return(expected_data[:description])
+        allow(mock_channel).to receive(:subscriber_count).and_return(expected_data[:subscriber_count])
+        allow(mock_channel).to receive(:video_count).and_return(expected_data[:video_count])
+        allow(mock_channel).to receive(:view_count).and_return(expected_data[:view_count])
+
+        result = service.get_channel(channel_id)
+
+        expect(result).to eq(expected_data)
+        expect(Yt::Channel).to have_received(:new).with(id: channel_id, api_key: nil)
+      end
+
+      it 'logs channel information retrieval' do
+        allow(mock_channel).to receive(:title).and_return('Test Channel')
+        allow(mock_channel).to receive(:description).and_return('Test Description')
+        allow(mock_channel).to receive(:subscriber_count).and_return(1000)
+        allow(mock_channel).to receive(:video_count).and_return(50)
+        allow(mock_channel).to receive(:view_count).and_return(100000)
+
+        expect(Rails.logger).to receive(:info).with(/Retrieving YouTube channel information/)
+        expect(Rails.logger).to receive(:info).with(/Successfully retrieved channel information/)
+
+        service.get_channel(channel_id)
+      end
+    end
+
+    context 'with valid channel handle' do
+      it 'converts handle to channel ID and returns channel information' do
+        expected_data = {
+          title: 'LofiBGM Channel',
+          description: 'Lofi music channel',
+          subscriber_count: 5000,
+          video_count: 100,
+          view_count: 500000
+        }
+
+        allow(mock_channel).to receive(:title).and_return(expected_data[:title])
+        allow(mock_channel).to receive(:description).and_return(expected_data[:description])
+        allow(mock_channel).to receive(:subscriber_count).and_return(expected_data[:subscriber_count])
+        allow(mock_channel).to receive(:video_count).and_return(expected_data[:video_count])
+        allow(mock_channel).to receive(:view_count).and_return(expected_data[:view_count])
+
+        result = service.get_channel(channel_handle)
+
+        expect(result).to eq(expected_data)
+        expect(Yt::Channel).to have_received(:new).with(
+          id: 'UCxYJQNWjcK7pK5JLNfHsz6w',
+          api_key: nil
+        )
+      end
+
+      it 'raises ArgumentError for unknown handle' do
+        unknown_handle = '@UnknownChannel'
+
+        expect { service.get_channel(unknown_handle) }.to raise_error(
+          ArgumentError,
+          /Unknown channel handle.*@UnknownChannel/
+        )
+      end
+    end
+
+    context 'with blank or nil input' do
+      it 'raises ArgumentError for nil channel identifier' do
+        expect { service.get_channel(nil) }.to raise_error(
+          ArgumentError,
+          'Channel identifier cannot be blank'
+        )
+      end
+
+      it 'raises ArgumentError for empty string' do
+        expect { service.get_channel('') }.to raise_error(
+          ArgumentError,
+          'Channel identifier cannot be blank'
+        )
+      end
+
+      it 'raises ArgumentError for whitespace string' do
+        expect { service.get_channel('  ') }.to raise_error(
+          ArgumentError,
+          'Channel identifier cannot be blank'
+        )
+      end
+    end
+
+    context 'with API errors' do
+      it 'handles not found errors' do
+        error = Yt::Errors::RequestError.new('Channel not found')
+        allow(error).to receive(:reasons).and_return([ 'notFound' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(Yt::Channel).to receive(:new).and_raise(error)
+
+        expect { service.get_channel('invalid_channel_id') }.to raise_error(
+          Youtube::Errors::NotFoundError,
+          /YouTube resource not found/
+        )
+      end
+
+      it 'handles authentication errors' do
+        error = Yt::Errors::RequestError.new('Authentication failed')
+        allow(error).to receive(:reasons).and_return([ 'authError' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(Yt::Channel).to receive(:new).and_raise(error)
+
+        expect { service.get_channel(channel_id) }.to raise_error(
+          Youtube::Errors::AuthenticationError,
+          /YouTube authentication failed/
+        )
+      end
+
+      it 'handles quota exceeded errors' do
+        error = Yt::Errors::RequestError.new('Quota exceeded')
+        allow(error).to receive(:reasons).and_return([ 'quotaExceeded' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(Yt::Channel).to receive(:new).and_raise(error)
+
+        expect { service.get_channel(channel_id) }.to raise_error(
+          Youtube::Errors::QuotaExceededError,
+          /YouTube API quota exceeded/
+        )
+      end
+
+      it 'handles rate limit errors with retry mechanism' do
+        call_count = 0
+        allow(Yt::Channel).to receive(:new) do
+          call_count += 1
+          if call_count < 3
+            error = Yt::Errors::RequestError.new('Rate limit exceeded')
+            allow(error).to receive(:reasons).and_return([ 'rateLimitExceeded' ])
+            allow(error).to receive(:response_body).and_return({})
+            raise error
+          else
+            mock_channel
+          end
+        end
+
+        allow(mock_channel).to receive(:title).and_return('Test Channel')
+        allow(mock_channel).to receive(:description).and_return('Test Description')
+        allow(mock_channel).to receive(:subscriber_count).and_return(1000)
+        allow(mock_channel).to receive(:video_count).and_return(50)
+        allow(mock_channel).to receive(:view_count).and_return(100000)
+
+        allow(service).to receive(:sleep) # Speed up tests
+
+        expect(Rails.logger).to receive(:info).exactly(6).times # Retrieving(3) + retry attempts(2) + Successfully(1)
+        result = service.get_channel(channel_id)
+
+        expect(result[:title]).to eq('Test Channel')
+        expect(call_count).to eq(3)
+      end
+
+      it 'handles generic API errors' do
+        error = Yt::Errors::RequestError.new('Unknown API error')
+        allow(error).to receive(:reasons).and_return([ 'unknownError' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(Yt::Channel).to receive(:new).and_raise(error)
+
+        expect { service.get_channel(channel_id) }.to raise_error(
+          Youtube::Errors::ApiError,
+          /YouTube API error/
+        )
+      end
+    end
+
+    context 'with channel data access errors' do
+      it 'handles errors when accessing channel properties' do
+        allow(Yt::Channel).to receive(:new).and_return(mock_channel)
+
+        error = Yt::Errors::RequestError.new('Data access error')
+        allow(error).to receive(:reasons).and_return([ 'dataError' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(mock_channel).to receive(:title).and_raise(error)
+
+        expect { service.get_channel(channel_id) }.to raise_error(
+          Youtube::Errors::ApiError,
+          /YouTube API error/
+        )
+      end
+
+      it 'handles missing channel data gracefully' do
+        allow(Yt::Channel).to receive(:new).and_return(mock_channel)
+        allow(mock_channel).to receive(:title).and_return(nil)
+        allow(mock_channel).to receive(:description).and_return('')
+        allow(mock_channel).to receive(:subscriber_count).and_return(0)
+        allow(mock_channel).to receive(:video_count).and_return(0)
+        allow(mock_channel).to receive(:view_count).and_return(0)
+
+        result = service.get_channel(channel_id)
+
+        expect(result[:title]).to be_nil
+        expect(result[:description]).to eq('')
+        expect(result[:subscriber_count]).to eq(0)
+        expect(result[:video_count]).to eq(0)
+        expect(result[:view_count]).to eq(0)
+      end
+    end
+  end
+
+  describe '.test_connection' do
+    context 'as a class method for easy console testing' do
+      it 'provides easy access to channel connection test' do
+        mock_service = double('YoutubeService')
+        expected_result = {
+          title: 'Test Channel',
+          description: 'Test Description',
+          subscriber_count: 1000,
+          video_count: 50,
+          view_count: 100000
+        }
+
+        allow(described_class).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:get_channel).with('@LofiBGM-111').and_return(expected_result)
+
+        result = described_class.test_connection
+
+        expect(result).to eq(expected_result)
+        expect(mock_service).to have_received(:get_channel).with('@LofiBGM-111')
+      end
+
+      it 'accepts custom channel identifier' do
+        mock_service = double('YoutubeService')
+        custom_channel = 'UCXuqSBlHAE6Xw-yeJA0Tunw'
+        expected_result = {
+          title: 'Custom Channel',
+          description: 'Custom Description',
+          subscriber_count: 2000,
+          video_count: 75,
+          view_count: 200000
+        }
+
+        allow(described_class).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:get_channel).with(custom_channel).and_return(expected_result)
+
+        result = described_class.test_connection(custom_channel)
+
+        expect(result).to eq(expected_result)
+        expect(mock_service).to have_received(:get_channel).with(custom_channel)
+      end
+
+      it 'logs the connection test attempt' do
+        mock_service = double('YoutubeService')
+        allow(described_class).to receive(:new).and_return(mock_service)
+        allow(mock_service).to receive(:get_channel).and_return({})
+
+        expect(Rails.logger).to receive(:info).with(/Testing YouTube channel connection/)
+
+        described_class.test_connection
+      end
+    end
+  end
 end
