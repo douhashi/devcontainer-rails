@@ -666,4 +666,261 @@ RSpec.describe YoutubeService do
       end
     end
   end
+
+  describe '#get_videos' do
+    let(:channel_id) { 'UCxYJQNWjcK7pK5JLNfHsz6w' }
+    let(:channel_handle) { '@LofiBGM-111' }
+    let(:mock_channel) { double('Yt::Channel') }
+    let(:mock_videos) { double('Yt::Collections::Videos') }
+    let(:mock_video1) { double('Yt::Video') }
+    let(:mock_video2) { double('Yt::Video') }
+
+    before do
+      allow(Yt::Channel).to receive(:new).and_return(mock_channel)
+      allow(mock_channel).to receive(:videos).and_return(mock_videos)
+
+      # デフォルトの動画モック設定
+      allow(mock_video1).to receive(:id).and_return('video_id_1')
+      allow(mock_video1).to receive(:title).and_return('Test Video 1')
+      allow(mock_video1).to receive(:description).and_return('Test description 1')
+      allow(mock_video1).to receive(:published_at).and_return(Time.parse('2024-01-01 12:00:00 UTC'))
+      allow(mock_video1).to receive(:view_count).and_return(1000)
+      allow(mock_video1).to receive(:like_count).and_return(50)
+      allow(mock_video1).to receive(:duration).and_return(180)
+      allow(mock_video1).to receive_message_chain(:thumbnails, :default, :url).and_return('https://example.com/thumb1.jpg')
+
+      allow(mock_video2).to receive(:id).and_return('video_id_2')
+      allow(mock_video2).to receive(:title).and_return('Test Video 2')
+      allow(mock_video2).to receive(:description).and_return('Test description 2')
+      allow(mock_video2).to receive(:published_at).and_return(Time.parse('2024-01-02 12:00:00 UTC'))
+      allow(mock_video2).to receive(:view_count).and_return(2000)
+      allow(mock_video2).to receive(:like_count).and_return(100)
+      allow(mock_video2).to receive(:duration).and_return(240)
+      allow(mock_video2).to receive_message_chain(:thumbnails, :default, :url).and_return('https://example.com/thumb2.jpg')
+    end
+
+    context 'with valid channel identifier' do
+      it 'returns structured video data with default pagination' do
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1, mock_video2 ])
+
+        result = service.get_videos(channel_handle)
+
+        expect(result).to be_a(Hash)
+        expect(result[:videos]).to be_an(Array)
+        expect(result[:videos].size).to eq(2)
+        expect(result[:pagination][:limit]).to eq(50)
+        expect(result[:pagination][:offset]).to eq(0)
+        expect(result[:pagination][:returned_count]).to eq(2)
+
+        first_video = result[:videos].first
+        expect(first_video[:id]).to eq('video_id_1')
+        expect(first_video[:title]).to eq('Test Video 1')
+        expect(first_video[:description]).to eq('Test description 1')
+        expect(first_video[:published_at]).to eq(Time.parse('2024-01-01 12:00:00 UTC'))
+        expect(first_video[:view_count]).to eq(1000)
+        expect(first_video[:like_count]).to eq(50)
+        expect(first_video[:duration]).to eq(180)
+        expect(first_video[:thumbnail_url]).to eq('https://example.com/thumb1.jpg')
+      end
+
+      it 'handles custom limit and offset parameters' do
+        allow(mock_videos).to receive(:drop).with(10).and_return(mock_videos)
+        allow(mock_videos).to receive(:take).with(25).and_return([ mock_video1 ])
+
+        result = service.get_videos(channel_handle, limit: 25, offset: 10)
+
+        expect(result[:videos].size).to eq(1)
+        expect(result[:pagination][:limit]).to eq(25)
+        expect(result[:pagination][:offset]).to eq(10)
+        expect(result[:pagination][:returned_count]).to eq(1)
+      end
+
+      it 'works with channel ID directly' do
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
+
+        result = service.get_videos(channel_id)
+
+        expect(result[:videos].size).to eq(1)
+        expect(Yt::Channel).to have_received(:new).with(id: channel_id, api_key: ENV["YOUTUBE_API_KEY"])
+      end
+
+      it 'logs video retrieval process' do
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
+
+        expect(Rails.logger).to receive(:info).with(/Retrieving videos for channel/)
+        expect(Rails.logger).to receive(:info).with(/Successfully retrieved \d+ videos/)
+
+        service.get_videos(channel_handle)
+      end
+
+      it 'filters out videos with missing required data' do
+        broken_video = double('Yt::Video')
+        allow(broken_video).to receive(:id).and_raise(StandardError.new("Video unavailable"))
+
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1, broken_video, mock_video2 ])
+
+        result = service.get_videos(channel_handle)
+
+        expect(result[:videos].size).to eq(2)
+        expect(result[:videos].map { |v| v[:id] }).to contain_exactly('video_id_1', 'video_id_2')
+      end
+    end
+
+    context 'with invalid parameters' do
+      it 'raises ArgumentError for blank channel identifier' do
+        expect { service.get_videos('') }.to raise_error(
+          ArgumentError,
+          'Channel identifier cannot be blank'
+        )
+
+        expect { service.get_videos(nil) }.to raise_error(
+          ArgumentError,
+          'Channel identifier cannot be blank'
+        )
+      end
+
+      it 'raises ArgumentError for negative limit' do
+        expect { service.get_videos(channel_handle, limit: -1) }.to raise_error(
+          ArgumentError,
+          'Limit must be greater than 0'
+        )
+      end
+
+      it 'raises ArgumentError for negative offset' do
+        expect { service.get_videos(channel_handle, offset: -1) }.to raise_error(
+          ArgumentError,
+          'Offset must be greater than or equal to 0'
+        )
+      end
+
+      it 'raises ArgumentError for limit exceeding maximum' do
+        expect { service.get_videos(channel_handle, limit: 1001) }.to raise_error(
+          ArgumentError,
+          'Limit cannot exceed 1000'
+        )
+      end
+    end
+
+    context 'with API errors' do
+      it 'handles channel not found errors' do
+        error = Yt::Errors::RequestError.new('Channel not found')
+        allow(error).to receive(:reasons).and_return([ 'notFound' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(Yt::Channel).to receive(:new).and_raise(error)
+
+        expect { service.get_videos('invalid_channel') }.to raise_error(
+          Youtube::Errors::NotFoundError,
+          /YouTube resource not found/
+        )
+      end
+
+      it 'handles quota exceeded errors' do
+        error = Yt::Errors::RequestError.new('Quota exceeded')
+        allow(error).to receive(:reasons).and_return([ 'quotaExceeded' ])
+        allow(error).to receive(:response_body).and_return({})
+        allow(mock_channel).to receive(:videos).and_raise(error)
+
+        expect { service.get_videos(channel_handle) }.to raise_error(
+          Youtube::Errors::QuotaExceededError,
+          /YouTube API quota exceeded/
+        )
+      end
+
+      it 'handles rate limit errors with retry mechanism' do
+        call_count = 0
+        allow(mock_channel).to receive(:videos) do
+          call_count += 1
+          if call_count < 3
+            error = Yt::Errors::RequestError.new('Rate limit exceeded')
+            allow(error).to receive(:reasons).and_return([ 'rateLimitExceeded' ])
+            allow(error).to receive(:response_body).and_return({})
+            raise error
+          else
+            mock_videos
+          end
+        end
+
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
+        allow(service).to receive(:sleep)
+
+        result = service.get_videos(channel_handle)
+        expect(result[:videos].size).to eq(1)
+        expect(call_count).to eq(3)
+      end
+    end
+
+    context 'with empty results' do
+      it 'handles channels with no videos' do
+        allow(mock_videos).to receive(:take).with(50).and_return([])
+
+        result = service.get_videos(channel_handle)
+
+        expect(result[:videos]).to eq([])
+        expect(result[:pagination][:returned_count]).to eq(0)
+      end
+
+      it 'handles offset beyond available videos' do
+        allow(mock_videos).to receive(:drop).with(1000).and_return(mock_videos)
+        allow(mock_videos).to receive(:take).with(50).and_return([])
+
+        result = service.get_videos(channel_handle, offset: 1000)
+
+        expect(result[:videos]).to eq([])
+        expect(result[:pagination][:returned_count]).to eq(0)
+      end
+    end
+
+    context 'with video data edge cases' do
+      it 'handles videos with nil or missing metadata' do
+        incomplete_video = double('Yt::Video')
+        allow(incomplete_video).to receive(:id).and_return('incomplete_id')
+        allow(incomplete_video).to receive(:title).and_return(nil)
+        allow(incomplete_video).to receive(:description).and_return('')
+        allow(incomplete_video).to receive(:published_at).and_return(nil)
+        allow(incomplete_video).to receive(:view_count).and_return(0)
+        allow(incomplete_video).to receive(:like_count).and_return(nil)
+        allow(incomplete_video).to receive(:duration).and_return(0)
+        allow(incomplete_video).to receive_message_chain(:thumbnails, :default, :url).and_return(nil)
+
+        allow(mock_videos).to receive(:take).with(50).and_return([ incomplete_video ])
+
+        result = service.get_videos(channel_handle)
+
+        video = result[:videos].first
+        expect(video[:id]).to eq('incomplete_id')
+        expect(video[:title]).to be_nil
+        expect(video[:description]).to eq('')
+        expect(video[:published_at]).to be_nil
+        expect(video[:view_count]).to eq(0)
+        expect(video[:like_count]).to be_nil
+        expect(video[:duration]).to eq(0)
+        expect(video[:thumbnail_url]).to be_nil
+      end
+
+      it 'handles very long video descriptions' do
+        long_description = 'A' * 5000
+        allow(mock_video1).to receive(:description).and_return(long_description)
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
+
+        result = service.get_videos(channel_handle)
+
+        expect(result[:videos].first[:description]).to eq(long_description)
+      end
+
+      it 'handles special characters in video titles and descriptions' do
+        special_title = 'Test 🎵 Video "Special" & Characters <tag>'
+        special_description = 'Description with émojis 🎶 and spécial çharacters'
+
+        allow(mock_video1).to receive(:title).and_return(special_title)
+        allow(mock_video1).to receive(:description).and_return(special_description)
+        allow(mock_videos).to receive(:take).with(50).and_return([ mock_video1 ])
+
+        result = service.get_videos(channel_handle)
+
+        video = result[:videos].first
+        expect(video[:title]).to eq(special_title)
+        expect(video[:description]).to eq(special_description)
+      end
+    end
+  end
 end

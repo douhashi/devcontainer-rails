@@ -66,6 +66,51 @@ class YoutubeService
     end
   end
 
+  def get_videos(channel_identifier, limit: 50, offset: 0)
+    raise ArgumentError, "Channel identifier cannot be blank" if channel_identifier.blank?
+    raise ArgumentError, "Limit must be greater than 0" if limit <= 0
+    raise ArgumentError, "Offset must be greater than or equal to 0" if offset < 0
+    raise ArgumentError, "Limit cannot exceed 1000" if limit > 1000
+
+    channel_id = resolve_channel_id(channel_identifier)
+
+    with_error_handling do
+      Rails.logger.info "Retrieving videos for channel: #{channel_identifier} (resolved to: #{channel_id}) with limit: #{limit}, offset: #{offset}"
+
+      channel = Yt::Channel.new(id: channel_id, api_key: ENV["YOUTUBE_API_KEY"])
+      videos_collection = channel.videos
+
+      # Apply offset and limit using yt gem's drop/take methods
+      videos_collection = videos_collection.drop(offset) if offset > 0
+      raw_videos = videos_collection.take(limit)
+
+      # Process videos and filter out any that can't be accessed
+      processed_videos = []
+      raw_videos.each do |video|
+        begin
+          video_data = extract_video_data(video)
+          processed_videos << video_data if video_data
+        rescue StandardError => e
+          Rails.logger.warn "Skipping video due to error: #{e.message}"
+          next
+        end
+      end
+
+      result = {
+        videos: processed_videos,
+        pagination: {
+          limit: limit,
+          offset: offset,
+          returned_count: processed_videos.size
+        }
+      }
+
+      Rails.logger.info "Successfully retrieved #{processed_videos.size} videos from channel"
+
+      result
+    end
+  end
+
   def self.test_connection(channel_identifier = "@LofiBGM-111")
     Rails.logger.info "Testing YouTube channel connection for: #{channel_identifier}"
 
@@ -74,6 +119,19 @@ class YoutubeService
   end
 
   private
+
+  def extract_video_data(video)
+    {
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      published_at: video.published_at,
+      view_count: video.view_count,
+      like_count: video.like_count,
+      duration: video.duration,
+      thumbnail_url: video.thumbnails&.default&.url
+    }
+  end
 
   def validate_credentials!
     missing_credentials = []
