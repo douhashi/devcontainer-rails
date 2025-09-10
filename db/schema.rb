@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_09_211020) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_10_130024) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -92,10 +92,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_09_211020) do
     t.index [ "status" ], name: "index_videos_on_status"
   end
 
+  create_table "youtube_credentials", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.text "access_token", null: false
+    t.text "refresh_token", null: false
+    t.datetime "expires_at", null: false
+    t.string "scope"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "user_id" ], name: "index_youtube_credentials_on_user_id", unique: true
+  end
+
   add_foreign_key "artworks", "contents"
   add_foreign_key "audios", "contents"
   add_foreign_key "music_generations", "contents"
   add_foreign_key "tracks", "contents"
   add_foreign_key "tracks", "music_generations"
   add_foreign_key "videos", "contents"
+  add_foreign_key "youtube_credentials", "users"
 end

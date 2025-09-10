@@ -1,0 +1,16 @@
+ja:
+  youtube:
+    auth:
+      callback:
+        success: "YouTubeアカウントが正常に連携されました"
+        error: "YouTube認証に失敗しました"
+        cancelled: "YouTube認証がキャンセルされました"
+        expired: "認証セッションの有効期限が切れました。もう一度お試しください"
+      disconnect:
+        success: "YouTubeアカウントの連携を解除しました"
+        not_connected: "YouTubeアカウントが連携されていません"
+  youtube_connect_button:
+    component:
+      connect: "YouTubeと連携"
+      disconnect: "連携を解除"
+      confirm_disconnect: "YouTubeとの連携を解除してもよろしいですか？"

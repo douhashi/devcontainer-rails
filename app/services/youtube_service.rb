@@ -16,25 +16,88 @@ class YoutubeService
 
   def authorization_url(scope: "https://www.googleapis.com/auth/youtube.readonly", state: nil)
     with_error_handling do
-      client = Yt::Account.new
-      client.authorization_url(
-        scope: scope,
+      # Yt gemでは、scopesは配列で、プレフィックスなしで指定する
+      scopes = scope.gsub("https://www.googleapis.com/auth/", "").split(" ")
+
+      account = Yt::Account.new(
+        scopes: scopes,
         redirect_uri: redirect_uri,
-        state: state
+        force: false
       )
+
+      # authentication_urlメソッドを使用してURLを生成
+      url = account.authentication_url
+
+      # stateパラメータを追加（CSRF対策）
+      if state.present?
+        uri = URI.parse(url)
+        params = Rack::Utils.parse_query(uri.query)
+        params["state"] = state
+        uri.query = params.to_query
+        url = uri.to_s
+      end
+
+      url
     end
   end
 
-  def authenticate(authorization_code:)
+  def authenticate(authorization_code)
     with_error_handling do
-      account = Yt::Account.new
-      account.authenticate!(
-        code: authorization_code,
-        redirect_uri: redirect_uri
+      account = Yt::Account.new(
+        client_id: client_id,
+        client_secret: client_secret,
+        redirect_uri: redirect_uri,
+        authorization_code: authorization_code
       )
-      @authenticated_account = account
-      account
+
+      {
+        access_token: account.access_token,
+        refresh_token: account.refresh_token,
+        expires_in: account.authentication.expires_in
+      }
+    rescue Yt::Errors::Unauthorized => e
+      raise Youtube::Errors::AuthenticationError, "Failed to authenticate with YouTube: #{e.message}"
     end
+  end
+
+  def refresh_token!(credential)
+    with_error_handling do
+      account = Yt::Account.new(
+        client_id: client_id,
+        client_secret: client_secret,
+        refresh_token: credential.refresh_token
+      )
+
+      credential.update_tokens!(
+        access_token: account.access_token,
+        expires_in: account.authentication.expires_in
+      )
+
+      true
+    rescue Yt::Errors::Unauthorized => e
+      Rails.logger.error "Failed to refresh YouTube token: #{e.message}"
+      # リフレッシュトークンが無効な場合は、credentialを無効化
+      credential.update(invalid: true) if credential.respond_to?(:invalid=)
+      raise Youtube::Errors::RefreshTokenError, "Token refresh failed. Please reconnect your YouTube account."
+    end
+  end
+
+  def authenticated_client(user)
+    credential = user.youtube_credential
+    raise Youtube::Errors::NotConnectedError, "YouTube account not connected" unless credential
+
+    begin
+      refresh_token!(credential) if credential.needs_refresh?
+    rescue Youtube::Errors::RefreshTokenError => e
+      # リフレッシュが失敗した場合、エラーを再投げして呼び出し元に処理を委ねる
+      Rails.logger.error "Failed to refresh token for user #{user.id}: #{e.message}"
+      raise
+    end
+
+    Yt::Account.new(
+      access_token: credential.access_token,
+      refresh_token: credential.refresh_token
+    )
   end
 
   def client

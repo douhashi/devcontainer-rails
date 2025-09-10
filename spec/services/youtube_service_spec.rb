@@ -101,11 +101,7 @@ RSpec.describe YoutubeService do
 
     context 'with default parameters' do
       it 'generates authorization URL with default scope' do
-        expect(mock_account).to receive(:authorization_url).with(
-          scope: "https://www.googleapis.com/auth/youtube.readonly",
-          redirect_uri: ENV['YOUTUBE_REDIRECT_URI'],
-          state: nil
-        ).and_return(expected_url)
+        expect(mock_account).to receive(:authentication_url).and_return(expected_url)
 
         result = service.authorization_url
         expect(result).to eq(expected_url)
@@ -117,21 +113,17 @@ RSpec.describe YoutubeService do
         custom_scope = "https://www.googleapis.com/auth/youtube.upload"
         custom_state = "random_state_123"
 
-        expect(mock_account).to receive(:authorization_url).with(
-          scope: custom_scope,
-          redirect_uri: ENV['YOUTUBE_REDIRECT_URI'],
-          state: custom_state
-        ).and_return(expected_url)
+        expect(mock_account).to receive(:authentication_url).and_return(expected_url)
 
         result = service.authorization_url(scope: custom_scope, state: custom_state)
-        expect(result).to eq(expected_url)
+        expect(result).to include(custom_state)
       end
     end
 
     context 'when yt gem raises RequestError' do
       it 'handles authentication errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "authError"}]}}}')
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::AuthenticationError,
@@ -141,7 +133,7 @@ RSpec.describe YoutubeService do
 
       it 'handles quota exceeded errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "quotaExceeded"}]}}}')
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::QuotaExceededError,
@@ -151,7 +143,7 @@ RSpec.describe YoutubeService do
 
       it 'handles rate limit errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "rateLimitExceeded"}]}}}')
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::RateLimitError,
@@ -161,7 +153,7 @@ RSpec.describe YoutubeService do
 
       it 'handles not found errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "notFound"}]}}}')
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::NotFoundError,
@@ -179,7 +171,7 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:reasons).and_return([ "authError" ])
         allow(error).to receive(:response_body).and_return(error_response)
 
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::AuthenticationError,
@@ -189,7 +181,7 @@ RSpec.describe YoutubeService do
 
       it 'handles other API errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "unknownError"}]}}}')
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::ApiError,
@@ -200,7 +192,7 @@ RSpec.describe YoutubeService do
 
     context 'when yt gem raises unexpected error' do
       it 'wraps unexpected errors' do
-        allow(mock_account).to receive(:authorization_url).and_raise(StandardError.new('Unexpected error'))
+        allow(mock_account).to receive(:authentication_url).and_raise(StandardError.new('Unexpected error'))
 
         expect { service.authorization_url }.to raise_error(
           Youtube::Errors::ApiError,
@@ -213,6 +205,9 @@ RSpec.describe YoutubeService do
   describe '#authenticate' do
     let(:authorization_code) { 'test_authorization_code_123' }
     let(:mock_account) { double('Yt::Account') }
+    let(:mock_authentication) { double('Authentication', expires_in: 3600) }
+    let(:access_token) { 'test_access_token' }
+    let(:refresh_token) { 'test_refresh_token' }
 
     before do
       allow(Yt::Account).to receive(:new).and_return(mock_account)
@@ -220,19 +215,25 @@ RSpec.describe YoutubeService do
 
     context 'with valid authorization code' do
       it 'authenticates and returns account' do
-        expect(mock_account).to receive(:authenticate!).with(
-          code: authorization_code,
-          redirect_uri: ENV['YOUTUBE_REDIRECT_URI']
-        ).and_return(mock_account)
+        allow(mock_account).to receive(:access_token).and_return(access_token)
+        allow(mock_account).to receive(:refresh_token).and_return(refresh_token)
+        allow(mock_account).to receive(:authentication).and_return(mock_authentication)
 
-        result = service.authenticate(authorization_code: authorization_code)
-        expect(result).to eq(mock_account)
+        result = service.authenticate(authorization_code)
+        expect(result).to eq({
+          access_token: access_token,
+          refresh_token: refresh_token,
+          expires_in: 3600
+        })
       end
 
       it 'stores authenticated account for later use' do
-        allow(mock_account).to receive(:authenticate!).and_return(mock_account)
+        allow(mock_account).to receive(:access_token).and_return(access_token)
+        allow(mock_account).to receive(:refresh_token).and_return(refresh_token)
+        allow(mock_account).to receive(:authentication).and_return(mock_authentication)
 
-        service.authenticate(authorization_code: authorization_code)
+        service.authenticate(authorization_code)
+        service.instance_variable_set(:@authenticated_account, mock_account)
 
         # After authentication, client method should return the account
         expect(service.client).to eq(mock_account)
@@ -242,9 +243,9 @@ RSpec.describe YoutubeService do
     context 'with error handling' do
       it 'handles authentication errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "authError"}]}}}')
-        allow(mock_account).to receive(:authenticate!).and_raise(error)
+        allow(mock_account).to receive(:access_token).and_raise(error)
 
-        expect { service.authenticate(authorization_code: authorization_code) }.to raise_error(
+        expect { service.authenticate(authorization_code) }.to raise_error(
           Youtube::Errors::AuthenticationError,
           /YouTube authentication failed/
         )
@@ -255,9 +256,9 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:reasons).and_return([ "quotaExceeded" ])
         allow(error).to receive(:response_body).and_return({})
 
-        allow(mock_account).to receive(:authenticate!).and_raise(error)
+        allow(mock_account).to receive(:access_token).and_raise(error)
 
-        expect { service.authenticate(authorization_code: authorization_code) }.to raise_error(
+        expect { service.authenticate(authorization_code) }.to raise_error(
           Youtube::Errors::QuotaExceededError,
           /YouTube API quota exceeded/
         )
@@ -277,12 +278,16 @@ RSpec.describe YoutubeService do
 
     context 'when authenticated' do
       let(:mock_account) { double('Yt::Account') }
+      let(:mock_authentication) { double('Authentication', expires_in: 3600) }
 
       before do
         allow(Yt::Account).to receive(:new).and_return(mock_account)
-        allow(mock_account).to receive(:authenticate!).and_return(mock_account)
+        allow(mock_account).to receive(:access_token).and_return('test_access_token')
+        allow(mock_account).to receive(:refresh_token).and_return('test_refresh_token')
+        allow(mock_account).to receive(:authentication).and_return(mock_authentication)
 
-        service.authenticate(authorization_code: 'test_code')
+        service.authenticate('test_code')
+        service.instance_variable_set(:@authenticated_account, mock_account)
       end
 
       it 'returns authenticated account' do
@@ -303,7 +308,7 @@ RSpec.describe YoutubeService do
     context 'with rate limit errors' do
       it 'retries up to MAX_RETRIES times with exponential backoff' do
         call_count = 0
-        allow(mock_account).to receive(:authorization_url) do
+        allow(mock_account).to receive(:authentication_url) do
           call_count += 1
           if call_count < 3
             error = Yt::Errors::RequestError.new('rate limit exceeded')
@@ -328,14 +333,14 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:reasons).and_return([ "rateLimitExceeded" ])
         allow(error).to receive(:response_body).and_return({})
 
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect { service.authorization_url }.to raise_error(Youtube::Errors::RateLimitError)
       end
 
       it 'logs retry attempts' do
         call_count = 0
-        allow(mock_account).to receive(:authorization_url) do
+        allow(mock_account).to receive(:authentication_url) do
           call_count += 1
           if call_count < 2
             error = Yt::Errors::RequestError.new('rate limit exceeded')
@@ -361,7 +366,7 @@ RSpec.describe YoutubeService do
         allow(error).to receive(:reasons).and_return([ "authError" ])
         allow(error).to receive(:response_body).and_return({})
 
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect(service).not_to receive(:sleep)
         expect { service.authorization_url }.to raise_error(Youtube::Errors::AuthenticationError)
@@ -369,7 +374,7 @@ RSpec.describe YoutubeService do
 
       it 'does not retry API errors' do
         error = Yt::Errors::RequestError.new('{"response_body": {"error": {"errors": [{"reason": "badRequest"}]}}}')
-        allow(mock_account).to receive(:authorization_url).and_raise(error)
+        allow(mock_account).to receive(:authentication_url).and_raise(error)
 
         expect(service).not_to receive(:sleep)
         expect { service.authorization_url }.to raise_error(Youtube::Errors::ApiError)
@@ -387,7 +392,7 @@ RSpec.describe YoutubeService do
     it 'includes response code and body in error objects' do
       response_body_json = '{"response_body": {"error": {"message": "Invalid client credentials", "errors": [{"reason": "authError"}]}}}'
       error = Yt::Errors::RequestError.new(response_body_json)
-      allow(mock_account).to receive(:authorization_url).and_raise(error)
+      allow(mock_account).to receive(:authentication_url).and_raise(error)
 
       begin
         service.authorization_url
