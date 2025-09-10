@@ -4,21 +4,21 @@ require "rails_helper"
 
 RSpec.describe MusicGenerationList::Component, type: :component do
   let(:content) { create(:content) }
-  let(:music_generations) { [] }
-  let(:component) { described_class.new(music_generations: music_generations) }
+  let(:tracks) { [] }
+  let(:component) { described_class.new(tracks: tracks) }
 
-  describe "#has_generations?" do
-    context "when music generations exist" do
-      let(:music_generations) { create_list(:music_generation, 2, content: content) }
+  describe "#has_tracks?" do
+    context "when tracks exist" do
+      let(:tracks) { create_list(:track, 2, content: content) }
 
       it "returns true" do
-        expect(component.has_generations?).to be true
+        expect(component.has_tracks?).to be true
       end
     end
 
-    context "when no music generations exist" do
+    context "when no tracks exist" do
       it "returns false" do
-        expect(component.has_generations?).to be false
+        expect(component.has_tracks?).to be false
       end
     end
   end
@@ -30,49 +30,39 @@ RSpec.describe MusicGenerationList::Component, type: :component do
   end
 
   describe "rendering" do
-    context "when music generations exist" do
-      let!(:generation1) { create(:music_generation, content: content, status: :completed) }
-      let!(:generation2) { create(:music_generation, content: content, status: :processing) }
-      let!(:generation3) { create(:music_generation, content: content, status: :pending) }
-      let(:music_generations) { [ generation1, generation2, generation3 ] }
+    context "when tracks exist" do
+      let!(:track1) { create(:track, content: content, metadata: { "music_title" => "Track 1" }) }
+      let!(:track2) { create(:track, content: content, metadata: { "music_title" => "Track 2" }) }
+      let(:tracks) { [ track1, track2 ] }
 
-      before do
-        create_list(:track, 2, music_generation: generation1, duration_sec: 120)
-      end
-
-      it "renders music generation table" do
+      it "renders music generation request table" do
         render_inline(component)
 
         expect(page).to have_css("table.min-w-full")
-        # Track番号が表示される（Track No.列）- generation1には2つのTrackがあるので#1と#2が表示される
         expect(page).to have_css("td", text: "#1")
         expect(page).to have_css("td", text: "#2")
-        # generation2とgeneration3にはTrackがないので、「Trackがありません」と表示される
-        expect(page).to have_css("td", text: "Trackがありません", count: 2)
       end
 
       it "renders table headers for track-based display" do
         render_inline(component)
 
-        # 新しいヘッダー構成
         expect(page).to have_css("th", text: "Track No.")
+        expect(page).to have_css("th", text: "ステータス")
+        expect(page).to have_css("th", text: "タイトル")
         expect(page).to have_css("th", text: "曲の長さ")
         expect(page).to have_css("th", text: "プレイヤー")
-        expect(page).to have_css("th", text: "アクション")
+        expect(page).to have_css("th", text: "作成日時")
       end
 
-      it "renders track rows grouped by music generation" do
+      it "displays track titles" do
         render_inline(component)
 
-        # generation1は2つのTrack、generation2とgeneration3はTrackなし
-        # Track単位表示なので、Trackがある行 + Trackがない行が表示される
-        expect(page).to have_css("tbody tr[data-generation-id='#{generation1.id}']", minimum: 2)
-        expect(page).to have_css("tbody tr[data-generation-id='#{generation2.id}']", minimum: 1)
-        expect(page).to have_css("tbody tr[data-generation-id='#{generation3.id}']", minimum: 1)
+        expect(page).to have_content("Track 1")
+        expect(page).to have_content("Track 2")
       end
     end
 
-    context "when no music generations exist" do
+    context "when no tracks exist" do
       it "renders empty message" do
         render_inline(component)
 
@@ -89,12 +79,11 @@ RSpec.describe MusicGenerationList::Component, type: :component do
     end
 
     context "responsive design" do
-      let(:music_generations) { create_list(:music_generation, 3, content: content) }
+      let(:tracks) { create_list(:track, 3, content: content) }
 
       it "includes scrollable table container" do
         render_inline(component)
 
-        # テーブルがスクロール可能になっている
         expect(page).to have_css(".overflow-y-auto")
         expect(page).to have_css(".max-h-96")
       end

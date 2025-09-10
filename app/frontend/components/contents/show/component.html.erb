@@ -81,7 +81,7 @@
       ) %>
     </div>
     <%= render MusicGenerationList::Component.new(
-      music_generations: item.music_generations.order(created_at: :desc)
+      tracks: item.tracks.includes(:content).order(created_at: :desc)
     ) %>
   </div>
 

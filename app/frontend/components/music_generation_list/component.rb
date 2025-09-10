@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class MusicGenerationList::Component < ApplicationViewComponent
-  attr_reader :music_generations
+  attr_reader :tracks
 
-  def initialize(music_generations:)
-    @music_generations = music_generations
+  def initialize(tracks:)
+    @tracks = tracks
   end
 
-  def has_generations?
-    music_generations.any?
+  def has_tracks?
+    tracks.any?
   end
 
   def empty_message
@@ -17,9 +17,9 @@ class MusicGenerationList::Component < ApplicationViewComponent
 
   private
 
-  def music_generation_table_component
-    MusicGenerationTable::Component.new(
-      music_generations: music_generations,
+  def music_generation_request_table_component
+    MusicGenerationRequestTable::Component.new(
+      tracks: tracks,
       show_pagination: false,
       empty_message: empty_message
     )
