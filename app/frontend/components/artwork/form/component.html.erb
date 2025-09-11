@@ -8,6 +8,7 @@
         <img src="<%= image_url %>" alt="Artwork" class="max-w-xs rounded-lg shadow-lg">
         <%= form_with url: content_artwork_path(content, artwork), method: :delete, local: false, class: "absolute top-2 right-2" do |f| %>
           <%= f.button type: "submit", 
+                      title: "削除",
                       data: { 
                         turbo_method: :delete,
                         controller: "delete-confirmation",
@@ -15,7 +16,7 @@
                         delete_confirmation_message_value: "アートワークを削除しますか？"
                       },
                       class: delete_button_class do %>
-            削除
+            <%= render Icon::Component.new(name: :delete, size: :sm, aria_label: "削除") %>
           <% end %>
         <% end %>
       </div>
