@@ -129,4 +129,39 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
       # In production, Turbo handles this properly with data-turbo-permanent
     end
   end
+
+  describe "UI改善の確認" do
+    it "シークバー、ボーダー削除、パディング調整、垂直センタリング、フラットデザインが正しく適用される" do
+      find("#audio-play-button-track-#{track1.id}").click
+      expect(page).to have_css("#floating-audio-player:not(.hidden)")
+
+      within("#floating-audio-player") do
+        # シークバーのプログレスバーが正しく表示される
+        expect(page).to have_css(".plyr__progress")
+        expect(page).to have_css(".plyr__progress input[type='range']", visible: :all)
+        progress_element = find(".plyr__progress")
+        expect(progress_element).to be_present
+
+        # コントロール領域にボーダーが表示されない
+        controls_element = find(".plyr__controls")
+        expect(controls_element[:class]).not_to include("border")
+        expect(controls_element[:class]).not_to include("border-gray-600")
+
+        # 音量コントロールが存在し、レイアウトが改善されている
+        expect(page).to have_css(".plyr__volume")
+        volume_element = find(".plyr__volume")
+        expect(volume_element).to be_present
+
+        # コントロール領域が垂直方向の中央に配置されている
+        display_style = page.evaluate_script("getComputedStyle(arguments[0]).display", controls_element)
+        expect(display_style).to eq("flex")
+
+        # フラットなデザインが維持されている
+        audio_player = find(".plyr--audio")
+        expect(audio_player).to be_present
+        background_style = page.evaluate_script("getComputedStyle(arguments[0]).backgroundColor", audio_player)
+        expect(background_style).to match(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/)
+      end
+    end
+  end
 end

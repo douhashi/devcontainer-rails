@@ -55,9 +55,12 @@ body {
 
 /* Controls container - ensure dark theme */
 .plyr--audio .plyr__controls {
-  @apply border border-gray-600 rounded-lg p-2;
+  @apply rounded-lg p-2 pr-4;
   background: rgb(31 41 55 / 1) !important; /* gray-800 - force override */
   color: rgb(209 213 219 / 1) !important; /* gray-300 */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Control buttons */
@@ -92,6 +95,8 @@ body {
   @apply bg-gray-600 rounded-full h-1;
   background: rgb(75 85 99 / 1); /* gray-600 */
   position: relative;
+  flex: 1;
+  margin: 0 12px;
 }
 
 /* Ensure proper layering of seek input and progress elements */
@@ -115,6 +120,7 @@ body {
   background: rgb(75 85 99 / 1); /* gray-600 */
   border-radius: 9999px;
   overflow: hidden;
+  z-index: 1;
 }
 
 /* Played progress */
@@ -125,7 +131,8 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 1;
+  z-index: 2;
+  transition: width 0.1s ease;
 }
 
 /* Buffer progress */
@@ -202,7 +209,7 @@ body {
 /* Volume controls - optimize size */
 .plyr__volume {
   max-width: 80px; /* Limit volume control width */
-  @apply bg-gray-600 rounded-full;
+  @apply bg-gray-600 rounded-full mr-2;
   background: rgb(75 85 99 / 1); /* gray-600 */
 }
 
@@ -229,7 +236,7 @@ body {
 
 /* Time display */
 .plyr__time {
-  @apply text-gray-300 text-xs font-mono;
+  @apply text-gray-300 text-xs font-mono mx-2;
 }
 
 /* Tooltip styling */
