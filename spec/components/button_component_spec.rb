@@ -72,6 +72,16 @@ RSpec.describe Button::Component, type: :component do
       end
     end
 
+    context "with variant :secondary_dark" do
+      it "renders secondary_dark button styles" do
+        rendered = render_inline(described_class.new(text: "Secondary Dark", variant: :secondary_dark))
+
+        expect(rendered).to have_css("button.bg-gray-700")
+        expect(rendered).to have_css("button.hover\\:bg-gray-600")
+        expect(rendered).to have_css("button.text-gray-200")
+      end
+    end
+
     context "with variant :danger" do
       it "renders danger button styles" do
         rendered = render_inline(described_class.new(text: "Delete", variant: :danger))
