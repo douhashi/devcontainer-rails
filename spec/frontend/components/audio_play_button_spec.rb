@@ -24,12 +24,12 @@ RSpec.describe AudioPlayButton::Component, type: :component do
         expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/20")
       end
 
-      it "includes play_circle icon using IconComponent" do
+      it "includes play icon using IconComponent" do
         result = render_inline(component)
 
         expect(result.css("svg")).to be_present
-        # play_circleアイコンは2つのpath要素を持つ（再生ボタンと円）
-        expect(result.css("svg path").length).to eq(2)
+        # playアイコンは1つのpath要素を持つ（三角形の再生ボタン）
+        expect(result.css("svg path").length).to eq(1)
       end
 
       it "applies blue color styling to the icon" do
@@ -100,12 +100,12 @@ RSpec.describe AudioPlayButton::Component, type: :component do
         expect(result.css("button").first.attributes["class"].value).to include("hover:bg-blue-500/20")
       end
 
-      it "includes play_circle icon using IconComponent" do
+      it "includes play icon using IconComponent" do
         result = render_inline(component)
 
         expect(result.css("svg")).to be_present
-        # play_circleアイコンは2つのpath要素を持つ（再生ボタンと円）
-        expect(result.css("svg path").length).to eq(2)
+        # playアイコンは1つのpath要素を持つ（三角形の再生ボタン）
+        expect(result.css("svg path").length).to eq(1)
       end
 
       it "applies blue color styling to the icon" do
