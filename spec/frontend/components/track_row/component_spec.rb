@@ -65,7 +65,7 @@ RSpec.describe TrackRow::Component, type: :component do
 
           # AudioPlayButton::Componentがレンダリングされることを確認
           expect(page).to have_css('button[data-action="click->audio-play-button#play"]')
-          expect(page).to have_css('button svg')
+          expect(page).to have_css('button i.fa-solid')
         end
       end
 

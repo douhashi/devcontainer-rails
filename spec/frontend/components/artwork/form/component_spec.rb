@@ -25,8 +25,8 @@ RSpec.describe Artwork::Form::Component, type: :component do
         expect(rendered).to have_css("form[method='post']")
 
         # Icon::Componentが使用されていることを確認
-        expect(rendered).to have_css("svg")
-        expect(rendered).to have_css("svg[aria-label='削除']")
+        expect(rendered).to have_css("i.fa-solid.fa-trash")
+        expect(rendered).to have_css("i[aria-label='削除']")
 
         # 「削除」テキストが表示されていないことを確認
         expect(rendered).not_to have_text("削除")

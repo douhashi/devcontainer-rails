@@ -38,21 +38,14 @@ RSpec.describe Icon::Component, type: :component do
     context "with basic icon" do
       let(:params) { { name: :image } }
 
-      it "renders SVG element" do
+      it "renders i element" do
         render_inline(component)
-        expect(page).to have_css("svg")
+        expect(page).to have_css("i")
       end
 
-      it "applies correct viewBox" do
+      it "applies Font Awesome classes" do
         render_inline(component)
-        expect(page).to have_css('svg[viewbox="0 0 24 24"]')
-      end
-
-      it "applies stroke properties" do
-        render_inline(component)
-        expect(page).to have_css('svg[stroke="currentColor"]')
-        expect(page).to have_css('svg[stroke-width="1.5"]')
-        expect(page).to have_css('svg[fill="none"]')
+        expect(page).to have_css("i.fa-solid.fa-image")
       end
     end
 
@@ -60,19 +53,21 @@ RSpec.describe Icon::Component, type: :component do
       it "applies small size classes" do
         component = described_class.new(name: :music, size: :sm)
         render_inline(component)
-        expect(page).to have_css("svg.w-4.h-4")
+        expect(page).to have_css("i.fa-sm")
       end
 
       it "applies medium size classes" do
         component = described_class.new(name: :music, size: :md)
         render_inline(component)
-        expect(page).to have_css("svg.w-5.h-5")
+        expect(page).to have_css("i")
+        expect(page).not_to have_css("i.fa-sm")
+        expect(page).not_to have_css("i.fa-lg")
       end
 
       it "applies large size classes" do
         component = described_class.new(name: :music, size: :lg)
         render_inline(component)
-        expect(page).to have_css("svg.w-6.h-6")
+        expect(page).to have_css("i.fa-lg")
       end
     end
 
@@ -81,7 +76,7 @@ RSpec.describe Icon::Component, type: :component do
 
       it "applies custom color class" do
         render_inline(component)
-        expect(page).to have_css("svg.text-red-500")
+        expect(page).to have_css("i.text-red-500")
       end
     end
 
@@ -90,12 +85,12 @@ RSpec.describe Icon::Component, type: :component do
 
       it "sets aria-label attribute" do
         render_inline(component)
-        expect(page).to have_css('svg[aria-label="Delete item"]')
+        expect(page).to have_css('i[aria-label="Delete item"]')
       end
 
       it "sets role attribute to img" do
         render_inline(component)
-        expect(page).to have_css('svg[role="img"]')
+        expect(page).to have_css('i[role="img"]')
       end
     end
 
@@ -104,12 +99,12 @@ RSpec.describe Icon::Component, type: :component do
 
       it "sets aria-hidden to true" do
         render_inline(component)
-        expect(page).to have_css('svg[aria-hidden="true"]')
+        expect(page).to have_css('i[aria-hidden="true"]')
       end
 
       it "does not set role attribute" do
         render_inline(component)
-        expect(page).not_to have_css('svg[role]')
+        expect(page).not_to have_css('i[role]')
       end
     end
   end
@@ -123,9 +118,9 @@ RSpec.describe Icon::Component, type: :component do
           expect { render_inline(component) }.not_to raise_error
         end
 
-        it "renders SVG path element" do
+        it "renders i element" do
           render_inline(component)
-          expect(page).to have_css("svg path")
+          expect(page).to have_css("i")
         end
       end
     end
@@ -150,33 +145,45 @@ RSpec.describe Icon::Component, type: :component do
   end
 
   describe "#css_classes" do
-    it "combines size and color classes" do
+    it "combines Font Awesome and custom classes" do
       component = described_class.new(name: :music, size: :lg, color: "text-blue-600")
-      expect(component.send(:css_classes)).to eq("w-6 h-6 text-blue-600")
+      expect(component.send(:css_classes)).to include("fa-solid")
+      expect(component.send(:css_classes)).to include("fa-music")
+      expect(component.send(:css_classes)).to include("fa-lg")
+      expect(component.send(:css_classes)).to include("text-blue-600")
     end
 
-    it "returns only size classes when no color specified" do
+    it "returns Font Awesome classes without color when no color specified" do
       component = described_class.new(name: :play, size: :sm)
-      expect(component.send(:css_classes)).to eq("w-4 h-4")
+      expect(component.send(:css_classes)).to include("fa-solid")
+      expect(component.send(:css_classes)).to include("fa-play")
+      expect(component.send(:css_classes)).to include("fa-sm")
+    end
+
+    it "adds spin class for spinner icon" do
+      component = described_class.new(name: :spinner)
+      expect(component.send(:css_classes)).to include("fa-spin")
     end
   end
 
-  describe "#icon_paths" do
-    let(:component) { described_class.new(name: :image) }
+  describe "icon mapping" do
+    it "maps icon names to Font Awesome classes correctly" do
+      mappings = {
+        image: "fa-image",
+        music: "fa-music",
+        video: "fa-video",
+        delete: "fa-trash",
+        spinner: "fa-spinner",
+        play: "fa-play",
+        play_circle: "fa-play-circle",
+        pause: "fa-pause",
+        check: "fa-check"
+      }
 
-    it "returns the correct SVG path data as array" do
-      path_data = component.send(:icon_paths)
-      expect(path_data).to be_an(Array)
-      expect(path_data.first).to include("m2.25 15.75")
-    end
-
-    context "with play_circle icon" do
-      let(:component) { described_class.new(name: :play_circle) }
-
-      it "returns multiple paths as array" do
-        path_data = component.send(:icon_paths)
-        expect(path_data).to be_an(Array)
-        expect(path_data.length).to eq(2)
+      mappings.each do |icon_name, fa_class|
+        component = described_class.new(name: icon_name)
+        render_inline(component)
+        expect(page).to have_css("i.#{fa_class}")
       end
     end
   end

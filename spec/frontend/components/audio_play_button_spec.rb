@@ -27,16 +27,14 @@ RSpec.describe AudioPlayButton::Component, type: :component do
       it "includes play icon using IconComponent" do
         result = render_inline(component)
 
-        expect(result.css("svg")).to be_present
-        # playアイコンは1つのpath要素を持つ（三角形の再生ボタン）
-        expect(result.css("svg path").length).to eq(1)
+        expect(result.css("i.fa-solid.fa-play")).to be_present
       end
 
       it "applies blue color styling to the icon" do
         result = render_inline(component)
-        svg = result.css("svg").first
+        icon = result.css("i.fa-solid").first
 
-        expect(svg.attributes["class"].value).to include("text-blue-400")
+        expect(icon.attributes["class"].value).to include("text-blue-400")
       end
 
       it "has unified audio-play-button controller data attributes" do
@@ -103,16 +101,14 @@ RSpec.describe AudioPlayButton::Component, type: :component do
       it "includes play icon using IconComponent" do
         result = render_inline(component)
 
-        expect(result.css("svg")).to be_present
-        # playアイコンは1つのpath要素を持つ（三角形の再生ボタン）
-        expect(result.css("svg path").length).to eq(1)
+        expect(result.css("i.fa-solid.fa-play")).to be_present
       end
 
       it "applies blue color styling to the icon" do
         result = render_inline(component)
-        svg = result.css("svg").first
+        icon = result.css("i.fa-solid").first
 
-        expect(svg.attributes["class"].value).to include("text-blue-400")
+        expect(icon.attributes["class"].value).to include("text-blue-400")
       end
 
       it "has unified audio-play-button controller data attributes for track" do
