@@ -19,6 +19,7 @@ import FloatingAudioPlayerController from '../controllers/floating_audio_player_
 import AudioPlayButtonController from '../controllers/audio_play_button_controller'
 import ToastController from '../controllers/toast_controller'
 import AudioGenerationController from '../controllers/audio_generation_controller'
+import UserDropdownController from '../controllers/user_dropdown_controller'
 
 // Import global store
 import '../stores/floating_player_store'
@@ -37,5 +38,6 @@ application.register('floating-audio-player', FloatingAudioPlayerController)
 application.register('audio-play-button', AudioPlayButtonController)
 application.register('toast', ToastController)
 application.register('audio-generation', AudioGenerationController)
+application.register('user-dropdown', UserDropdownController)
 
 console.log('Vite ⚡️ Rails with Stimulus & Turbo ready')

@@ -1,5 +1,5 @@
 <div class="layout-grid" data-controller="layout">
-  <%= render Layout::HeaderComponent.new(title: title, show_menu_toggle: show_menu_toggle?) %>
+  <%= render Layout::HeaderComponent.new(title: title, show_menu_toggle: show_menu_toggle?, current_user: current_user) %>
   <%= render Layout::SidebarComponent.new(navigation_items: navigation_items, current_path: current_path) %>
   
   <main class="layout-main">

@@ -17,13 +17,52 @@
       </h1>
     </div>
     
-    <div class="flex items-center gap-4" data-testid="user-info">
-      <div class="text-sm text-gray-400">
-        Admin User
+    <% if user_signed_in? %>
+      <div class="relative" data-controller="user-dropdown" data-testid="user-dropdown">
+        <button type="button" 
+                class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                data-action="click->user-dropdown#toggle"
+                role="button"
+                aria-haspopup="true"
+                aria-expanded="false">
+          <div class="text-sm text-gray-400" data-testid="user-email-display">
+            <%= truncated_email %>
+          </div>
+          <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+            <span class="text-sm font-medium text-gray-100"><%= user_avatar_initial %></span>
+          </div>
+        </button>
+        
+        <div class="absolute right-0 mt-2 w-64 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-50 hidden"
+             data-user-dropdown-target="menu"
+             role="menu"
+             tabindex="-1">
+          <div class="px-4 py-3 border-b border-gray-700">
+            <div class="text-sm text-gray-300">
+              <%= current_user.email %>
+            </div>
+          </div>
+          
+          <div class="py-1">
+            <%= link_to destroy_user_session_path, 
+                        method: :delete,
+                        data: { turbo_method: :delete },
+                        class: "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors",
+                        role: "menuitem" do %>
+              ログアウト
+            <% end %>
+          </div>
+        </div>
       </div>
-      <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-        <span class="text-sm font-medium text-gray-100">A</span>
+    <% else %>
+      <div class="flex items-center gap-4" data-testid="user-info">
+        <div class="text-sm text-gray-400">
+          Admin User
+        </div>
+        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+          <span class="text-sm font-medium text-gray-100">A</span>
+        </div>
       </div>
-    </div>
+    <% end %>
   </div>
 </header>
