@@ -17,9 +17,8 @@ body {
   @apply min-h-screen grid;
   grid-template-areas: 
     "header header"
-    "sidebar main"
-    "footer footer";
-  grid-template-rows: var(--header-height) 1fr auto;
+    "sidebar main";
+  grid-template-rows: var(--header-height) 1fr;
   grid-template-columns: var(--sidebar-width) 1fr;
 }
 
@@ -39,10 +38,6 @@ body {
   @apply bg-gray-900 p-6 overflow-y-auto;
 }
 
-.layout-footer {
-  grid-area: footer;
-  @apply bg-gray-800 border-t border-gray-700;
-}
 
 /* Plyr.js dark theme customization */
 .plyr {
@@ -339,10 +334,9 @@ body {
   .layout-grid {
     grid-template-areas: 
       "header"
-      "main"
-      "footer";
+      "main";
     grid-template-columns: 1fr;
-    grid-template-rows: var(--header-height) 1fr auto;
+    grid-template-rows: var(--header-height) 1fr;
   }
   
   .layout-sidebar {

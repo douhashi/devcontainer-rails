@@ -54,8 +54,8 @@ RSpec.describe Layout::ApplicationComponent, type: :component do
       expect(page).to have_content('Main content')
     end
 
-    it "includes footer component" do
-      expect(page).to have_css('[data-testid="layout-footer"]')
+    it "does not include footer component" do
+      expect(page).not_to have_css('[data-testid="layout-footer"]')
     end
   end
 end
