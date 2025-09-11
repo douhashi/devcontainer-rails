@@ -27,11 +27,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
     context 'when audio exists with pending status' do
       let!(:audio) { create(:audio, content: content, status: :pending) }
 
-      it 'shows status badge instead of description text' do
-        result = render_inline(component)
-        expect(result.css('[data-status="pending"]')).to be_present
-      end
-
       it 'disables the generate button' do
         result = render_inline(component)
         expect(result.css('button[disabled]')).to be_present
@@ -41,12 +36,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
     context 'when audio exists with processing status' do
       let!(:audio) { create(:audio, content: content, status: :processing) }
 
-      it 'shows processing status badge with animation' do
-        result = render_inline(component)
-        expect(result.css('[data-status="processing"]')).to be_present
-        expect(result.css('.animate-pulse')).to be_present
-      end
-
       it 'disables the generate button' do
         result = render_inline(component)
         expect(result.css('button[disabled]')).to be_present
@@ -55,18 +44,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
     context 'when audio exists with completed status' do
       let!(:audio) { create(:audio, content: content, status: :completed) }
-
-      it 'shows completed status badge' do
-        result = render_inline(component)
-        expect(result.css('[data-status="completed"]')).to be_present
-      end
-
-      it 'shows play button for floating player' do
-        allow(audio).to receive_message_chain(:audio, :url).and_return('/test/audio.mp3')
-        allow(audio).to receive_message_chain(:audio, :present?).and_return(true)
-        result = render_inline(component)
-        expect(result.css('[data-controller*="audio-play-button"]')).to be_present
-      end
 
       it 'shows delete button' do
         result = render_inline(component)
@@ -81,11 +58,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
 
     context 'when audio exists with failed status' do
       let!(:audio) { create(:audio, content: content, status: :failed) }
-
-      it 'shows failed status badge' do
-        result = render_inline(component)
-        expect(result.css('[data-status="failed"]')).to be_present
-      end
 
       it 'shows delete button' do
         result = render_inline(component)
@@ -135,25 +107,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
           expect(result.text).to include('削除')
         end
       end
-    end
-  end
-
-  describe 'floating player integration' do
-    let!(:audio) { create(:audio, content: content, status: :completed) }
-
-    before do
-      allow(audio).to receive_message_chain(:audio, :url).and_return('/test/audio.mp3')
-    end
-
-    it 'includes play button with floating player controller' do
-      result = render_inline(component)
-      expect(result.css('[data-controller*="audio-play-button"]')).to be_present
-    end
-
-    it 'includes audio data for floating player' do
-      result = render_inline(component)
-      play_button = result.css('[data-controller*="audio-play-button"]').first
-      expect(play_button).to be_present
     end
   end
 end

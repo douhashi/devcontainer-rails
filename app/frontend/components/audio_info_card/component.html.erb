@@ -1,55 +1,53 @@
 <div class="audio-info-card">
   <% if audio.present? %>
-    <div class="bg-gray-800 rounded-lg p-6">
-      <!-- Header with title and status badge -->
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-white">音源情報</h3>
-        <%= render StatusBadge::Component.new(
-          status: status_symbol
-        ) %>
-      </div>
+    <!-- Header with title and status badge -->
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-white">音源情報</h3>
+      <%= render StatusBadge::Component.new(
+        status: status_symbol
+      ) %>
+    </div>
 
-      <!-- Horizontal layout for audio info -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <!-- Audio info items -->
-        <div class="flex flex-wrap items-center gap-4 text-sm">
-          <!-- Duration -->
-          <div class="flex items-center gap-2">
-            <span class="text-gray-400">長さ:</span>
-            <span class="text-white font-medium"><%= formatted_duration %></span>
-          </div>
-
-          <!-- Processing time -->
-          <div class="flex items-center gap-2">
-            <span class="text-gray-400">作成時間:</span>
-            <span class="text-white font-medium"><%= processing_time %></span>
-          </div>
-
-          <!-- Play button -->
-          <% if audio.status == "completed" && audio.audio.present? %>
-            <%= render AudioPlayButton::Component.new(content_record: audio.content, size: :small) %>
-          <% end %>
+    <!-- Horizontal layout for audio info -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <!-- Audio info items -->
+      <div class="flex flex-wrap items-center gap-4 text-sm">
+        <!-- Duration -->
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">長さ:</span>
+          <span class="text-white font-medium"><%= formatted_duration %></span>
         </div>
 
-        <!-- Delete icon button -->
-        <% if audio.status == "completed" || audio.status == "failed" %>
-          <%= button_to delete_path, 
-              method: :delete,
-              form: { 
-                data: { 
-                  turbo_method: "delete",
-                  turbo_confirm: "この音源を削除してもよろしいですか？" 
-                },
-                class: "inline"
-              },
-              class: "text-red-500 hover:text-red-600 transition-colors" do %>
-            <%= render Icon::Component.new(name: :delete, size: :sm) %>
-          <% end %>
+        <!-- Processing time -->
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">作成時間:</span>
+          <span class="text-white font-medium"><%= processing_time %></span>
+        </div>
+
+        <!-- Play button -->
+        <% if audio.status == "completed" && audio.audio.present? %>
+          <%= render AudioPlayButton::Component.new(content_record: audio.content, size: :small) %>
         <% end %>
       </div>
+
+      <!-- Delete icon button -->
+      <% if audio.status == "completed" || audio.status == "failed" %>
+        <%= button_to delete_path, 
+            method: :delete,
+            form: { 
+              data: { 
+                turbo_method: "delete",
+                turbo_confirm: "この音源を削除してもよろしいですか？" 
+              },
+              class: "inline"
+            },
+            class: "text-red-500 hover:text-red-600 transition-colors" do %>
+          <%= render Icon::Component.new(name: :delete, size: :sm) %>
+        <% end %>
+      <% end %>
     </div>
   <% else %>
-    <div class="empty-state bg-gray-800 rounded-lg p-8 text-center">
+    <div class="empty-state rounded-lg p-8 text-center">
       <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
       </svg>
