@@ -26,7 +26,7 @@
           </div>
 
           <!-- Play button -->
-          <% if audio.status == "completed" %>
+          <% if audio.status == "completed" && audio.audio.present? %>
             <%= render AudioPlayButton::Component.new(content_record: audio.content, size: :small) %>
           <% end %>
         </div>

@@ -32,8 +32,8 @@ RSpec.describe "Unified Audio Play Integration", type: :system do
         expect(page).to have_css('button[data-controller="audio-play-button"]')
         expect(page).to have_css('button[data-audio-play-button-type-value="content"]')
 
-        # Click the play button
-        find('button[data-controller="audio-play-button"]').click
+        # Click the play button - specifically the first content audio button
+        find('button[data-controller="audio-play-button"][data-audio-play-button-type-value="content"]', match: :first).click
 
         # Wait for floating player to appear
         expect(page).to have_css('#floating-audio-player:not(.hidden)')
@@ -107,8 +107,8 @@ RSpec.describe "Unified Audio Play Integration", type: :system do
         });
       JS
 
-      # Click the play button
-      find('button[data-controller="audio-play-button"]').click
+      # Click the play button - specifically the first content audio button
+      find('button[data-controller="audio-play-button"][data-audio-play-button-type-value="content"]', match: :first).click
 
       # Wait for event to be dispatched
       expect(page).to have_css('body', wait: 5) # Give time for event to dispatch

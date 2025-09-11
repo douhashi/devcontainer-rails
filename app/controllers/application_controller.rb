@@ -5,10 +5,15 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   before_action :authenticate_user!, unless: :skip_authentication?
+  layout :determine_layout
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   private
+
+  def determine_layout
+    devise_controller? ? "auth" : "application"
+  end
 
   def skip_authentication?
     # Skip authentication for Lookbook and ViewComponent previews in development

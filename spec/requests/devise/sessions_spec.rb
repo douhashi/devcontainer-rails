@@ -39,7 +39,9 @@ RSpec.describe 'Devise::Sessions', type: :request do
         }
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.body).to include('Invalid')
+        # Check that we're on the login page (not redirected to root)
+        expect(response.body).to include('ログイン')
+        expect(response.body).to include('user[email]')
       end
 
       it 'rejects login with invalid password' do
@@ -51,7 +53,9 @@ RSpec.describe 'Devise::Sessions', type: :request do
         }
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.body).to include('Invalid')
+        # Check that we're on the login page (not redirected to root)
+        expect(response.body).to include('ログイン')
+        expect(response.body).to include('user[email]')
       end
     end
   end

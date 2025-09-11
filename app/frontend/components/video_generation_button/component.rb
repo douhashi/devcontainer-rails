@@ -7,12 +7,6 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     @content_record = content_record
   end
 
-  private
-
-  def can_generate_video?
-    content_record.video_generation_prerequisites_met?
-  end
-
   def video_exists?
     content_record.video&.persisted?
   end
@@ -20,6 +14,12 @@ class VideoGenerationButton::Component < ApplicationViewComponent
   def video_status
     return nil unless video_exists?
     content_record.video.status
+  end
+
+  private
+
+  def can_generate_video?
+    content_record.video_generation_prerequisites_met?
   end
 
   def button_text

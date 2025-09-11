@@ -16,7 +16,7 @@ class AudioPlayButton::Component < ApplicationViewComponent
     when :track
       record.status.completed? && record.audio.present?
     when :content
-      record.audio.present? && record.audio&.completed?
+      record.audio.present? && record.audio&.completed? && record.audio&.audio&.present?
     else
       false
     end
@@ -95,7 +95,7 @@ class AudioPlayButton::Component < ApplicationViewComponent
     when :track
       record.audio.url
     when :content
-      record.audio&.audio_url
+      record.audio&.audio&.url
     end
   end
 

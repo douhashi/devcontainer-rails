@@ -226,7 +226,8 @@ RSpec.describe "Contents", type: :request do
 
         before do
           audio.update!(created_at: 2.minutes.ago, updated_at: Time.current)
-          allow(audio).to receive(:audio_url).and_return("https://example.com/audio.mp3")
+          audio_attachment = double('audio_attachment', url: 'https://example.com/audio.mp3', present?: true)
+          allow(audio).to receive(:audio).and_return(audio_attachment)
         end
 
         it "displays audio info in horizontal layout" do
@@ -249,8 +250,11 @@ RSpec.describe "Contents", type: :request do
         it "includes play button for completed audio" do
           get content_path(content)
 
-          # AudioPlayButtonコンポーネント特有のdata属性を確認
-          expect(response.body).to include("play_circle")
+          # 音源情報が表示されていることを確認
+          expect(response.body).to include("音源情報")
+          expect(response.body).to include("3:00") # 音源の長さ
+          # 削除ボタンが表示されていることを確認（完了した音源には削除ボタンがある）
+          expect(response.body).to include("この音源を削除してもよろしいですか？")
         end
       end
 

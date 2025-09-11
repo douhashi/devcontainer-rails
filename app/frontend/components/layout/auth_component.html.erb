@@ -1,0 +1,9 @@
+<div class="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
+  <%= render Layout::AuthHeaderComponent.new(title: title) %>
+  
+  <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="auth-content w-full max-w-md">
+      <%= content %>
+    </div>
+  </main>
+</div>

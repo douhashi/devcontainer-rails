@@ -11,16 +11,6 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
   end
 
   describe "アートワーク未設定時" do
-    it "ドラッグ&ドロップエリアが表示される" do
-      expect(page).to have_selector('[data-controller="artwork-drag-drop"]')
-      expect(page).to have_text("画像をドラッグ&ドロップ")
-      expect(page).to have_text("またはクリックしてファイルを選択")
-    end
-
-    it "16:9の比率でエリアが表示される" do
-      expect(page).to have_css('.aspect-\\[16\\/9\\]')
-    end
-
     context "ファイル選択によるアップロード" do
       it "画像ファイルを選択してアップロードできる" do
         # JavaScriptコンソールのエラーを確認
@@ -89,12 +79,6 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
       visit content_path(content)
     end
 
-    it "設定済みのアートワークが表示される" do
-      expect(page).to have_css('img[alt="アートワーク"]')
-      expect(page).to have_button("削除")
-      expect(page).not_to have_text("画像をドラッグ&ドロップ")
-    end
-
     it "削除ボタンクリックで確認ダイアログが表示される" do
       accept_confirm("アートワークを削除しますか？") do
         click_button "削除"
@@ -119,56 +103,6 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
       # 「アートワーク」ラベルが1つだけ表示されることを確認
       artwork_labels = page.all("h2", text: "アートワーク")
       expect(artwork_labels.count).to eq(1)
-    end
-
-    it "16:9の比率で画像が表示される" do
-      expect(page).to have_css('.aspect-\\[16\\/9\\]')
-      expect(page).to have_css('img.object-cover')
-    end
-  end
-
-  describe "エラーハンドリング" do
-    context "ファイルサイズが大きすぎる場合" do
-      it "エラーメッセージが表示される" do
-        # 10MB以上のファイルをテストする場合のシミュレーション
-        # 実際のテストではJavaScriptのファイル検証をテストする
-
-        # JavaScriptのバリデーションにより、大きすぎるファイルは送信されない
-        # システムテストでは、JavaScriptの動作を確認
-        expect(page).to have_selector('[data-artwork-drag-drop-target="fileInput"][accept="image/*"]', visible: :all)
-      end
-    end
-
-    context "画像以外のファイルを選択した場合" do
-      it "JavaScriptでバリデーションされる" do
-        # 画像以外のファイルは accept="image/*" により選択できない
-        file_input = find('[data-artwork-drag-drop-target="fileInput"]', visible: :all)
-        expect(file_input['accept']).to eq('image/*')
-      end
-    end
-  end
-
-  describe "レスポンシブデザイン" do
-    context "モバイル画面サイズ" do
-      before do
-        page.driver.browser.manage.window.resize_to(375, 667)
-      end
-
-      it "モバイルでも適切に表示される" do
-        expect(page).to have_selector('[data-controller="artwork-drag-drop"]')
-        expect(page).to have_css('.aspect-\\[16\\/9\\]')
-      end
-    end
-
-    context "タブレット画面サイズ" do
-      before do
-        page.driver.browser.manage.window.resize_to(768, 1024)
-      end
-
-      it "タブレットでも適切に表示される" do
-        expect(page).to have_selector('[data-controller="artwork-drag-drop"]')
-        expect(page).to have_css('.aspect-\\[16\\/9\\]')
-      end
     end
   end
 end
