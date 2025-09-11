@@ -24,9 +24,13 @@ RSpec.describe Layout::ApplicationComponent, type: :component do
     it "returns correct navigation items with updated Content path" do
       expect(component.send(:navigation_items)).to eq([
         { name: "Content", path: "/contents", icon: "document-text" },
-        { name: "Tracks", path: "/tracks", icon: "musical-note" },
-        { name: "Artwork", path: "/artwork", icon: "photo" }
+        { name: "Tracks", path: "/tracks", icon: "musical-note" }
       ])
+    end
+
+    it "does not include Artwork item" do
+      items = component.send(:navigation_items)
+      expect(items.none? { |item| item[:name] == "Artwork" }).to be true
     end
   end
 

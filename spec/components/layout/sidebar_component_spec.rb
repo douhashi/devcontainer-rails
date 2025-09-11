@@ -6,8 +6,7 @@ RSpec.describe Layout::SidebarComponent, type: :component do
   let(:navigation_items) do
     [
       { name: "Content", path: "/contents", icon: "document-text" },
-      { name: "Tracks", path: "/tracks", icon: "musical-note" },
-      { name: "Artwork", path: "/artwork", icon: "photo" }
+      { name: "Tracks", path: "/tracks", icon: "musical-note" }
     ]
   end
   let(:current_path) { "/contents" }
@@ -92,7 +91,11 @@ RSpec.describe Layout::SidebarComponent, type: :component do
     end
 
     it "includes icons for navigation items" do
-      expect(page).to have_css('[data-testid="nav-icon"]', count: 3)
+      expect(page).to have_css('[data-testid="nav-icon"]', count: 2)
+    end
+
+    it "does not include Artwork link" do
+      expect(page).not_to have_link("Artwork")
     end
 
     it "has proper responsive behavior" do

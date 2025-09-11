@@ -6,8 +6,7 @@ class Layout::ApplicationComponent < ApplicationViewComponent
   def navigation_items
     [
       { name: "Content", path: "/contents", icon: "document-text" },
-      { name: "Tracks", path: "/tracks", icon: "musical-note" },
-      { name: "Artwork", path: "/artwork", icon: "photo" }
+      { name: "Tracks", path: "/tracks", icon: "musical-note" }
     ]
   end
 
