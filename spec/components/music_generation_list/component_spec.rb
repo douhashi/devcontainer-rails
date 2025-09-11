@@ -47,7 +47,6 @@ RSpec.describe MusicGenerationList::Component, type: :component do
         render_inline(component)
 
         expect(page).to have_css("th", text: "Track No.")
-        expect(page).to have_css("th", text: "ステータス")
         expect(page).to have_css("th", text: "タイトル")
         expect(page).to have_css("th", text: "曲の長さ")
         expect(page).to have_css("th", text: "プレイヤー")

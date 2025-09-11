@@ -32,7 +32,7 @@ class TrackRow::Component < ApplicationViewComponent
 
 
   def formatted_created_at
-    I18n.l(track.created_at, format: :short)
+    I18n.l(track.created_at, format: :long_with_time)
   end
 
   def show_audio_player?
@@ -51,9 +51,5 @@ class TrackRow::Component < ApplicationViewComponent
     return unless show_audio_player?
 
     AudioPlayButton::Component.new(track: track)
-  end
-
-  def track_status_badge_component
-    TrackStatusBadge::Component.new(track: track)
   end
 end

@@ -23,7 +23,7 @@ RSpec.describe MusicGenerationCard::Component, type: :component do
     let(:status) { :completed }
 
     it "returns formatted datetime" do
-      expect(component.formatted_created_at).to match(/\d{4}年\d{1,2}月\d{1,2}日 \d{1,2}:\d{2}/)
+      expect(component.formatted_created_at).to match(/\d{4}年\d{2}月\d{2}日 \d{2}:\d{2}/)
     end
   end
 
@@ -95,7 +95,7 @@ RSpec.describe MusicGenerationCard::Component, type: :component do
         expect(page).to have_css("table")
         expect(page).to have_text("ID")
         expect(page).to have_text("タイトル")
-        expect(page).to have_text("ステータス")
+        expect(page).not_to have_text("ステータス", count: 1) # カード自体のステータスバッジは残る
       end
     end
 

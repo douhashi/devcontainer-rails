@@ -23,11 +23,7 @@ class TrackRequestRow::Component < ApplicationViewComponent
   end
 
   def formatted_created_at
-    I18n.l(track.created_at, format: :short)
-  end
-
-  def status_badge_component
-    TrackStatusBadge::Component.new(track: track)
+    I18n.l(track.created_at, format: :long_with_time)
   end
 
   def show_audio_player?

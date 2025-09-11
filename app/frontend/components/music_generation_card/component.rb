@@ -12,7 +12,7 @@ class MusicGenerationCard::Component < ApplicationViewComponent
   end
 
   def formatted_created_at
-    music_generation.created_at.strftime("%Y年%-m月%-d日 %H:%M")
+    I18n.l(music_generation.created_at, format: :long_with_time)
   end
 
   def has_tracks?

@@ -23,12 +23,10 @@ RSpec.describe TrackRequestRow::Component, type: :component do
     end
 
     it "displays creation date" do
-      expect(page).to have_content(I18n.l(track.created_at, format: :short))
+      expect(page).to have_content(I18n.l(track.created_at, format: :long_with_time))
     end
 
-    it "displays status badge" do
-      expect(page).to have_css("span[role='status']")
-    end
+    # Status badge removed as per Issue #243
 
     it "does not show delete button" do
       expect(page).not_to have_css("button[data-turbo-method='delete']")

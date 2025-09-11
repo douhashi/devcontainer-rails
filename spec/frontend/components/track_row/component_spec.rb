@@ -18,17 +18,17 @@ RSpec.describe TrackRow::Component, type: :component do
         expect(page).to have_text("生成中...")
       end
 
-      it "includes TrackStatusBadge component" do
+      it "does not display status badge" do
         render_inline(component)
 
-        expect(page).to have_text("待機中")
-        expect(page).to have_css("span.bg-gray-600.text-gray-200")
+        expect(page).not_to have_text("待機中")
+        expect(page).not_to have_css("span.bg-gray-600.text-gray-200")
       end
 
       it "displays formatted creation date" do
         render_inline(component)
 
-        expect(page).to have_text("15 Jan 10:30")
+        expect(page).to have_text("2025年01月15日 10:30")
       end
 
       it "shows placeholder for player when not completed" do
@@ -175,7 +175,7 @@ RSpec.describe TrackRow::Component, type: :component do
       render_inline(component)
 
       expect(page).to have_css('tr')
-      expect(page).to have_css('td', count: 6) # ID, タイトル, Content, ステータス, 作成日時, プレイヤー
+      expect(page).to have_css('td', count: 5) # ID, タイトル, Content, 作成日時, プレイヤー (ステータス削除)
     end
 
     it "preserves text color classes for readability" do

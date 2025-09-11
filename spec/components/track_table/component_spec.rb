@@ -58,7 +58,7 @@ RSpec.describe TrackTable::Component, type: :component do
       it "ヘッダー行が表示される" do
         expect(subject).to have_css("thead tr th", text: "ID")
         expect(subject).to have_css("thead tr th", text: "タイトル")
-        expect(subject).to have_css("thead tr th", text: "ステータス")
+        expect(subject).not_to have_css("thead tr th", text: "ステータス")
         expect(subject).to have_css("thead tr th", text: "作成日時")
         expect(subject).to have_css("thead tr th", text: "プレイヤー")
       end

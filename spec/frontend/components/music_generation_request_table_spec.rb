@@ -28,13 +28,10 @@ RSpec.describe MusicGenerationRequestTable::Component, type: :component do
       expect(page).to have_content("Test Track 2")
     end
 
-    it "displays status badges" do
-      expect(page).to have_css("span[role='status']", count: 2)
-    end
+    # Status badges removed as per Issue #243
 
     it "shows table headers" do
       expect(page).to have_content("Track No.")
-      expect(page).to have_content("ステータス")
       expect(page).to have_content("タイトル")
       expect(page).to have_content("曲の長さ")
       expect(page).to have_content("プレイヤー")
