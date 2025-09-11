@@ -101,6 +101,3 @@ gem "ransack", "~> 4.2"
 
 # Video processing
 gem "streamio-ffmpeg", "~> 3.0"
-
-# YouTube API client
-gem "yt", "~> 0.33.4"

@@ -497,8 +497,6 @@ GEM
     xpath (3.2.0)
       nokogiri (~> 1.8)
     yard (0.9.37)
-    yt (0.33.4)
-      activesupport
     zeitwerk (2.7.3)
 
 PLATFORMS
@@ -555,7 +553,6 @@ DEPENDENCIES
   vite_rails
   web-console
   webmock (~> 3.24)
-  yt (~> 0.33.4)
 
 BUNDLED WITH
    2.6.0

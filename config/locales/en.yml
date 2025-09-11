@@ -32,18 +32,3 @@ en:
   time:
     formats:
       long_with_time: "%Y年%m月%d日 %H:%M"
-  youtube:
-    auth:
-      callback:
-        success: "Successfully connected to YouTube"
-        error: "Failed to connect to YouTube"
-        cancelled: "YouTube connection cancelled"
-        expired: "Authentication session expired. Please try again"
-      disconnect:
-        success: "Successfully disconnected from YouTube"
-        not_connected: "YouTube account not connected"
-  youtube_connect_button:
-    component:
-      connect: "Connect YouTube"
-      disconnect: "Disconnect YouTube"
-      confirm_disconnect: "Are you sure you want to disconnect your YouTube account?"

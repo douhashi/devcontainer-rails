@@ -231,7 +231,7 @@ class VideoGenerationButton::Component < ApplicationViewComponent
       video_codec: "H.264 (libx264)",
       audio_codec: "AAC (192kbps, 48kHz)",
       frame_rate: "30fps",
-      optimization: "YouTube推奨設定"
+      optimization: "標準動画設定"
     }
   end
 

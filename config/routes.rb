@@ -3,14 +3,6 @@ Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   resource :sample, only: [ :show ]
 
-  namespace :youtube do
-    namespace :auth do
-      get "authorize"
-      get "callback"
-      delete "disconnect"
-    end
-  end
-
   # Independent tracks listing (not nested under contents)
   resources :tracks, only: [ :index ]
 
