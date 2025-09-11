@@ -128,7 +128,6 @@ class ContentsController < ApplicationController
 
   def audio_generation_prerequisites_met?
     return false unless @content.tracks.completed.exists?
-    return false unless @content.artwork.present?
 
     # Check if we have enough completed tracks with duration information
     completed_tracks_count = @content.tracks.completed.where.not(duration_sec: nil).count
@@ -140,10 +139,6 @@ class ContentsController < ApplicationController
 
     unless @content.tracks.completed.exists?
       errors << "No completed tracks available"
-    end
-
-    unless @content.artwork.present?
-      errors << "Artwork must be configured"
     end
 
     completed_tracks_count = @content.tracks.completed.where.not(duration_sec: nil).count

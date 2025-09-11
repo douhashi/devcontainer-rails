@@ -10,7 +10,6 @@ module AudioGenerationButton
 
     def can_generate_audio?
       return false unless content_record.tracks.completed.exists?
-      return false unless content_record.artwork.present?
 
       # Check if we have enough completed tracks with duration information
       completed_tracks_count = content_record.tracks.completed.where.not(duration_sec: nil).count
@@ -101,10 +100,6 @@ module AudioGenerationButton
 
       unless content_record.tracks.completed.exists?
         errors << "トラックが必要"
-      end
-
-      unless content_record.artwork.present?
-        errors << "アートワークが必要"
       end
 
       completed_tracks_count = content_record.tracks.completed.where.not(duration_sec: nil).count

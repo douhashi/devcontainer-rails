@@ -18,7 +18,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
   end
 
   describe 'rendering with ButtonComponent' do
-    let!(:artwork) { create(:artwork, content: content) }
     let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
     let!(:completed_track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
 
@@ -49,7 +48,6 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
   end
 
   describe 'private methods' do
-    let!(:artwork) { create(:artwork, content: content) }
     let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
     let!(:completed_track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
 
@@ -61,12 +59,10 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
       end
 
       context 'without artwork' do
-        before { artwork.destroy! }
-
-        it 'returns false' do
-          content.reload
+        it 'returns true if tracks requirements are met' do
+          # アートワークなしでもトラック条件を満たしていればtrue
           component = described_class.new(content_record: content)
-          expect(component.send(:can_generate_audio?)).to be false
+          expect(component.send(:can_generate_audio?)).to be true
         end
       end
 
@@ -141,14 +137,15 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
     end
 
     describe '#prerequisite_errors' do
-      context 'with missing artwork and tracks' do
+      context 'with missing tracks' do
         let(:component_without_prereqs) { described_class.new(content_record: create(:content)) }
 
-        it 'returns multiple errors' do
+        it 'returns track-related errors only' do
           errors = component_without_prereqs.send(:prerequisite_errors)
           expect(errors).to include('トラックが必要')
-          expect(errors).to include('アートワークが必要')
           expect(errors.any? { |e| e.include?('トラック2個以上必要') }).to be true
+          # アートワーク関連のエラーは含まれない
+          expect(errors).not_to include('アートワークが必要')
         end
       end
 

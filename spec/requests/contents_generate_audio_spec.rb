@@ -9,7 +9,6 @@ RSpec.describe "Contents generate_audio", type: :request do
   end
 
   let(:content) { create(:content, duration_min: 10) }
-  let!(:artwork) { create(:artwork, content: content) }
   let!(:completed_track1) { create(:track, content: content, status: :completed, duration_sec: 180) }
   let!(:completed_track2) { create(:track, content: content, status: :completed, duration_sec: 150) }
 
@@ -35,6 +34,19 @@ RSpec.describe "Contents generate_audio", type: :request do
         audio = content.reload.audio
         expect(GenerateAudioJob).to have_been_enqueued.with(audio.id)
       end
+
+      context "without artwork" do
+        it "still creates audio and queues generation job" do
+          # Artworkなしでも音源生成が可能
+          expect {
+            post generate_audio_content_path(content)
+          }.to change { content.reload.audio }.from(nil)
+           .and change { enqueued_jobs.size }.by(1)
+
+          expect(response).to redirect_to(content_path(content))
+          expect(flash[:notice]).to include("Audio generation has been started")
+        end
+      end
     end
 
     context "when audio already completed" do
@@ -56,19 +68,8 @@ RSpec.describe "Contents generate_audio", type: :request do
 
     context "when prerequisites not met" do
       it "handles various prerequisite failures with appropriate HTTP responses" do
-        # Without artwork
-        content_no_artwork = create(:content, duration_min: 10)
-        create_list(:track, 2, content: content_no_artwork, status: :completed, duration_sec: 180)
-
-        expect {
-          post generate_audio_content_path(content_no_artwork)
-        }.not_to change { content_no_artwork.reload.audio }
-        expect(response).to redirect_to(content_path(content_no_artwork))
-        expect(flash[:alert]).to include("Artwork must be configured")
-
         # Without completed tracks
         content_no_tracks = create(:content, duration_min: 10)
-        create(:artwork, content: content_no_tracks)
 
         post generate_audio_content_path(content_no_tracks)
         expect(response).to redirect_to(content_path(content_no_tracks))
@@ -76,12 +77,24 @@ RSpec.describe "Contents generate_audio", type: :request do
 
         # With insufficient completed tracks
         content_few_tracks = create(:content, duration_min: 10)
-        create(:artwork, content: content_few_tracks)
         create(:track, content: content_few_tracks, status: :completed, duration_sec: 180)
 
         post generate_audio_content_path(content_few_tracks)
         expect(response).to redirect_to(content_path(content_few_tracks))
         expect(flash[:alert]).to include("At least 2 completed tracks")
+      end
+
+      it "allows generation without artwork" do
+        # アートワークなしでも2個以上の完了したトラックがあれば生成可能
+        content_no_artwork = create(:content, duration_min: 10)
+        create_list(:track, 2, content: content_no_artwork, status: :completed, duration_sec: 180)
+
+        expect {
+          post generate_audio_content_path(content_no_artwork)
+        }.to change { content_no_artwork.reload.audio }.from(nil)
+
+        expect(response).to redirect_to(content_path(content_no_artwork))
+        expect(flash[:notice]).to include("Audio generation has been started")
       end
     end
 
