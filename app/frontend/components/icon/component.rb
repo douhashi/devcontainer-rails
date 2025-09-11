@@ -12,7 +12,9 @@ module Icon
       play: "fa-play",
       play_circle: "fa-play-circle",
       pause: "fa-pause",
-      check: "fa-check"
+      check: "fa-check",
+      edit: "fa-pen-to-square",
+      plus: "fa-plus"
     }.freeze
 
     # Font Awesome size mappings

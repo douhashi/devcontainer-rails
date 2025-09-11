@@ -23,17 +23,17 @@ describe Contents::Show::Component, type: :view_component do
     it "renders action buttons" do
       render_inline(component)
 
-      expect(page).to have_link("編集", href: "/contents/1/edit")
-      expect(page).to have_link("削除")
+      expect(page).to have_css('a[href="/contents/1/edit"][aria-label="編集"]')
+      expect(page).to have_css('a[aria-label="削除"]')
       expect(page).to have_link("一覧に戻る", href: "/contents")
     end
 
     it "includes delete confirmation data attributes" do
       render_inline(component)
 
-      delete_link = page.find_link("削除")
-      expect(delete_link[:"data-turbo-method"]).to eq("delete")
-      expect(delete_link[:"data-controller"]).to include("delete-confirmation")
+      delete_button = page.find('a[aria-label="削除"]')
+      expect(delete_button[:"data-turbo-method"]).to eq("delete")
+      expect(delete_button[:"data-controller"]).to include("delete-confirmation")
     end
   end
 end

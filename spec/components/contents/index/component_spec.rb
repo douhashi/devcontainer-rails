@@ -108,4 +108,38 @@ RSpec.describe Contents::Index::Component, type: :component do
       expect(subject.css('.lg\\:grid-cols-3')).not_to be_present
     end
   end
+
+  describe 'icon buttons' do
+    subject { render_inline(component) }
+
+    it 'renders new content button with icon and text' do
+      new_button = subject.css('a[href*="new"]').first
+      expect(new_button).to be_present
+
+      # Check for icon component
+      expect(new_button.css('i.fa-plus')).to be_present
+
+      # Check for text content with icon
+      expect(new_button.text).to include('新規作成')
+
+      # Check for variant styling
+      expect(new_button['class']).to include('bg-blue-600')
+    end
+
+    it 'maintains hover effects on new button' do
+      new_button = subject.css('a[href*="new"]').first
+      expect(new_button['class']).to include('hover:bg-blue-700')
+    end
+
+    context 'with empty contents' do
+      let(:contents) { [] }
+
+      it 'keeps text link for empty state' do
+        # Empty state should keep text-only link for better context
+        empty_state_link = subject.css('a[href*="new"]').last
+        expect(empty_state_link.text).to include('最初のコンテンツを作成')
+        expect(empty_state_link['class']).to include('text-blue-400')
+      end
+    end
+  end
 end

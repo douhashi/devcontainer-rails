@@ -52,16 +52,28 @@
 
     <!-- Actions (moved to after Work Overview) -->
     <div class="flex gap-4 mt-6">
-      <%= link_to "編集", edit_content_path(item), 
-          class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>
-      <%= link_to "削除", content_path(item),
-          data: { 
-            turbo_method: :delete,
-            controller: "delete-confirmation",
-            action: "click->delete-confirmation#confirm",
-            delete_confirmation_message_value: "本当に削除しますか？"
-          },
-          class: "px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" %>
+      <%= render Button::Component.new(
+        href: edit_content_path(item),
+        variant: :primary,
+        size: :md,
+        aria_label: "編集"
+      ) do %>
+        <%= render Icon::Component.new(name: :edit, size: :md) %>
+      <% end %>
+      <%= render Button::Component.new(
+        href: content_path(item),
+        variant: :danger,
+        size: :md,
+        aria_label: "削除",
+        data: { 
+          turbo_method: :delete,
+          controller: "delete-confirmation",
+          action: "click->delete-confirmation#confirm",
+          delete_confirmation_message_value: "本当に削除しますか？"
+        }
+      ) do %>
+        <%= render Icon::Component.new(name: :delete, size: :md) %>
+      <% end %>
     </div>
   </div>
 

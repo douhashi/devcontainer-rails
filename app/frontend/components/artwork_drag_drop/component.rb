@@ -32,7 +32,7 @@ class ArtworkDragDrop::Component < ApplicationViewComponent
   private
 
   def delete_button_class
-    "absolute top-2 right-2 px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors z-10"
+    "inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors z-10"
   end
 
   def drop_zone_class

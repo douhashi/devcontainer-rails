@@ -1,8 +1,14 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-100">コンテンツ一覧</h1>
-    <%= link_to "新規作成", new_content_path, 
-        class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>
+    <%= render Button::Component.new(
+      href: new_content_path,
+      variant: :primary,
+      size: :md
+    ) do %>
+      <%= render Icon::Component.new(name: :plus, size: :md, color: "mr-2") %>
+      <span>新規作成</span>
+    <% end %>
   </div>
   
   <% if empty_state? %>

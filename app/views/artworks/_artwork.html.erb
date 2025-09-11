@@ -16,8 +16,9 @@
                       turbo_method: :delete,
                       turbo_confirm: "アートワークを削除しますか？"
                     },
-                    class: "px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors z-10" do %>
-          削除
+                    'aria-label': '削除',
+                    class: "inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors z-10" do %>
+          <%= render Icon::Component.new(name: "delete") %>
         <% end %>
       <% end %>
     </div>

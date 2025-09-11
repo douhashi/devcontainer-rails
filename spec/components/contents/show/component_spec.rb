@@ -256,4 +256,61 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(video_gen_cards).not_to be_empty
     end
   end
+
+  describe 'icon buttons' do
+    subject { render_inline(component) }
+
+    it 'renders edit button as icon button with correct attributes' do
+      # Check for icon button structure
+      edit_button = subject.css('a[href*="edit"]').first
+      expect(edit_button).to be_present
+
+      # Check for icon component
+      expect(edit_button.css('i.fa-pen-to-square')).to be_present
+
+      # Check for aria-label
+      expect(edit_button['aria-label']).to eq('編集')
+
+      # Check for variant styling
+      expect(edit_button['class']).to include('bg-blue-600')
+    end
+
+    it 'renders delete button as icon button with correct attributes' do
+      # Check for icon button structure
+      delete_button = subject.css('a[data-turbo-method="delete"]').first
+      expect(delete_button).to be_present
+
+      # Check for icon component
+      expect(delete_button.css('i.fa-trash')).to be_present
+
+      # Check for aria-label
+      expect(delete_button['aria-label']).to eq('削除')
+
+      # Check for variant styling
+      expect(delete_button['class']).to include('bg-red-600')
+
+      # Check for delete confirmation controller
+      expect(delete_button['data-controller']).to include('delete-confirmation')
+      expect(delete_button['data-action']).to include('click->delete-confirmation#confirm')
+      expect(delete_button['data-delete-confirmation-message-value']).to eq('本当に削除しますか？')
+    end
+
+    it 'maintains proper button sizing' do
+      edit_button = subject.css('a[href*="edit"]').first
+      delete_button = subject.css('a[data-turbo-method="delete"]').first
+
+      # Check for consistent size styling
+      expect(edit_button['class']).to include('px-4', 'py-2')
+      expect(delete_button['class']).to include('px-4', 'py-2')
+    end
+
+    it 'keeps hover effects on icon buttons' do
+      edit_button = subject.css('a[href*="edit"]').first
+      delete_button = subject.css('a[data-turbo-method="delete"]').first
+
+      # Check for hover styling
+      expect(edit_button['class']).to include('hover:bg-blue-700')
+      expect(delete_button['class']).to include('hover:bg-red-700')
+    end
+  end
 end

@@ -16,8 +16,9 @@
                         turbo_method: :delete,
                         turbo_confirm: "アートワークを削除しますか？"
                       },
+                      'aria-label': '削除',
                       class: delete_button_class do %>
-            削除
+            <%= render Icon::Component.new(name: "delete") %>
           <% end %>
         <% end %>
       <% else %>

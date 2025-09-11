@@ -55,10 +55,23 @@ RSpec.describe ArtworkDragDrop::Component, type: :component do
         expect(page).not_to have_text("画像をドラッグ&ドロップ")
       end
 
-      it "削除ボタンが表示される" do
+      it "削除ボタンがアイコンボタンとして表示される" do
         render_inline(component)
 
-        expect(page).to have_button("削除")
+        # Check for icon button structure
+        expect(page).to have_css("button[type='submit'] i.fa-trash")
+
+        # Check for aria-label
+        expect(page).to have_css("button[aria-label='削除']")
+
+        # Check for danger variant styling
+        expect(page).to have_css("button.bg-red-600")
+        expect(page).to have_css("button.hover\\:bg-red-700")
+
+        # Check for turbo confirm
+        expect(page).to have_css("button[data-turbo-confirm='アートワークを削除しますか？']")
+
+        # Check for form
         expect(page).to have_selector("form[action='#{component.form_url}']")
       end
 

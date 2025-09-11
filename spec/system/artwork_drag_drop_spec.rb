@@ -29,7 +29,7 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
 
         # アップロード処理が完了し、画像が表示されるまで待つ
         expect(page).to have_css('img[alt="アートワーク"]', wait: 10)
-        expect(page).to have_button("削除")
+        expect(page).to have_css('button[aria-label="削除"]')
 
         # DBに保存されている確認
         expect(content.reload.artwork).to be_present
@@ -81,7 +81,7 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
 
     it "削除ボタンクリックで確認ダイアログが表示される" do
       accept_confirm("アートワークを削除しますか？") do
-        click_button "削除"
+        find('button[aria-label="削除"]').click
       end
 
       # 削除後、再度ドロップゾーンが表示される
@@ -94,7 +94,7 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true do
 
     it "削除後に「アートワーク」ラベルが重複して表示されない" do
       accept_confirm("アートワークを削除しますか？") do
-        click_button "削除"
+        find('button[aria-label="削除"]').click
       end
 
       # 削除後、再度ドロップゾーンが表示される
