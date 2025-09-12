@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+# Docker Compose Production環境用エントリーポイント
+# データベースの準備とjemalloc有効化を行う
+
+# Enable jemalloc for reduced memory usage and latency
+if [ -z "${LD_PRELOAD+x}" ]; then
+    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+    export LD_PRELOAD
+fi
+
+# Ensure storage directories exist with correct permissions
+mkdir -p storage/db storage/active_storage log tmp/pids tmp/cache tmp/sockets
+
+# If running the rails server, prepare the database
+if [[ "${@}" == *"rails"* ]] && [[ "${@}" == *"server"* ]]; then
+  echo "Preparing database..."
+  
+  # Run migrations for both primary and queue databases
+  bundle exec rails db:prepare
+  
+  # Run migrations for queue database specifically
+  bundle exec rails db:migrate:queue
+  
+  echo "Database preparation complete."
+fi
+
+# If running SolidQueue, ensure queue database is ready
+if [[ "${@}" == *"solid_queue:start"* ]]; then
+  echo "Preparing queue database..."
+  
+  # Ensure queue database is migrated
+  bundle exec rails db:migrate:queue
+  
+  echo "Queue database preparation complete."
+fi
+
+# Execute the main command
+exec "${@}"

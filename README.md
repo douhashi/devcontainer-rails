@@ -116,6 +116,111 @@ Benefits:
 
 For migration details, see [Migration Strategy](docs/migration_strategy.md).
 
+## Docker Compose Production Environment
+
+This project includes a Docker Compose setup for running a production-like environment locally.
+
+### Quick Start
+
+```bash
+# Initial setup (first time only)
+./scripts/init-production.sh
+
+# Start the application
+docker compose -f docker-compose.production.yml up -d
+
+# View logs
+docker compose -f docker-compose.production.yml logs -f
+
+# Stop the application
+docker compose -f docker-compose.production.yml down
+```
+
+### Prerequisites
+
+- Docker Desktop or Docker Engine with Docker Compose
+- At least 4GB of RAM allocated to Docker
+- `config/master.key` file (or RAILS_MASTER_KEY environment variable)
+
+### Manual Setup
+
+If you prefer to set up manually without the init script:
+
+1. **Ensure master.key exists**:
+   ```bash
+   # Check if master.key exists
+   ls config/master.key
+   
+   # If not, generate one:
+   EDITOR=vim bin/rails credentials:edit
+   ```
+
+2. **Create environment file** (optional):
+   ```bash
+   cp .env.example .env.production
+   # Edit .env.production with your API keys and settings
+   ```
+
+3. **Build and start services**:
+   ```bash
+   # Build Docker images
+   docker compose -f docker-compose.production.yml build
+   
+   # Initialize database
+   docker compose -f docker-compose.production.yml run --rm web bundle exec rails db:prepare
+   
+   # Start all services
+   docker compose -f docker-compose.production.yml up -d
+   ```
+
+### Architecture
+
+The Docker Compose setup includes:
+
+- **web**: Rails application with Thruster (accessible at http://localhost:3000)
+- **queue**: SolidQueue worker for background job processing
+- **Volumes**: Persistent storage for database, uploads, and logs
+- **Health checks**: Automatic service monitoring and restart
+
+### Environment Variables
+
+Key environment variables can be set in `docker-compose.production.yml`:
+
+- `RAILS_MASTER_KEY`: Your Rails master key (required)
+- `KIE_AI_API_KEY`: KIE.AI API key for music generation
+- `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`: YouTube API credentials
+- `EXTERNAL_PORT`: Change if port 3000 is already in use (default: 3000)
+
+### Troubleshooting
+
+**Port conflicts**:
+```bash
+# Use a different port
+EXTERNAL_PORT=3001 docker compose -f docker-compose.production.yml up
+```
+
+**Database issues**:
+```bash
+# Reset database
+docker compose -f docker-compose.production.yml down -v
+docker compose -f docker-compose.production.yml run --rm web bundle exec rails db:setup
+```
+
+**View container logs**:
+```bash
+# All services
+docker compose -f docker-compose.production.yml logs
+
+# Specific service
+docker compose -f docker-compose.production.yml logs web
+docker compose -f docker-compose.production.yml logs queue
+```
+
+**Access container shell**:
+```bash
+docker compose -f docker-compose.production.yml exec web bash
+```
+
 ## Documentation
 
 Project documentation is organized under `docs/`:
