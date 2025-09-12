@@ -14,7 +14,8 @@ module Icon
       pause: "fa-pause",
       check: "fa-check",
       edit: "fa-pen-to-square",
-      plus: "fa-plus"
+      plus: "fa-plus",
+      arrow_left: "fa-arrow-left"
     }.freeze
 
     # Font Awesome size mappings

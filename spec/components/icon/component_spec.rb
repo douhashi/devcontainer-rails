@@ -18,6 +18,10 @@ RSpec.describe Icon::Component, type: :component do
       it "initializes with new plus icon" do
         expect { described_class.new(name: :plus) }.not_to raise_error
       end
+
+      it "initializes with new arrow_left icon" do
+        expect { described_class.new(name: :arrow_left) }.not_to raise_error
+      end
     end
 
     context "with invalid icon name" do
@@ -107,6 +111,28 @@ RSpec.describe Icon::Component, type: :component do
       it "adds spin animation" do
         render_inline(described_class.new(name: :spinner))
         expect(page).to have_css("i.fa-spin")
+      end
+    end
+
+    context "with arrow_left icon" do
+      it "renders with correct Font Awesome classes" do
+        render_inline(described_class.new(name: :arrow_left))
+        expect(page).to have_css("i.fa-solid.fa-arrow-left")
+      end
+
+      it "renders with aria-label when provided" do
+        render_inline(described_class.new(name: :arrow_left, aria_label: "一覧に戻る"))
+        expect(page).to have_css("i[aria-label='一覧に戻る'][role='img']")
+      end
+
+      it "renders with large size" do
+        render_inline(described_class.new(name: :arrow_left, size: :lg))
+        expect(page).to have_css("i.fa-solid.fa-arrow-left.fa-lg")
+      end
+
+      it "renders with color when provided" do
+        render_inline(described_class.new(name: :arrow_left, color: "text-blue-400"))
+        expect(page).to have_css("i.fa-solid.fa-arrow-left.text-blue-400")
       end
     end
   end

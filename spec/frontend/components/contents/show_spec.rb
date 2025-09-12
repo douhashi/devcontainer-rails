@@ -23,9 +23,13 @@ describe Contents::Show::Component, type: :view_component do
     it "renders action buttons" do
       render_inline(component)
 
+      # Check for the back link with icon
+      expect(page).to have_css('a[href="/contents"]')
+      back_link = page.find('a[href="/contents"]')
+      expect(back_link).to have_css('i[aria-label="一覧に戻る"]')
+
       expect(page).to have_css('a[href="/contents/1/edit"][aria-label="編集"]')
       expect(page).to have_css('a[aria-label="削除"]')
-      expect(page).to have_link("一覧に戻る", href: "/contents")
     end
 
     it "includes delete confirmation data attributes" do

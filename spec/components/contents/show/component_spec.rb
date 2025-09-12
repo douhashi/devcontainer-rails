@@ -51,7 +51,12 @@ RSpec.describe Contents::Show::Component, type: :component do
       expect(subject.text).to include('Study Music')
       expect(subject.text).to include('12 分')  # スペースが追加されたため
       expect(subject.text).to include('Chill beats for studying')
-      expect(subject.text).to include('一覧に戻る')
+      # 「一覧に戻る」テキストはアイコンに変更されるため、テキストは含まれない
+      expect(subject.text).not_to include('一覧に戻る')
+      # 代わりにアイコンが存在することを確認
+      expect(subject.css('a[href="/contents"] i.fa-arrow-left')).to be_present
+      # aria-labelが設定されていることを確認
+      expect(subject.css('a[href="/contents"] i[aria-label="一覧に戻る"]')).to be_present
     end
 
     it 'does not display complex status summary section' do
@@ -254,6 +259,38 @@ RSpec.describe Contents::Show::Component, type: :component do
         card.text.include?('動画生成')
       }
       expect(video_gen_cards).not_to be_empty
+    end
+  end
+
+  describe 'back to list navigation' do
+    subject { render_inline(component) }
+
+    it 'renders back to list link as arrow-left icon' do
+      # リンクにアイコンが含まれていることを確認
+      back_link = subject.css('a[href="/contents"]').first
+      expect(back_link).to be_present
+
+      # arrow-leftアイコンが正しく表示されることを確認
+      icon = back_link.css('i.fa-arrow-left')
+      expect(icon).to be_present
+
+      # lgサイズが適用されていることを確認
+      expect(icon.first['class']).to include('fa-lg')
+
+      # aria-labelが設定されていることを確認
+      expect(icon.first['aria-label']).to eq('一覧に戻る')
+      expect(icon.first['role']).to eq('img')
+
+      # hoverエフェクトのクラスが維持されていることを確認
+      expect(back_link['class']).to include('text-blue-400')
+      expect(back_link['class']).to include('hover:text-blue-300')
+    end
+
+    it 'does not display text "一覧に戻る"' do
+      # テキストが表示されていないことを確認
+      back_link = subject.css('a[href="/contents"]').first
+      # リンク内にテキストがないことを確認（アイコンのみ）
+      expect(back_link.text.strip).to be_empty
     end
   end
 
