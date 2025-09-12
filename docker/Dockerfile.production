@@ -52,6 +52,7 @@ RUN apt-get update -qq && \
     git \
     libsqlite3-dev \
     pkg-config \
+    libvips-dev \
     && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems

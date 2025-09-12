@@ -55,6 +55,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          # Install vips and all its dependencies including runtime libraries and tools
+          sudo apt-get install -y libvips-dev libvips-tools libvips42
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
