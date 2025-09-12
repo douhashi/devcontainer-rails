@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import Plyr from 'plyr'
 
 export default class extends Controller {
   static targets = ['player']
@@ -32,10 +31,10 @@ export default class extends Controller {
   disconnect() {
     try {
       if (this.player) {
-        // Remove event listeners before destroying
-        this.player.off('play')
-        this.player.off('error')
-        this.player.destroy()
+        // Remove event listeners
+        this.player.removeEventListener('play', this.handlePlay)
+        this.player.removeEventListener('pause', this.handlePause)
+        this.player.removeEventListener('error', this.handleError)
         this.player = null
       }
       
@@ -66,71 +65,59 @@ export default class extends Controller {
       return
     }
 
-    // Set the audio source immediately to avoid double-click issue
-    this.playerTarget.src = audioUrl
-    this.playerTarget.preload = 'metadata' // Load metadata but not full audio
-    
     try {
-      this.player = new Plyr(this.playerTarget, {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume'],
-        volume: 0.7,
-        seekTime: 5,
-        displayDuration: true,
-        invertTime: false,
-        captions: {
-          active: false,
-          language: 'auto',
-          update: false
-        },
-        keyboard: {
-          focused: true,
-          global: false
-        },
-        tooltips: {
-          controls: true,
-          seek: true
-        },
-        debug: false,
-        // Dark theme specific settings
-        loadSprite: false,
-        iconPrefix: 'plyr',
-        iconUrl: null
-      })
+      // Store reference to media-controller element
+      this.player = this.playerTarget
+      
+      // Get the audio element inside the media-controller
+      const audioElement = this.player.querySelector('audio[slot="media"]')
+      if (!audioElement) {
+        console.error('AudioPlayerController: Audio element not found')
+        this.showError('音楽プレイヤーの初期化に失敗しました')
+        return
+      }
 
-      // Bind event handlers with error handling
-      this.player.on('play', () => {
+      // Bind event handlers
+      this.handlePlay = () => {
         try {
-          // No need to load source here since it's already set
           this.stopOtherPlayers()
           this.constructor.currentPlayer = this.player
         } catch (error) {
           console.error('AudioPlayerController play event error:', error)
         }
-      })
+      }
 
-      this.player.on('error', (event) => {
+      this.handlePause = () => {
+        if (this.constructor.currentPlayer === this.player) {
+          this.constructor.currentPlayer = null
+        }
+      }
+
+      this.handleError = (event) => {
         // Only log errors if it's not a test environment
         if (!this.isTestEnvironment()) {
           console.error('Audio player error:', event)
           this.showError('音声ファイルを読み込めませんでした')
         }
-      })
+      }
 
-      // Add pause event to clear current player
-      this.player.on('pause', () => {
-        if (this.constructor.currentPlayer === this.player) {
-          this.constructor.currentPlayer = null
-        }
-      })
+      // Add event listeners to media-controller
+      this.player.addEventListener('play', this.handlePlay)
+      this.player.addEventListener('pause', this.handlePause)
+      this.player.addEventListener('error', this.handleError)
+
+      // Set volume
+      this.player.volume = 0.7
 
       if (this.autoplayValue) {
-        this.player.autoplay = true
+        // Use media-chrome's autoplay attribute
+        this.player.setAttribute('autoplay', '')
       }
 
       // Show the player after successful initialization
       this.showPlayer()
     } catch (error) {
-      console.error('AudioPlayerController: Failed to initialize Plyr:', error)
+      console.error('AudioPlayerController: Failed to initialize media-chrome:', error)
       this.showError('音楽プレイヤーの初期化に失敗しました')
     }
   }
@@ -138,7 +125,8 @@ export default class extends Controller {
   showPlayer() {
     try {
       if (this.playerTarget) {
-        this.playerTarget.style.visibility = 'visible'
+        // media-chrome elements are visible by default
+        this.playerTarget.style.display = 'block'
       }
     } catch (error) {
       console.error('AudioPlayerController: Failed to show player:', error)
@@ -150,7 +138,8 @@ export default class extends Controller {
     try {
       const currentPlayer = this.constructor.currentPlayer
       if (currentPlayer && currentPlayer !== this.player) {
-        if (typeof currentPlayer.pause === 'function') {
+        // For media-chrome, pause is a property/method on the element
+        if (currentPlayer.pause) {
           currentPlayer.pause()
         }
       }

@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import Plyr from "plyr"
 
 export default class extends Controller {
   static targets = ["audio", "trackTitle", "playButton", "playIcon", "pauseIcon"]
@@ -14,39 +13,59 @@ export default class extends Controller {
 
   disconnect() {
     if (this.player) {
-      this.player.destroy()
+      // Remove event listeners from media-controller
+      this.player.removeEventListener('play', this.handleMediaPlay)
+      this.player.removeEventListener('pause', this.handleMediaPause)
+      this.player.removeEventListener('ended', this.handleMediaEnded)
+      this.player = null
     }
     this.removeEventListeners()
   }
 
   initializePlayer() {
-    console.log('FloatingAudioPlayerController: Initializing Plyr player')
+    console.log('FloatingAudioPlayerController: Initializing media-chrome player')
     
     if (!this.audioTarget) {
       console.error('FloatingAudioPlayerController: Audio target not found')
       return
     }
     
-    const config = this.audioTarget.dataset.plyrConfig
-    this.player = new Plyr(this.audioTarget, config ? JSON.parse(config) : {})
+    // Store reference to media-controller element
+    this.player = this.audioTarget
     
-    this.player.on("play", () => {
+    // Get the audio element inside the media-controller
+    this.audioElement = this.player.querySelector('audio[slot="media"]')
+    if (!this.audioElement) {
+      console.error('FloatingAudioPlayerController: Audio element not found')
+      return
+    }
+    
+    // Bind event handlers
+    this.handleMediaPlay = () => {
       console.log('FloatingAudioPlayerController: Player started playing')
       this.updatePlayButton(true)
       this.stopOtherPlayers()
-    })
+    }
     
-    this.player.on("pause", () => {
+    this.handleMediaPause = () => {
       console.log('FloatingAudioPlayerController: Player paused')
       this.updatePlayButton(false)
-    })
+    }
     
-    this.player.on("ended", () => {
+    this.handleMediaEnded = () => {
       console.log('FloatingAudioPlayerController: Player ended')
       this.next()
-    })
+    }
     
-    console.log('FloatingAudioPlayerController: Plyr player initialized successfully')
+    // Add event listeners to media-controller
+    this.player.addEventListener('play', this.handleMediaPlay)
+    this.player.addEventListener('pause', this.handleMediaPause)
+    this.player.addEventListener('ended', this.handleMediaEnded)
+    
+    // Set default volume
+    this.player.volume = 0.8
+    
+    console.log('FloatingAudioPlayerController: media-controller player initialized successfully')
   }
 
   setupEventListeners() {
@@ -182,14 +201,10 @@ export default class extends Controller {
     if (!trackData) return
     
     this.trackTitleTarget.textContent = trackData.title || "Untitled"
-    this.player.source = {
-      type: "audio",
-      sources: [
-        {
-          src: trackData.url,
-          type: "audio/mpeg"
-        }
-      ]
+    
+    // Set audio source for media-chrome
+    if (this.audioElement) {
+      this.audioElement.src = trackData.url
     }
     
     // Update global state
@@ -197,6 +212,7 @@ export default class extends Controller {
       window.floatingPlayerStore.currentTrack = trackData
     }
     
+    // Play using media-controller's play method
     this.player.play()
     this.updateAllPlayButtons(trackData.id)
   }
@@ -216,7 +232,8 @@ export default class extends Controller {
   }
 
   togglePlay() {
-    if (this.player.playing) {
+    // Check if media is playing using media-controller's paused property
+    if (!this.player.paused) {
       this.player.pause()
     } else {
       this.player.play()
@@ -224,7 +241,11 @@ export default class extends Controller {
   }
 
   close() {
-    this.player.stop()
+    // Stop playback for media-chrome
+    this.player.pause()
+    if (this.audioElement) {
+      this.audioElement.currentTime = 0
+    }
     this.hide()
     this.updateAllPlayButtons(null)
     

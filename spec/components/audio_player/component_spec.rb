@@ -16,12 +16,13 @@ RSpec.describe AudioPlayer::Component, type: :component do
     it "renders audio player" do
       render_inline described_class.new(track: track)
 
-      expect(page).to have_css("audio[data-audio-player-target='player']")
+      expect(page).to have_css("media-controller[data-audio-player-target='player']")
+      expect(page).to have_css("audio[slot='media']")
       expect(page).to have_css("audio[preload='metadata']")
-      expect(page).to have_css("audio[data-audio-url='https://example.com/test.mp3']")
+      expect(page).to have_css("media-controller[data-audio-url='https://example.com/test.mp3']")
     end
 
-    it "includes Plyr initialization data" do
+    it "includes media-chrome controller initialization data" do
       render_inline described_class.new(track: track)
 
       expect(page).to have_css("div[data-controller='audio-player']")

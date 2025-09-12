@@ -56,14 +56,22 @@
       </svg>
     </button>
 
-    <!-- Audio Player (with Plyr controls) -->
-    <audio 
+    <!-- Audio Player (with media-chrome controls) -->
+    <media-controller
       id="<%= audio_id %>"
       data-floating-audio-player-target="audio"
-      data-plyr-config='<%= plyr_config %>'
-      controls
-      class="flex-1 mx-4 min-w-0"
-    ></audio>
+      class="flex-1 mx-4 min-w-0 bg-gray-700 rounded-md"
+    >
+      <audio
+        slot="media"
+        preload="metadata"
+      ></audio>
+      <media-control-bar class="bg-gray-700 text-gray-300">
+        <media-time-display show-duration class="text-xs text-gray-300 ml-2"></media-time-display>
+        <media-time-range class="flex-1 mx-2"></media-time-range>
+        <media-volume-range class="w-16 mr-2"></media-volume-range>
+      </media-control-bar>
+    </media-controller>
   </div>
 
   <!-- Right Section: Close Button -->

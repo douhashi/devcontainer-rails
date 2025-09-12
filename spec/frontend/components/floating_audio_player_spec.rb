@@ -28,8 +28,8 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(rendered).to have_css("div.z-50")
     end
 
-    it "includes audio element" do
-      expect(rendered).to have_css("audio#floating-audio")
+    it "includes media-controller element" do
+      expect(rendered).to have_css("media-controller#floating-audio")
     end
 
     it "includes track title display" do
@@ -101,29 +101,26 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
     end
   end
 
-  describe "Plyr integration" do
+  describe "media-chrome integration" do
     subject(:rendered) { render_inline(component) }
 
-    it "includes data attributes for Plyr configuration" do
-      expect(rendered).to have_css("audio[data-plyr-config]")
+    it "includes media-controller element" do
+      expect(rendered).to have_css("media-controller#floating-audio")
     end
 
-    it "configures horizontal layout controls" do
-      rendered_html = rendered.to_html
-      expect(rendered_html).to include("controls")
-      expect(rendered_html).to include("play")
-      expect(rendered_html).to include("progress")
-      expect(rendered_html).to include("current-time")
-      expect(rendered_html).to include("volume")
+    it "includes media-chrome controls" do
+      expect(rendered).to have_css("media-control-bar")
+      expect(rendered).to have_css("media-time-range")
+      expect(rendered).to have_css("media-time-display")
+      expect(rendered).to have_css("media-volume-range")
     end
   end
 
   describe "volume control" do
     subject(:rendered) { render_inline(component) }
 
-    it "includes volume control in Plyr configuration" do
-      rendered_html = rendered.to_html
-      expect(rendered_html).to include("volume")
+    it "includes volume control in media-chrome" do
+      expect(rendered).to have_css("media-volume-range")
     end
   end
 

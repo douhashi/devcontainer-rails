@@ -37,17 +37,6 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
     ].join(" ")
   end
 
-  def plyr_config
-    {
-      controls: [ "progress", "current-time", "volume" ],
-      invertTime: false,
-      clickToPlay: false,
-      keyboard: { focused: false, global: false },
-      hideControls: false,
-      displayDuration: true,
-      volume: 0.8
-    }.to_json
-  end
 
   def button_classes
     "w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors"

@@ -17,12 +17,17 @@ RSpec.describe AudioPlayer::Component, type: :component do
 
     subject { rendered_content }
 
-    it "renders audio player" do
+    it "renders audio player with media-chrome components" do
       render_inline(component)
 
       is_expected.to have_css('div[data-controller="audio-player"]')
-      is_expected.to have_css('audio[data-audio-player-target="player"]')
-      is_expected.to have_css('audio[data-audio-url="https://example.com/test.mp3"]')
+      is_expected.to have_css('media-controller[data-audio-player-target="player"]')
+      is_expected.to have_css('media-controller[data-audio-url="https://example.com/test.mp3"]')
+      is_expected.to have_css('media-control-bar')
+      is_expected.to have_css('media-play-button')
+      is_expected.to have_css('media-time-range')
+      is_expected.to have_css('media-time-display')
+      is_expected.to have_css('media-volume-range')
     end
 
     it "includes table-optimized CSS classes" do
@@ -85,22 +90,21 @@ RSpec.describe AudioPlayer::Component, type: :component do
 
     subject { rendered_content }
 
-    it "includes dark theme classes for Plyr controls" do
+    it "includes dark theme classes for media-chrome controls" do
       render_inline(component)
 
       # Check for dark theme specific classes
-      is_expected.to have_css('div[class*="plyr--audio"]:not([class*="bg-white"])')
-      is_expected.to have_css('div[class*="plyr__controls"]:not([class*="bg-white"])')
-      is_expected.to have_css('div[class*="bg-gray-800"]')
+      is_expected.to have_css('media-controller[class*="bg-gray-800"]')
+      is_expected.to have_css('media-control-bar[class*="bg-gray-800"]')
     end
 
     it "does not include white background classes" do
       render_inline(component)
 
       # Ensure no white background classes are present
-      is_expected.not_to have_css('div[class*="bg-white"]')
-      is_expected.not_to have_css('div[class*="bg-gray-100"]')
-      is_expected.not_to have_css('div[class*="bg-gray-200"]')
+      is_expected.not_to have_css('[class*="bg-white"]')
+      is_expected.not_to have_css('[class*="bg-gray-100"]')
+      is_expected.not_to have_css('[class*="bg-gray-200"]')
     end
   end
 
@@ -122,19 +126,21 @@ RSpec.describe AudioPlayer::Component, type: :component do
       is_expected.to have_css('div[class*="min-w-0"]') # Should allow shrinking
     end
 
-    it "includes progress bar height optimization" do
+    it "includes media-chrome controls" do
       render_inline(component)
 
-      # Check for progress bar optimization - h-2 class is added in component.rb
-      is_expected.to have_css('div[class*="plyr__progress"]')
+      # Check for media-chrome specific controls
+      is_expected.to have_css('media-time-range')
+      is_expected.to have_css('media-volume-range')
+      is_expected.to have_css('media-time-display')
     end
 
     it "includes control size optimizations" do
       render_inline(component)
 
       # Check for control size optimizations
-      is_expected.to have_css('div[class*="plyr__control"]')
-      is_expected.to have_css('div[class*="plyr__time"]')
+      is_expected.to have_css('media-play-button')
+      is_expected.to have_css('media-volume-range')
     end
   end
 end

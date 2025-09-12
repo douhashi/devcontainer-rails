@@ -3,18 +3,20 @@
 require 'rails_helper'
 
 RSpec.describe 'FloatingAudioPlayerController' do
-  describe 'JavaScript functionality' do
-    it 'has the controller file with expected methods' do
+  describe 'JavaScript functionality with media-chrome' do
+    it 'has the controller file with expected methods for media-chrome' do
       expect(File.exist?(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))).to be_truthy
 
       controller_content = File.read(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))
 
-      # Verify essential methods and event handling are present
+      # Verify essential methods and event handling are present for media-chrome
       expect(controller_content).to include('setupEventListeners()')
       expect(controller_content).to include('handlePlayEvent(event)')
       expect(controller_content).to include('track:play')
       expect(controller_content).to include('playTrack(trackData)')
       expect(controller_content).to include('trackTitleTarget')
+      expect(controller_content).not_to include('Plyr')
+      expect(controller_content).to include('media-controller')
     end
   end
 

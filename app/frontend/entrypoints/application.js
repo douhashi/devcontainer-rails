@@ -1,6 +1,6 @@
 import { Application } from '@hotwired/stimulus'
 import '@hotwired/turbo-rails'
-import 'plyr/dist/plyr.css'
+import 'media-chrome'
 import '@fortawesome/fontawesome-free/css/all.css'
 
 const application = Application.start()
