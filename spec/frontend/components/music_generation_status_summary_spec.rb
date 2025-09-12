@@ -14,4 +14,24 @@ RSpec.describe MusicGenerationStatusSummary::Component, type: :component do
 
     is_expected.to have_css "div.music-generation-status-summary"
   end
+
+  describe "CSS classes" do
+    before { render_inline(component) }
+
+    it "does not have unnecessary background styling on wrapper" do
+      is_expected.not_to have_css "div.music-generation-status-summary.bg-gray-50"
+    end
+
+    it "does not have unnecessary padding on wrapper" do
+      is_expected.not_to have_css "div.music-generation-status-summary.p-4"
+    end
+
+    it "does not have unnecessary rounded corners on wrapper" do
+      is_expected.not_to have_css "div.music-generation-status-summary.rounded-lg"
+    end
+
+    it "maintains proper margin on wrapper" do
+      is_expected.to have_css "div.music-generation-status-summary.mt-4"
+    end
+  end
 end
