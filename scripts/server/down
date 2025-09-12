@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Docker Compose Production環境を停止するスクリプト
+
+set -e
+
+# スクリプトのディレクトリを取得
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+# プロジェクトルートに移動
+cd "${PROJECT_ROOT}"
+
+echo "🛑 Stopping Lofi BGM Production server..."
+
+# Docker Composeを停止
+docker compose -f docker-compose.production.yml down
+
+echo ""
+echo "✅ Server stopped successfully!"
+echo ""
+echo "💡 To remove volumes (database, uploads, etc.):"
+echo "  docker compose -f docker-compose.production.yml down -v"
+echo ""
+echo "🚀 To start the server again:"
+echo "  script/server/up"

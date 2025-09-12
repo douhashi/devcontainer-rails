@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Docker Compose Production環境のログを表示するスクリプト
+
+set -e
+
+# スクリプトのディレクトリを取得
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+# プロジェクトルートに移動
+cd "${PROJECT_ROOT}"
+
+# オプション解析
+FOLLOW_MODE=""
+SERVICE=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -f|--follow)
+            FOLLOW_MODE="-f"
+            shift
+            ;;
+        web|queue)
+            SERVICE="$1"
+            shift
+            ;;
+        *)
+            echo "Usage: $0 [-f|--follow] [web|queue]"
+            echo ""
+            echo "Options:"
+            echo "  -f, --follow    Follow log output (live mode)"
+            echo ""
+            echo "Services:"
+            echo "  web            Show only web server logs"
+            echo "  queue          Show only queue worker logs"
+            echo "  (no service)   Show all logs"
+            echo ""
+            echo "Examples:"
+            echo "  script/server/logs          # Show all logs"
+            echo "  script/server/logs -f       # Follow all logs"
+            echo "  script/server/logs web      # Show web server logs"
+            echo "  script/server/logs -f queue # Follow queue worker logs"
+            exit 1
+            ;;
+    esac
+done
+
+echo "📋 Showing Lofi BGM Production logs..."
+if [ -n "$SERVICE" ]; then
+    echo "🎯 Service: $SERVICE"
+fi
+if [ -n "$FOLLOW_MODE" ]; then
+    echo "📡 Live mode (Ctrl+C to exit)"
+fi
+echo ""
+
+# ログを表示
+docker compose -f docker-compose.production.yml logs $FOLLOW_MODE $SERVICE

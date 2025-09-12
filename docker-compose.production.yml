@@ -27,8 +27,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-      
-    restart: unless-stopped
     
     networks:
       - lofi-bgm-network
@@ -56,8 +54,6 @@ services:
       - log_data:/rails/log
       # tmpファイル
       - tmp_data:/rails/tmp
-      
-    restart: unless-stopped
     
     networks:
       - lofi-bgm-network

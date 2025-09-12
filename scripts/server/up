@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Docker Compose Production環境をデーモンモードで起動するスクリプト
+
+set -e
+
+# スクリプトのディレクトリを取得
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+# プロジェクトルートに移動
+cd "${PROJECT_ROOT}"
+
+# 環境変数ファイルのチェック
+if [ ! -f ".env.local-prod" ]; then
+    echo "❌ Error: .env.local-prod file not found!"
+    echo "Please copy .env.local-prod.sample to .env.local-prod and configure it:"
+    echo "  cp .env.local-prod.sample .env.local-prod"
+    exit 1
+fi
+
+# ポート設定
+export EXTERNAL_PORT=18888
+
+echo "🚀 Starting Lofi BGM Production server..."
+echo "📍 Port: ${EXTERNAL_PORT}"
+echo "📂 Project root: ${PROJECT_ROOT}"
+
+# Docker Composeをデーモンモードで起動
+docker compose -f docker-compose.production.yml up -d --build
+
+# 起動状態を確認
+echo ""
+echo "⏳ Waiting for services to be healthy..."
+sleep 5
+
+# コンテナの状態を表示
+docker compose -f docker-compose.production.yml ps
+
+echo ""
+echo "✅ Server started successfully!"
+echo "🌐 Access the application at: http://localhost:${EXTERNAL_PORT}"
+echo ""
+echo "📝 To view logs:"
+echo "  docker compose -f docker-compose.production.yml logs -f"
+echo ""
+echo "🛑 To stop the server:"
+echo "  script/server/down"
