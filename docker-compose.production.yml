@@ -7,26 +7,8 @@ services:
     container_name: lofi-bgm-web
     ports:
       - "${EXTERNAL_PORT:-3000}:3000"
-    environment:
-      # Rails環境設定
-      RAILS_ENV: production
-      RAILS_LOG_TO_STDOUT: "true"
-      RAILS_SERVE_STATIC_FILES: "true"
-      RAILS_MASTER_KEY: ${RAILS_PRODUCTION_KEY:-}
-      RAILS_ASSUME_SSL: "false"
-      RAILS_FORCE_SSL: "false"
-      # SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
-      
-      # Database設定（SQLite）
-      DATABASE_URL: "sqlite3:///rails/storage/db/production.sqlite3"
-      
-      # API Keys（必要に応じて設定）
-      KIE_AI_API_KEY: ${PRODUCTION_KIE_API_KEY:-}
-      
-      # その他の環境変数
-      RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
-      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
-      
+    env_file:
+      - .env.local-prod
     volumes:
       # データベースファイルの永続化
       - db_data:/rails/storage/db
@@ -61,21 +43,8 @@ services:
     image: lofi-bgm-production:latest
     container_name: lofi-bgm-queue
     command: ["bundle", "exec", "rake", "solid_queue:start"]
-    environment:
-      # Rails環境設定
-      RAILS_ENV: production
-      RAILS_LOG_TO_STDOUT: "true"
-      RAILS_MASTER_KEY: ${RAILS_PRODUCTION_KEY:-}
-      RAILS_ASSUME_SSL: "false"
-      RAILS_FORCE_SSL: "false"
-      # SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
-      
-      # Database設定（SQLite）
-      DATABASE_URL: "sqlite3:///rails/storage/db/production.sqlite3"
-      
-      # API Keys（必要に応じて設定）
-      KIE_AI_API_KEY: ${PRODUCTION_KIE_API_KEY:-}
-      
+    env_file:
+      - .env.local-prod
     volumes:
       # データベースファイルの永続化（webサービスと共有）
       - db_data:/rails/storage/db
