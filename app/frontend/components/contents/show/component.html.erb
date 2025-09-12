@@ -91,6 +91,9 @@
         content_record: item,
         can_generate_more: true
       ) %>
+      <%= render MusicGenerationStatusSummary::Component.new(
+        content_record: item
+      ) %>
     </div>
     <%= render MusicGenerationList::Component.new(
       tracks: item.tracks.includes(:content).order(created_at: :desc)
