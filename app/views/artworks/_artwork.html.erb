@@ -21,6 +21,39 @@
           <%= render Icon::Component.new(name: "delete") %>
         <% end %>
       <% end %>
+
+      <!-- YouTubeサムネイル情報 -->
+      <% if artwork.youtube_thumbnail_eligible? %>
+        <div class="absolute bottom-2 left-2 z-10">
+          <% if artwork.has_youtube_thumbnail? %>
+            <!-- サムネイル生成完了時のダウンロードリンク -->
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded">
+                <%= render Icon::Component.new(name: "check_circle", class: "w-3 h-3 mr-1") %>
+                YouTube対応
+              </span>
+              <a href="<%= artwork.youtube_thumbnail_download_url %>" 
+                 class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                 download>
+                <%= render Icon::Component.new(name: "download", class: "w-3 h-3 mr-1") %>
+                サムネイル
+              </a>
+            </div>
+          <% elsif artwork.youtube_thumbnail_processing? %>
+            <!-- サムネイル生成中の表示 -->
+            <span class="inline-flex items-center px-2 py-1 bg-yellow-600 text-white text-xs rounded">
+              <%= render Icon::Component.new(name: "schedule", class: "w-3 h-3 mr-1 animate-spin") %>
+              サムネイル生成中
+            </span>
+          <% else %>
+            <!-- サムネイル未生成時の表示 -->
+            <span class="inline-flex items-center px-2 py-1 bg-gray-600 text-white text-xs rounded">
+              <%= render Icon::Component.new(name: "video", class: "w-3 h-3 mr-1") %>
+              YouTube対応
+            </span>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </turbo-frame>
 <% else %>

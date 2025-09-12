@@ -10,6 +10,8 @@ Shrine.plugin :activerecord
 Shrine.plugin :cached_attachment_data
 Shrine.plugin :restore_cached_data
 Shrine.plugin :validation_helpers
+Shrine.plugin :derivatives
+Shrine.plugin :backgrounding
 
 # Use custom MIME type detection for better compatibility
 if Rails.env.test?
@@ -40,3 +42,6 @@ if Rails.env.test?
 else
   Shrine.plugin :determine_mime_type, analyzer: :marcel
 end
+
+# Configure backgrounding for derivative processing
+# This will be handled directly in the Artwork model after save callback
