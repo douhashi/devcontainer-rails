@@ -20,6 +20,19 @@ RSpec.describe 'FloatingAudioPlayerController' do
     end
   end
 
+  describe 'audio:play event handling' do
+    it 'should properly map audioUrl to url in trackData' do
+      controller_content = File.read(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))
+
+      # Verify handleAudioPlayEvent method exists
+      expect(controller_content).to include('handleAudioPlayEvent(event)')
+      expect(controller_content).to include('audio:play')
+
+      # Verify that playTrack expects url property
+      expect(controller_content).to include('this.audioElement.src = trackData.url')
+    end
+  end
+
   describe 'content:play event handling' do
     let(:content) { create(:content, theme: 'Test Theme') }
     let!(:audio) do

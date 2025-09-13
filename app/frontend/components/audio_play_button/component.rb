@@ -110,7 +110,10 @@ class AudioPlayButton::Component < ApplicationViewComponent
       {
         id: t.id,
         title: t.metadata_title || "Untitled",
-        url: t.audio.url
+        url: t.audio.url,
+        # TODO: Future refactoring - remove audioUrl once all JS components are migrated to use 'url'
+        # Currently maintaining both properties for backward compatibility during migration
+        audioUrl: t.audio.url  # Include audioUrl for compatibility
       }
     end
 

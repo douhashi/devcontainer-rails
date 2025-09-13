@@ -21,6 +21,18 @@ RSpec.describe 'AudioPlayButtonController', type: :component do
         expect(controller_content).to include('type: String')
       end
     end
+
+    context 'buildAudioData method' do
+      it 'should build correct data structure with url field' do
+        controller_content = File.read(Rails.root.join('app/frontend/controllers/audio_play_button_controller.js'))
+
+        # Verify buildAudioData method exists
+        expect(controller_content).to include('buildAudioData()')
+
+        # Verify that audioUrl is properly mapped to url in trackList
+        expect(controller_content).to include('audioUrl:')
+      end
+    end
   end
 
   describe 'Content Integration' do

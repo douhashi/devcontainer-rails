@@ -24,19 +24,25 @@ export default class extends Controller {
 
   initializePlayer() {
     if (!this.audioTarget) {
-      console.error('FloatingAudioPlayerController: Audio target not found')
+      console.error('[FloatingAudioPlayer] Audio target not found')
       return
     }
-    
+
     // Store reference to media-controller element
     this.player = this.audioTarget
-    
+
     // Get the audio element inside the media-controller
     this.audioElement = this.player.querySelector('audio[slot="media"]')
     if (!this.audioElement) {
-      console.error('FloatingAudioPlayerController: Audio element not found')
-      return
+      console.error('[FloatingAudioPlayer] Audio element not found in media-controller')
+      // Try to find audio element directly as fallback
+      this.audioElement = this.element.querySelector('audio')
+      if (!this.audioElement) {
+        console.error('[FloatingAudioPlayer] No audio element found at all')
+        return
+      }
     }
+    console.debug('[FloatingAudioPlayer] Audio element initialized:', this.audioElement)
     
     // Bind event handlers with debounce protection
     this.isProcessingEvent = false
@@ -164,24 +170,29 @@ export default class extends Controller {
 
   handleAudioPlayEvent(event) {
     const eventDetail = event.detail
+    console.debug('[FloatingAudioPlayer] Received audio:play event:', eventDetail)
 
     // Convert unified data format to internal track format
     const trackData = {
       id: eventDetail.type === "track" ? eventDetail.id : `content-${eventDetail.id}`,
       title: eventDetail.title,
-      url: eventDetail.audioUrl,
+      url: eventDetail.audioUrl,  // Map audioUrl to url
       contentId: eventDetail.contentId || eventDetail.id,
       contentTitle: eventDetail.contentTitle || eventDetail.title
     }
+    console.debug('[FloatingAudioPlayer] Converted track data:', trackData)
 
 
     // Use track list if available (for tracks), otherwise create single item list
     if (eventDetail.trackList && eventDetail.trackList.length > 0) {
+      // TODO: Future refactoring - unify to use only 'url' property once all components are migrated
+      // Currently supporting both 'audioUrl' and 'url' for backward compatibility
       this.trackList = eventDetail.trackList.map(track => ({
         id: track.id,
         title: track.title,
-        url: track.url || track.audioUrl
+        url: track.audioUrl || track.url  // Prioritize audioUrl over url for compatibility
       }))
+      console.debug('[FloatingAudioPlayer] Track list:', this.trackList)
       // Find current track index
       this.currentTrackIndex = this.trackList.findIndex(t => t.id === eventDetail.id)
       if (this.currentTrackIndex === -1) {
@@ -210,10 +221,18 @@ export default class extends Controller {
   }
 
   async playTrack(trackData) {
-    if (!trackData) return
+    if (!trackData) {
+      console.error('[FloatingAudioPlayer] No track data provided')
+      return
+    }
+
+    console.debug('[FloatingAudioPlayer] Playing track:', trackData)
 
     // Prevent concurrent playTrack calls
-    if (this.isLoadingTrack) return
+    if (this.isLoadingTrack) {
+      console.debug('[FloatingAudioPlayer] Already loading a track, skipping...')
+      return
+    }
     this.isLoadingTrack = true
 
     this.trackTitleTarget.textContent = trackData.title || "Untitled"
@@ -222,13 +241,33 @@ export default class extends Controller {
     if (this.audioElement) {
       // Pause if currently playing
       if (!this.audioElement.paused) {
+        console.debug('[FloatingAudioPlayer] Pausing current track')
         this.audioElement.pause()
         // Wait a moment for pause to complete
         await new Promise(resolve => setTimeout(resolve, 50))
       }
 
+      // Validate URL
+      if (!trackData.url) {
+        console.error('[FloatingAudioPlayer] No audio URL provided in track data:', trackData)
+        this.isLoadingTrack = false
+        return
+      }
+
+      console.debug('[FloatingAudioPlayer] Setting audio source:', trackData.url)
       // Set new audio source
       this.audioElement.src = trackData.url
+
+      // Set CORS attribute for cross-origin audio
+      this.audioElement.crossOrigin = 'anonymous'
+
+      // Check if browser can play the audio format
+      const canPlayType = this.audioElement.canPlayType('audio/mpeg')
+      console.debug('[FloatingAudioPlayer] Can play audio/mpeg:', canPlayType)
+
+      // Load the audio explicitly
+      this.audioElement.load()
+      console.debug('[FloatingAudioPlayer] Audio loaded')
 
       // Update global state
       if (window.floatingPlayerStore) {
@@ -237,17 +276,33 @@ export default class extends Controller {
 
       // Play the new track
       try {
+        console.debug('[FloatingAudioPlayer] Attempting to play audio...')
         await this.audioElement.play()
+        console.debug('[FloatingAudioPlayer] Audio playback started successfully')
         this.updateAllPlayButtons(trackData.id)
       } catch (error) {
-        // Only log errors that are not AbortError
-        if (error.name !== 'AbortError') {
-          console.error('Failed to play audio:', error)
+        // Log all errors with details
+        console.error('[FloatingAudioPlayer] Failed to play audio:', {
+          error: error,
+          errorName: error.name,
+          errorMessage: error.message,
+          audioSrc: this.audioElement.src,
+          trackData: trackData
+        })
+
+        // Handle specific error types
+        if (error.name === 'NotAllowedError') {
+          console.error('[FloatingAudioPlayer] Playback not allowed. User interaction may be required.')
+        } else if (error.name === 'NotSupportedError') {
+          console.error('[FloatingAudioPlayer] Media format not supported.')
+        } else if (error.name === 'AbortError') {
+          console.warn('[FloatingAudioPlayer] Playback was aborted.')
         }
       } finally {
         this.isLoadingTrack = false
       }
     } else {
+      console.error('[FloatingAudioPlayer] Audio element not found')
       this.isLoadingTrack = false
     }
   }

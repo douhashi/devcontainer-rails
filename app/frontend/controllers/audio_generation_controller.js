@@ -7,7 +7,7 @@ export default class extends Controller {
     // Optional: Add any client-side handling for audio generation
     // The actual generation is handled server-side via the form submission
     
-    console.log(`Generating audio for content ${this.contentIdValue}`)
+    console.debug(`Generating audio for content ${this.contentIdValue}`)
     
     // Disable the button to prevent double-submission
     const button = event.target
