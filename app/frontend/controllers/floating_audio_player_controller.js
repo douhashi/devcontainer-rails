@@ -19,6 +19,13 @@ export default class extends Controller {
       this.player.removeEventListener('ended', this.handleMediaEnded)
       this.player = null
     }
+    if (this.audioElement) {
+      // Remove event listeners from audio element
+      this.audioElement.removeEventListener('play', this.handleMediaPlay)
+      this.audioElement.removeEventListener('pause', this.handleMediaPause)
+      this.audioElement.removeEventListener('ended', this.handleMediaEnded)
+      this.audioElement = null
+    }
     this.removeEventListeners()
   }
 
@@ -57,10 +64,15 @@ export default class extends Controller {
       this.next()
     }
     
-    // Add event listeners to media-controller
+    // Add event listeners to both media-controller and audio element
     this.player.addEventListener('play', this.handleMediaPlay)
     this.player.addEventListener('pause', this.handleMediaPause)
     this.player.addEventListener('ended', this.handleMediaEnded)
+
+    // Also add listeners to the audio element directly for reliability
+    this.audioElement.addEventListener('play', this.handleMediaPlay)
+    this.audioElement.addEventListener('pause', this.handleMediaPause)
+    this.audioElement.addEventListener('ended', this.handleMediaEnded)
     
     // Set default volume on audio element
     if (this.audioElement) {

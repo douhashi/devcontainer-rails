@@ -38,12 +38,78 @@ module MediaChromeHelpers
 
   # Simplified player state check
   def player_showing?(title = nil)
+    player_visible = page.has_css?('#floating-audio-player:not(.hidden)')
+
     if title
-      page.has_css?('#floating-audio-player:not(.hidden)') &&
-        within('#floating-audio-player') { page.has_content?(title) }
+      player_visible && within('#floating-audio-player') { page.has_content?(title) }
     else
-      page.has_css?('#floating-audio-player:not(.hidden)')
+      player_visible
     end
+  end
+
+  # Simulate audio ended event
+  def trigger_audio_ended
+    page.execute_script(<<~JS)
+      const audioElement = document.querySelector('#floating-audio-player audio[slot="media"]');
+      if (audioElement) {
+        const endedEvent = new Event('ended');
+        audioElement.dispatchEvent(endedEvent);
+      }
+    JS
+  end
+
+  # Check if play button shows pause icon (indicating playing state)
+  def play_button_shows_pause_icon?
+    within('#floating-audio-player') do
+      play_icon_hidden = page.has_css?('[data-floating-audio-player-target="playIcon"].hidden', visible: :all)
+      pause_icon_visible = page.has_css?('[data-floating-audio-player-target="pauseIcon"]:not(.hidden)')
+      play_icon_hidden && pause_icon_visible
+    end
+  end
+
+  # Check if play button shows play icon (indicating paused state)
+  def play_button_shows_play_icon?
+    within('#floating-audio-player') do
+      play_icon_visible = page.has_css?('[data-floating-audio-player-target="playIcon"]:not(.hidden)')
+      pause_icon_hidden = page.has_css?('[data-floating-audio-player-target="pauseIcon"].hidden', visible: :all)
+      play_icon_visible && pause_icon_hidden
+    end
+  end
+
+  # Trigger play event on audio element
+  def trigger_audio_play
+    page.execute_script(<<~JS)
+      const audioElement = document.querySelector('#floating-audio-player audio[slot="media"]');
+      const mediaController = document.querySelector('#floating-audio-player media-controller');
+
+      if (audioElement) {
+        const playEvent = new Event('play', { bubbles: true });
+        audioElement.dispatchEvent(playEvent);
+      }
+
+      if (mediaController) {
+        const playEvent = new Event('play', { bubbles: true });
+        mediaController.dispatchEvent(playEvent);
+      }
+    JS
+  end
+
+  # Trigger pause event on audio element
+  def trigger_audio_pause
+    page.execute_script(<<~JS)
+      const audioElement = document.querySelector('#floating-audio-player audio[slot="media"]');
+      const mediaController = document.querySelector('#floating-audio-player media-controller');
+
+      if (audioElement) {
+        const pauseEvent = new Event('pause', { bubbles: true });
+        audioElement.dispatchEvent(pauseEvent);
+      }
+
+      if (mediaController) {
+        const pauseEvent = new Event('pause', { bubbles: true });
+        mediaController.dispatchEvent(pauseEvent);
+      }
+    JS
   end
 end
 

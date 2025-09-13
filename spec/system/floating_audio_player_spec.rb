@@ -41,4 +41,58 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true do
       expect(player_showing?("Track 2")).to be true
     end
   end
+
+  describe "自動再生機能" do
+    it "曲が終了すると自動的に次の曲に進む" do
+      # Track 1を再生
+      click_play_and_wait("#audio-play-button-track-#{track1.id}")
+      expect(player_showing?("Track 1")).to be true
+
+      # endedイベントを発火してTrack 2に自動進行
+      trigger_audio_ended
+      sleep 0.5 # 少し待って状態が更新されるのを確認
+
+      expect(player_showing?("Track 2")).to be true
+    end
+
+    it "プレイリストの最後の曲が終了すると最初の曲に戻る" do
+      # Track 2（最後のトラック）を再生
+      click_play_and_wait("#audio-play-button-track-#{track2.id}")
+      expect(player_showing?("Track 2")).to be true
+
+      # endedイベントを発火してTrack 1（最初のトラック）に戻る
+      trigger_audio_ended
+      sleep 0.5 # 少し待って状態が更新されるのを確認
+
+      expect(player_showing?("Track 1")).to be true
+    end
+  end
+
+  describe "再生ボタンの状態表示" do
+    it "音楽再生開始時にボタンが一時停止アイコンに変わる" do
+      # Track 1を再生
+      click_play_and_wait("#audio-play-button-track-#{track1.id}")
+      expect(player_showing?("Track 1")).to be true
+
+      # playイベントを発火
+      trigger_audio_play
+      sleep 0.2 # 少し待ってアイコンが更新されるのを確認
+
+      expect(play_button_shows_pause_icon?).to be true
+    end
+
+    it "一時停止時にボタンが再生アイコンに変わる" do
+      # Track 1を再生
+      click_play_and_wait("#audio-play-button-track-#{track1.id}")
+      expect(player_showing?("Track 1")).to be true
+
+      # playイベントを発火してから一時停止
+      trigger_audio_play
+      sleep 0.2
+      trigger_audio_pause
+      sleep 0.2 # 少し待ってアイコンが更新されるのを確認
+
+      expect(play_button_shows_play_icon?).to be true
+    end
+  end
 end
