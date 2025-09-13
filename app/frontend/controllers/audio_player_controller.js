@@ -70,8 +70,8 @@ export default class extends Controller {
       this.player = this.playerTarget
       
       // Get the audio element inside the media-controller
-      const audioElement = this.player.querySelector('audio[slot="media"]')
-      if (!audioElement) {
+      this.audioElement = this.player.querySelector('audio[slot="media"]')
+      if (!this.audioElement) {
         console.error('AudioPlayerController: Audio element not found')
         this.showError('音楽プレイヤーの初期化に失敗しました')
         return
@@ -106,8 +106,10 @@ export default class extends Controller {
       this.player.addEventListener('pause', this.handlePause)
       this.player.addEventListener('error', this.handleError)
 
-      // Set volume
-      this.player.volume = 0.7
+      // Set volume on audio element
+      if (this.audioElement) {
+        this.audioElement.volume = 0.7
+      }
 
       if (this.autoplayValue) {
         // Use media-chrome's autoplay attribute
@@ -138,9 +140,10 @@ export default class extends Controller {
     try {
       const currentPlayer = this.constructor.currentPlayer
       if (currentPlayer && currentPlayer !== this.player) {
-        // For media-chrome, pause is a property/method on the element
-        if (currentPlayer.pause) {
-          currentPlayer.pause()
+        // For media-chrome, we need to access the audio element to pause
+        const otherAudioElement = currentPlayer.querySelector('audio[slot="media"]')
+        if (otherAudioElement) {
+          otherAudioElement.pause()
         }
       }
     } catch (error) {

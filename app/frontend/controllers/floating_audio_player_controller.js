@@ -62,8 +62,10 @@ export default class extends Controller {
     this.player.addEventListener('pause', this.handleMediaPause)
     this.player.addEventListener('ended', this.handleMediaEnded)
     
-    // Set default volume
-    this.player.volume = 0.8
+    // Set default volume on audio element
+    if (this.audioElement) {
+      this.audioElement.volume = 0.8
+    }
     
     console.log('FloatingAudioPlayerController: media-controller player initialized successfully')
   }
@@ -212,8 +214,12 @@ export default class extends Controller {
       window.floatingPlayerStore.currentTrack = trackData
     }
     
-    // Play using media-controller's play method
-    this.player.play()
+    // Play using audio element's play method
+    if (this.audioElement) {
+      this.audioElement.play().catch(error => {
+        console.error('Failed to play audio:', error)
+      })
+    }
     this.updateAllPlayButtons(trackData.id)
   }
 
@@ -232,18 +238,20 @@ export default class extends Controller {
   }
 
   togglePlay() {
-    // Check if media is playing using media-controller's paused property
-    if (!this.player.paused) {
-      this.player.pause()
-    } else {
-      this.player.play()
+    // Check if media is playing using audio element's paused property
+    if (this.audioElement && !this.audioElement.paused) {
+      this.audioElement.pause()
+    } else if (this.audioElement) {
+      this.audioElement.play().catch(error => {
+        console.error('Failed to play audio:', error)
+      })
     }
   }
 
   close() {
-    // Stop playback for media-chrome
-    this.player.pause()
+    // Stop playback using audio element
     if (this.audioElement) {
+      this.audioElement.pause()
       this.audioElement.currentTime = 0
     }
     this.hide()
