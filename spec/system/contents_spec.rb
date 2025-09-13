@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Contents", type: :system do
+RSpec.describe "Contents", type: :system, playwright: true do
   let(:user) { create(:user) }
   let(:content) { create(:content, duration_min: 10) }
 
