@@ -12,25 +12,12 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log('AudioPlayButtonController connected (unified)', {
-      id: this.idValue,
-      title: this.titleValue,
-      audioUrl: this.audioUrlValue,
-      type: this.typeValue
-    })
+    // AudioPlayButtonController connected
   }
 
   play(event) {
     event.preventDefault()
-    
-    console.log('AudioPlayButtonController: play called (unified)', {
-      id: this.idValue,
-      title: this.titleValue,
-      audioUrl: this.audioUrlValue,
-      type: this.typeValue,
-      element: this.element
-    })
-    
+
     const audioData = this.buildAudioData()
     
     // Dispatch unified custom event for floating audio player
@@ -38,10 +25,8 @@ export default class extends Controller {
       detail: audioData,
       bubbles: true
     })
-    
-    console.log('AudioPlayButtonController: Dispatching audio:play event', customEvent.detail)
+
     document.dispatchEvent(customEvent)
-    console.log('AudioPlayButtonController: audio:play event dispatched successfully')
   }
 
   buildAudioData() {
@@ -61,7 +46,6 @@ export default class extends Controller {
       try {
         baseData.trackList = this.hasTrackListValue ? JSON.parse(this.trackListValue) : []
       } catch (e) {
-        console.warn('AudioPlayButtonController: Failed to parse track list', e)
         baseData.trackList = [baseData]
       }
     } else {
@@ -74,7 +58,6 @@ export default class extends Controller {
 
   // Legacy support methods (to be removed after migration)
   playContent(event) {
-    console.warn('AudioPlayButtonController: playContent is deprecated, use play() instead')
     this.play(event)
   }
 }

@@ -4,7 +4,6 @@ export default class extends Controller {
   static targets = ["audio", "trackTitle", "playButton", "playIcon", "pauseIcon"]
 
   connect() {
-    console.log('FloatingAudioPlayerController connected')
     this.initializePlayer()
     this.setupEventListeners()
     this.trackList = []
@@ -12,26 +11,18 @@ export default class extends Controller {
   }
 
   disconnect() {
-    if (this.player) {
-      // Remove event listeners from media-controller
-      this.player.removeEventListener('play', this.handleMediaPlay)
-      this.player.removeEventListener('pause', this.handleMediaPause)
-      this.player.removeEventListener('ended', this.handleMediaEnded)
-      this.player = null
-    }
     if (this.audioElement) {
-      // Remove event listeners from audio element
+      // Remove event listeners from audio element only
       this.audioElement.removeEventListener('play', this.handleMediaPlay)
       this.audioElement.removeEventListener('pause', this.handleMediaPause)
       this.audioElement.removeEventListener('ended', this.handleMediaEnded)
       this.audioElement = null
     }
+    this.player = null
     this.removeEventListeners()
   }
 
   initializePlayer() {
-    console.log('FloatingAudioPlayerController: Initializing media-chrome player')
-    
     if (!this.audioTarget) {
       console.error('FloatingAudioPlayerController: Audio target not found')
       return
@@ -47,29 +38,48 @@ export default class extends Controller {
       return
     }
     
-    // Bind event handlers
+    // Bind event handlers with debounce protection
+    this.isProcessingEvent = false
+    this.eventDebounceTimeout = null
+
     this.handleMediaPlay = () => {
-      console.log('FloatingAudioPlayerController: Player started playing')
+      // Prevent duplicate event processing
+      if (this.isProcessingEvent) return
+      this.isProcessingEvent = true
+
+      // Player started playing
       this.updatePlayButton(true)
       this.stopOtherPlayers()
+
+      // Reset flag after a short delay
+      clearTimeout(this.eventDebounceTimeout)
+      this.eventDebounceTimeout = setTimeout(() => {
+        this.isProcessingEvent = false
+      }, 100)
     }
-    
+
     this.handleMediaPause = () => {
-      console.log('FloatingAudioPlayerController: Player paused')
+      // Prevent duplicate event processing
+      if (this.isProcessingEvent) return
+      this.isProcessingEvent = true
+
+      // Player paused
       this.updatePlayButton(false)
+
+      // Reset flag after a short delay
+      clearTimeout(this.eventDebounceTimeout)
+      this.eventDebounceTimeout = setTimeout(() => {
+        this.isProcessingEvent = false
+      }, 100)
     }
-    
+
     this.handleMediaEnded = () => {
-      console.log('FloatingAudioPlayerController: Player ended')
+      // Player ended
       this.next()
     }
-    
-    // Add event listeners to both media-controller and audio element
-    this.player.addEventListener('play', this.handleMediaPlay)
-    this.player.addEventListener('pause', this.handleMediaPause)
-    this.player.addEventListener('ended', this.handleMediaEnded)
 
-    // Also add listeners to the audio element directly for reliability
+    // Add event listeners to audio element only (not media-controller)
+    // This prevents duplicate events from being fired
     this.audioElement.addEventListener('play', this.handleMediaPlay)
     this.audioElement.addEventListener('pause', this.handleMediaPause)
     this.audioElement.addEventListener('ended', this.handleMediaEnded)
@@ -78,12 +88,9 @@ export default class extends Controller {
     if (this.audioElement) {
       this.audioElement.volume = 0.8
     }
-    
-    console.log('FloatingAudioPlayerController: media-controller player initialized successfully')
   }
 
   setupEventListeners() {
-    console.log('FloatingAudioPlayerController: Setting up event listeners')
     this.audioPlayHandler = this.handleAudioPlayEvent.bind(this)
     this.playHandler = this.handlePlayEvent.bind(this)
     this.contentPlayHandler = this.handleContentPlayEvent.bind(this)
@@ -94,7 +101,6 @@ export default class extends Controller {
     // Legacy event listeners (for backward compatibility during transition)
     document.addEventListener("track:play", this.playHandler)
     document.addEventListener("content:play", this.contentPlayHandler)
-    console.log('FloatingAudioPlayerController: Event listeners setup complete')
   }
 
   removeEventListeners() {
@@ -137,7 +143,6 @@ export default class extends Controller {
   }
 
   handleContentPlayEvent(event) {
-    console.log('FloatingAudioPlayerController: content:play event received', event.detail)
     const eventDetail = event.detail
     
     const trackData = {
@@ -147,21 +152,17 @@ export default class extends Controller {
       contentId: eventDetail.contentId,
       contentTitle: eventDetail.theme || "Untitled"
     }
-    
-    console.log('FloatingAudioPlayerController: Track data prepared', trackData)
-    
+
+
     // Create single track for content audio
     this.trackList = [trackData]
     this.currentTrackIndex = 0
     
     this.playTrack(trackData)
     this.show()
-    
-    console.log('FloatingAudioPlayerController: content:play event handled successfully')
   }
 
   handleAudioPlayEvent(event) {
-    console.log('FloatingAudioPlayerController: audio:play event received (unified)', event.detail)
     const eventDetail = event.detail
 
     // Convert unified data format to internal track format
@@ -173,7 +174,6 @@ export default class extends Controller {
       contentTitle: eventDetail.contentTitle || eventDetail.title
     }
 
-    console.log('FloatingAudioPlayerController: Unified track data prepared', trackData)
 
     // Use track list if available (for tracks), otherwise create single item list
     if (eventDetail.trackList && eventDetail.trackList.length > 0) {
@@ -195,8 +195,6 @@ export default class extends Controller {
 
     this.playTrack(trackData)
     this.show()
-
-    console.log('FloatingAudioPlayerController: audio:play event handled successfully')
   }
 
   play(event) {
@@ -211,28 +209,47 @@ export default class extends Controller {
     button.dispatchEvent(customEvent)
   }
 
-  playTrack(trackData) {
+  async playTrack(trackData) {
     if (!trackData) return
-    
+
+    // Prevent concurrent playTrack calls
+    if (this.isLoadingTrack) return
+    this.isLoadingTrack = true
+
     this.trackTitleTarget.textContent = trackData.title || "Untitled"
-    
-    // Set audio source for media-chrome
+
+    // Ensure any existing playback is stopped before changing source
     if (this.audioElement) {
+      // Pause if currently playing
+      if (!this.audioElement.paused) {
+        this.audioElement.pause()
+        // Wait a moment for pause to complete
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+
+      // Set new audio source
       this.audioElement.src = trackData.url
+
+      // Update global state
+      if (window.floatingPlayerStore) {
+        window.floatingPlayerStore.currentTrack = trackData
+      }
+
+      // Play the new track
+      try {
+        await this.audioElement.play()
+        this.updateAllPlayButtons(trackData.id)
+      } catch (error) {
+        // Only log errors that are not AbortError
+        if (error.name !== 'AbortError') {
+          console.error('Failed to play audio:', error)
+        }
+      } finally {
+        this.isLoadingTrack = false
+      }
+    } else {
+      this.isLoadingTrack = false
     }
-    
-    // Update global state
-    if (window.floatingPlayerStore) {
-      window.floatingPlayerStore.currentTrack = trackData
-    }
-    
-    // Play using audio element's play method
-    if (this.audioElement) {
-      this.audioElement.play().catch(error => {
-        console.error('Failed to play audio:', error)
-      })
-    }
-    this.updateAllPlayButtons(trackData.id)
   }
 
   previous() {
@@ -250,13 +267,30 @@ export default class extends Controller {
   }
 
   togglePlay() {
+    // Prevent simultaneous play/pause calls
+    if (this.isToggling) return
+    this.isToggling = true
+
     // Check if media is playing using audio element's paused property
     if (this.audioElement && !this.audioElement.paused) {
       this.audioElement.pause()
+      // Reset flag after operation completes
+      setTimeout(() => { this.isToggling = false }, 100)
     } else if (this.audioElement) {
-      this.audioElement.play().catch(error => {
-        console.error('Failed to play audio:', error)
-      })
+      this.audioElement.play()
+        .then(() => {
+          // Reset flag after successful play
+          this.isToggling = false
+        })
+        .catch(error => {
+          // Only log errors that are not AbortError
+          if (error.name !== 'AbortError') {
+            console.error('Failed to play audio:', error)
+          }
+          this.isToggling = false
+        })
+    } else {
+      this.isToggling = false
     }
   }
 
