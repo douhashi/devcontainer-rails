@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { PlaybackController } from "./playback_controller"
 
 export default class extends Controller {
   static targets = ["audio", "trackTitle", "playButton", "playIcon", "pauseIcon"]
@@ -8,9 +9,14 @@ export default class extends Controller {
     this.setupEventListeners()
     this.trackList = []
     this.currentTrackIndex = 0
+    this.playbackController = null
   }
 
   disconnect() {
+    if (this.playbackController) {
+      this.playbackController.cleanup()
+      this.playbackController = null
+    }
     if (this.audioElement) {
       // Remove event listeners from audio element only
       this.audioElement.removeEventListener('play', this.handleMediaPlay)
@@ -43,7 +49,10 @@ export default class extends Controller {
       }
     }
     console.debug('[FloatingAudioPlayer] Audio element initialized:', this.audioElement)
-    
+
+    // Initialize PlaybackController
+    this.playbackController = new PlaybackController(this.audioElement)
+
     // Bind event handlers with debounce protection
     this.isProcessingEvent = false
     this.eventDebounceTimeout = null
@@ -235,26 +244,23 @@ export default class extends Controller {
     }
     this.isLoadingTrack = true
 
-    this.trackTitleTarget.textContent = trackData.title || "Untitled"
+    try {
+      this.trackTitleTarget.textContent = trackData.title || "Untitled"
 
-    // Ensure any existing playback is stopped before changing source
-    if (this.audioElement) {
-      // Pause if currently playing
-      if (!this.audioElement.paused) {
-        console.debug('[FloatingAudioPlayer] Pausing current track')
-        this.audioElement.pause()
-        // Wait a moment for pause to complete
-        await new Promise(resolve => setTimeout(resolve, 50))
+      // Ensure audio element and playback controller are available
+      if (!this.audioElement || !this.playbackController) {
+        console.error('[FloatingAudioPlayer] Audio element or playback controller not available')
+        return
       }
 
       // Validate URL
       if (!trackData.url) {
         console.error('[FloatingAudioPlayer] No audio URL provided in track data:', trackData)
-        this.isLoadingTrack = false
         return
       }
 
       console.debug('[FloatingAudioPlayer] Setting audio source:', trackData.url)
+
       // Set new audio source
       this.audioElement.src = trackData.url
 
@@ -274,19 +280,25 @@ export default class extends Controller {
         window.floatingPlayerStore.currentTrack = trackData
       }
 
-      // Play the new track
-      try {
-        console.debug('[FloatingAudioPlayer] Attempting to play audio...')
-        await this.audioElement.play()
-        console.debug('[FloatingAudioPlayer] Audio playback started successfully')
-        this.updateAllPlayButtons(trackData.id)
-      } catch (error) {
-        // Log all errors with details
+      // Play the new track using PlaybackController for safe playback
+      console.debug('[FloatingAudioPlayer] Attempting to play audio using PlaybackController...')
+      await this.playbackController.safePlay(true)
+
+      console.debug('[FloatingAudioPlayer] Audio playback started successfully')
+      this.updateAllPlayButtons(trackData.id)
+
+    } catch (error) {
+      // Enhanced error handling with specific AbortError treatment
+      if (error.name === 'AbortError') {
+        console.debug('[FloatingAudioPlayer] Playback was safely aborted:', error.message)
+        // AbortError は正常な中断なので、ユーザーには表示しない
+      } else {
+        // Log all other errors with details
         console.error('[FloatingAudioPlayer] Failed to play audio:', {
           error: error,
           errorName: error.name,
           errorMessage: error.message,
-          audioSrc: this.audioElement.src,
+          audioSrc: this.audioElement?.src,
           trackData: trackData
         })
 
@@ -295,14 +307,9 @@ export default class extends Controller {
           console.error('[FloatingAudioPlayer] Playback not allowed. User interaction may be required.')
         } else if (error.name === 'NotSupportedError') {
           console.error('[FloatingAudioPlayer] Media format not supported.')
-        } else if (error.name === 'AbortError') {
-          console.warn('[FloatingAudioPlayer] Playback was aborted.')
         }
-      } finally {
-        this.isLoadingTrack = false
       }
-    } else {
-      console.error('[FloatingAudioPlayer] Audio element not found')
+    } finally {
       this.isLoadingTrack = false
     }
   }
@@ -321,31 +328,39 @@ export default class extends Controller {
     this.playTrack(this.trackList[this.currentTrackIndex])
   }
 
-  togglePlay() {
-    // Prevent simultaneous play/pause calls
-    if (this.isToggling) return
-    this.isToggling = true
+  async togglePlay() {
+    // Prevent simultaneous play/pause calls using PlaybackController's busy check
+    if (!this.playbackController || this.playbackController.isBusy()) {
+      console.debug('[FloatingAudioPlayer] Toggle play blocked: playback controller busy')
+      return
+    }
 
-    // Check if media is playing using audio element's paused property
-    if (this.audioElement && !this.audioElement.paused) {
-      this.audioElement.pause()
-      // Reset flag after operation completes
-      setTimeout(() => { this.isToggling = false }, 100)
-    } else if (this.audioElement) {
-      this.audioElement.play()
-        .then(() => {
-          // Reset flag after successful play
-          this.isToggling = false
+    if (!this.audioElement) {
+      console.error('[FloatingAudioPlayer] No audio element available for toggle')
+      return
+    }
+
+    try {
+      // Check if media is playing using audio element's paused property
+      if (!this.audioElement.paused) {
+        // Currently playing - pause it
+        console.debug('[FloatingAudioPlayer] Toggling to pause')
+        this.audioElement.pause()
+      } else {
+        // Currently paused - play it using PlaybackController for safe playback
+        console.debug('[FloatingAudioPlayer] Toggling to play')
+        await this.playbackController.safePlay(false) // Don't pause before playing since we're already paused
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.debug('[FloatingAudioPlayer] Toggle play was safely aborted:', error.message)
+      } else {
+        console.error('[FloatingAudioPlayer] Failed to toggle playback:', {
+          errorName: error.name,
+          errorMessage: error.message,
+          audioSrc: this.audioElement.src
         })
-        .catch(error => {
-          // Only log errors that are not AbortError
-          if (error.name !== 'AbortError') {
-            console.error('Failed to play audio:', error)
-          }
-          this.isToggling = false
-        })
-    } else {
-      this.isToggling = false
+      }
     }
   }
 
