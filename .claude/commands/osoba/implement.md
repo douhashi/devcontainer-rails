@@ -86,11 +86,11 @@ Refer to the following documentation:
    - Commit frequently with meaningful messages
 
 4. **Run tests and verify**
-   - Run `yarn test`, `rspec`, or your project's standard method  
+   - Run `yarn test`, `rspec`, or your project's standard method # timeout 600000ms
    - Perform manual UI/API testing if applicable
 
 5. **Run full test suite**
-   - Run `bundle exec rspec` to ensure all tests pass
+   - Run `bundle exec rspec` to ensure all tests pass # timeout 600000ms
    - Fix any failures before proceeding
    - Confirm: All tests must pass before creating a PR
 

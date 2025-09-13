@@ -93,7 +93,7 @@ Refer to the following documentation:
      ```
 
 4. **Run tests and verify**
-   - Run the full test suite to ensure nothing is broken
+   - Run the full test suite (`bundle exec rspec`) to ensure nothing is broken # timeout 600000ms
    - Verify that all review points have been addressed
    - Check that the code still meets the original requirements
    - **Ensure CI passes completely**

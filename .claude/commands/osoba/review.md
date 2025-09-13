@@ -56,6 +56,17 @@ Be sure to run the version *without* `--comments` first to understand the requir
   - All checks must ✅ pass
   - If checks are still running, wait and retry until completed
   - ⚠️ **Note**: CI can take over 5 minutes to complete. Be patient and ensure all checks are fully finished before proceeding
+  - To wait for CI completion, you can use:
+    ```bash
+    gh pr checks <PR number> --watch # timeout 600000ms
+    ```
+    or repeatedly check status:
+    ```bash
+    while true; do
+      gh pr checks <PR number>
+      sleep 30
+    done # timeout 600000ms
+    ```
 
 ### 6. Post Review Result
 
