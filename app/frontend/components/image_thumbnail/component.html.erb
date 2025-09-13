@@ -1,0 +1,15 @@
+<div class="<%= thumbnail_container_class %> w-20 h-20"
+     data-image-type="<%= image_type %>"
+     data-image-url="<%= image_url %>"
+     data-action="click->artwork-switcher#switchImage keydown->artwork-switcher#handleKeydown"
+     data-artwork-switcher-target="thumbnail"
+     role="button"
+     tabindex="0"
+     aria-label="<%= label %>画像に切り替え">
+  <img src="<%= image_url %>"
+       alt="<%= label %>"
+       class="<%= thumbnail_image_class %>">
+  <div class="<%= label_class %>">
+    <%= label %>
+  </div>
+</div>

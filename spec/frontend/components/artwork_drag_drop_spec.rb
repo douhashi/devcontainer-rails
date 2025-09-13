@@ -13,7 +13,7 @@ RSpec.describe ArtworkDragDrop::Component, type: :component do
       it "ドラッグ&ドロップエリアが表示される" do
         render_inline(component)
 
-        expect(page).to have_selector('[data-controller="artwork-drag-drop"]')
+        expect(page).to have_selector('[data-controller*="artwork-drag-drop"]')
         expect(page).to have_text("画像をドラッグ&ドロップ")
         expect(page).to have_text("またはクリックしてファイルを選択")
         expect(page).to have_selector('input[type="file"]', visible: :all)

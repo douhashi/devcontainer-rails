@@ -1,0 +1,12 @@
+<% if should_render? %>
+  <div class="<%= gallery_container_class %>">
+    <% thumbnail_images.each do |image_data| %>
+      <%= render ImageThumbnail::Component.new(
+            image_url: image_data[:image_url],
+            label: image_data[:label],
+            image_type: image_data[:image_type],
+            selected: image_data[:selected]
+          ) %>
+    <% end %>
+  </div>
+<% end %>

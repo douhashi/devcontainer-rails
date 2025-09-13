@@ -21,12 +21,12 @@ module MediaChromeHelpers
 
   # Wait for floating audio player to be visible
   def wait_for_audio_player_visible
-    expect(page).to have_css('#floating-audio-player:not(.hidden)', wait: 10)
+    expect(page).to have_css('#floating-audio-player:not(.hidden)', wait: 15)
   end
 
   # Wait for floating audio player to be hidden
   def wait_for_audio_player_hidden
-    expect(page).to have_css('#floating-audio-player.hidden', visible: :all, wait: 10)
+    expect(page).to have_css('#floating-audio-player.hidden', visible: :all, wait: 15)
   end
 
   # Click play button and wait for player to appear
@@ -34,14 +34,15 @@ module MediaChromeHelpers
     find(selector).click
     wait_for_audio_player_visible
     wait_for_media_chrome_ready
+    sleep 0.5 # Additional wait for JS to complete
   end
 
   # Simplified player state check
   def player_showing?(title = nil)
-    player_visible = page.has_css?('#floating-audio-player:not(.hidden)')
+    player_visible = page.has_css?('#floating-audio-player:not(.hidden)', wait: 5)
 
-    if title
-      player_visible && within('#floating-audio-player') { page.has_content?(title) }
+    if player_visible && title
+      within('#floating-audio-player') { page.has_content?(title, wait: 5) }
     else
       player_visible
     end

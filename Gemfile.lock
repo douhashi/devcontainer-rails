@@ -357,7 +357,7 @@ GEM
     responders (3.1.1)
       actionpack (>= 5.2)
       railties (>= 5.2)
-    rexml (3.4.1)
+    rexml (3.4.4)
     rouge (4.6.0)
     rspec-core (3.13.5)
       rspec-support (~> 3.13.0)
@@ -412,7 +412,7 @@ GEM
     ruby_parser (3.21.1)
       racc (~> 1.5)
       sexp_processor (~> 4.16)
-    rubyzip (3.0.1)
+    rubyzip (3.1.0)
     securerandom (0.4.1)
     selenium-webdriver (4.35.0)
       base64 (~> 0.2)
@@ -554,7 +554,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   rubocop-rails-omakase
-  selenium-webdriver
+  selenium-webdriver (~> 4.27)
   shoulda-matchers (~> 6.0)
   shrine (~> 3.6)
   solid_cable
