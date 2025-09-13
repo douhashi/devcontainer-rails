@@ -15,6 +15,43 @@ RSpec.describe DerivativeProcessingJob, type: :job do
 
   describe "#perform" do
     context "when artwork is eligible for thumbnail generation" do
+      it "updates status during thumbnail generation" do
+        # Skip callbacks to prevent double job scheduling
+        Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Create artwork directly without triggering callbacks
+        test_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+
+        # Re-enable callbacks
+        Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Only mock the external service (ThumbnailGenerationService)
+        service = instance_double(ThumbnailGenerationService)
+        allow(ThumbnailGenerationService).to receive(:new).and_return(service)
+
+        # Mock the generate method to actually create a test thumbnail file
+        allow(service).to receive(:generate) do |args|
+          # Copy the HD placeholder as the generated thumbnail
+          FileUtils.cp('spec/fixtures/files/hd_placeholder.jpg', args[:output_path])
+          {
+            input_size: { width: 1920, height: 1080 },
+            output_size: { width: 1280, height: 720 },
+            file_size: File.size(args[:output_path])
+          }
+        end
+
+        # Expect status updates
+        expect(test_artwork).to receive(:mark_thumbnail_generation_started!)
+        expect(test_artwork).to receive(:mark_thumbnail_generation_completed!)
+
+        # Run the job
+        described_class.perform_now(test_artwork)
+
+        # Verify the artwork has the thumbnail
+        test_artwork.reload
+        expect(test_artwork.has_youtube_thumbnail?).to be true
+      end
+
       it "generates YouTube thumbnail successfully" do
         # Skip callbacks to prevent double job scheduling
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
@@ -145,6 +182,35 @@ RSpec.describe DerivativeProcessingJob, type: :job do
     end
 
     context "when thumbnail generation fails" do
+      it "updates status to failed when error occurs" do
+        # Create a fresh artwork to ensure it's eligible
+        # Use skip_callback to prevent automatic job scheduling
+        Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Clear any enqueued jobs
+        ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+        # Ensure the artwork is eligible and doesn't have thumbnail yet
+        expect(fresh_artwork.youtube_thumbnail_eligible?).to be true
+        expect(fresh_artwork.has_youtube_thumbnail?).to be false
+
+        # Only mock the service to simulate failure
+        service = instance_double(ThumbnailGenerationService)
+        allow(ThumbnailGenerationService).to receive(:new).and_return(service)
+        allow(service).to receive(:generate).and_raise(ThumbnailGenerationService::GenerationError, "Generation failed")
+
+        # Expect status updates
+        expect(fresh_artwork).to receive(:mark_thumbnail_generation_started!)
+        expect(fresh_artwork).to receive(:mark_thumbnail_generation_failed!).with("Generation failed")
+
+        # Use perform method directly which doesn't trigger retries in test environment
+        expect {
+          described_class.new.perform(fresh_artwork)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, "Generation failed")
+      end
+
       it "logs error when ThumbnailGenerationService::GenerationError occurs" do
         # Create a fresh artwork to ensure it's eligible
         # Use skip_callback to prevent automatic job scheduling

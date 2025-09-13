@@ -23,37 +23,49 @@
       <% end %>
 
       <!-- YouTubeサムネイル情報 -->
-      <% if artwork.youtube_thumbnail_eligible? %>
-        <div class="absolute bottom-2 left-2 z-10">
+      <div class="absolute bottom-2 left-2 z-10">
+        <div class="flex items-center space-x-2">
+          <%= render ArtworkThumbnailStatusBadge::Component.new(artwork: artwork) %>
+
           <% if artwork.has_youtube_thumbnail? %>
             <!-- サムネイル生成完了時のダウンロードリンク -->
-            <div class="flex items-center space-x-2">
-              <span class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded">
-                <%= render Icon::Component.new(name: "check_circle", size: :sm) %>
-                YouTube対応
-              </span>
-              <a href="<%= artwork.youtube_thumbnail_download_url %>"
-                 class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-                 download>
-                <%= render Icon::Component.new(name: "download", size: :sm) %>
-                サムネイル
-              </a>
-            </div>
-          <% elsif artwork.youtube_thumbnail_processing? %>
-            <!-- サムネイル生成中の表示 -->
-            <span class="inline-flex items-center px-2 py-1 bg-yellow-600 text-white text-xs rounded">
-              <%= render Icon::Component.new(name: "schedule", size: :sm) %>
-              サムネイル生成中
-            </span>
-          <% else %>
-            <!-- サムネイル未生成時の表示 -->
-            <span class="inline-flex items-center px-2 py-1 bg-gray-600 text-white text-xs rounded">
-              <%= render Icon::Component.new(name: "video", size: :sm) %>
-              YouTube対応
+            <a href="<%= artwork.youtube_thumbnail_download_url %>"
+               class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+               download>
+              <%= render Icon::Component.new(name: "download", size: :sm) %>
+              ダウンロード
+            </a>
+          <% end %>
+
+          <% if artwork.thumbnail_generation_status_failed? && artwork.thumbnail_generation_error %>
+            <!-- エラーメッセージ表示 -->
+            <span class="inline-flex items-center px-2 py-1 bg-red-800 text-red-200 text-xs rounded"
+                  title="<%= artwork.thumbnail_generation_error %>">
+              <%= render Icon::Component.new(name: "error", size: :sm) %>
+              詳細
             </span>
           <% end %>
+
+          <% unless artwork.thumbnail_generation_status_processing? %>
+            <!-- 再生成ボタン -->
+            <%= form_with url: regenerate_thumbnail_content_artwork_path(content, artwork),
+                          method: :post,
+                          local: false,
+                          class: "inline-block" do |f| %>
+              <%= f.button type: "submit",
+                          data: {
+                            turbo_method: :post,
+                            turbo_confirm: "YouTube用サムネイルを再生成します。現在の処理状況は初期化され、新しく処理が開始されます。よろしいですか？"
+                          },
+                          'aria-label': 'サムネイル再生成',
+                          class: "inline-flex items-center px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors" do %>
+                <%= render Icon::Component.new(name: "spinner", size: :sm) %>
+                再生成
+              <% end %>
+            <% end %>
+          <% end %>
         </div>
-      <% end %>
+      </div>
     </div>
   </turbo-frame>
 <% else %>

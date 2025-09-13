@@ -51,6 +51,14 @@ RSpec.describe ArtworkDragDrop::Component do
       before do
         artwork.save!
         allow(artwork).to receive(:image).and_return(double("image", present?: true, url: "https://example.com/image.jpg"))
+        allow(artwork).to receive(:youtube_thumbnail_eligible?).and_return(true)
+        allow(artwork).to receive(:has_youtube_thumbnail?).and_return(false)
+        allow(artwork).to receive(:youtube_thumbnail_url).and_return(nil)
+        allow(artwork).to receive(:thumbnail_generation_status).and_return("pending")
+        allow(artwork).to receive(:thumbnail_generation_status_processing?).and_return(false)
+        allow(artwork).to receive(:thumbnail_generation_status_failed?).and_return(false)
+        allow(artwork).to receive(:youtube_thumbnail_processing?).and_return(false)
+        allow(artwork).to receive(:youtube_thumbnail_download_url).and_return(nil)
         allow(content).to receive(:artwork).and_return(artwork)
       end
 
@@ -69,8 +77,6 @@ RSpec.describe ArtworkDragDrop::Component do
       end
 
       it "renders the artwork gallery" do
-        allow(artwork).to receive(:has_youtube_thumbnail?).and_return(false)
-
         render_inline(component)
 
         expect(page).to have_css("[data-artwork-switcher-target='thumbnail']")

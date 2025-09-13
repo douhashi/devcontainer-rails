@@ -33,18 +33,15 @@ FactoryBot.define do
 
     trait :with_audio do
       after(:build) do |track|
-        # Create a temp file instead of StringIO for proper MIME type handling
-        require 'tempfile'
-        temp_file = Tempfile.new([ 'test_track', '.mp3' ])
-        temp_file.write("fake audio content")
-        temp_file.rewind
+        # Create a StringIO to simulate audio file
+        require 'stringio'
+        audio_file = StringIO.new("fake audio content")
 
-        # Define methods needed for Shrine
-        temp_file.define_singleton_method(:original_filename) { "test_track.mp3" }
-        temp_file.define_singleton_method(:content_type) { "audio/mpeg" }
+        # Add required methods for Shrine
+        audio_file.define_singleton_method(:original_filename) { "test_track.mp3" }
+        audio_file.define_singleton_method(:content_type) { "audio/mpeg" }
 
-        track.audio = temp_file
-        temp_file.close
+        track.audio = audio_file
       end
     end
 

@@ -10,13 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_11_055108) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_13_124900) do
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "thumbnail_generation_status", default: 0, null: false
+    t.text "thumbnail_generation_error"
+    t.datetime "thumbnail_generated_at"
     t.index [ "content_id" ], name: "index_artworks_on_content_id"
+    t.index [ "thumbnail_generation_status" ], name: "index_artworks_on_thumbnail_generation_status"
   end
 
   create_table "audios", force: :cascade do |t|

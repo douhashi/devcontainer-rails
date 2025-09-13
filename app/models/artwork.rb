@@ -5,6 +5,13 @@ class Artwork < ApplicationRecord
 
   validates :image, presence: true
 
+  enum :thumbnail_generation_status, {
+    pending: 0,
+    processing: 1,
+    completed: 2,
+    failed: 3
+  }, prefix: true
+
   # Callback to trigger derivative processing for eligible artworks
   # Use after_commit to ensure the record is saved to the database before job is enqueued
   after_commit :schedule_thumbnail_generation, on: [ :create, :update ], if: :saved_change_to_image_data?
@@ -46,9 +53,29 @@ class Artwork < ApplicationRecord
   end
 
   def youtube_thumbnail_processing?
-    # This would require implementing job status tracking
-    # For now, we'll return false and implement it later if needed
-    false
+    thumbnail_generation_status_processing?
+  end
+
+  def mark_thumbnail_generation_started!
+    update!(
+      thumbnail_generation_status: :processing,
+      thumbnail_generation_error: nil
+    )
+  end
+
+  def mark_thumbnail_generation_completed!
+    update!(
+      thumbnail_generation_status: :completed,
+      thumbnail_generation_error: nil,
+      thumbnail_generated_at: Time.current
+    )
+  end
+
+  def mark_thumbnail_generation_failed!(error_message)
+    update!(
+      thumbnail_generation_status: :failed,
+      thumbnail_generation_error: error_message
+    )
   end
 
   def youtube_thumbnail_download_url

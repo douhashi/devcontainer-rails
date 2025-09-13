@@ -156,6 +156,84 @@ RSpec.describe ArtworksController, type: :request do
     end
   end
 
+  describe "POST /contents/:content_id/artworks/:id/regenerate_thumbnail" do
+    let!(:artwork) { create(:artwork, content: content, thumbnail_generation_status: :failed, thumbnail_generation_error: "Previous error") }
+
+    before do
+      create_test_fhd_image(Rails.root.join("spec/fixtures/files/test_fhd_artwork.jpg"))
+
+      # Mock the image to be eligible
+      allow_any_instance_of(Artwork).to receive(:youtube_thumbnail_eligible?).and_return(true)
+    end
+
+    after do
+      FileUtils.rm_f(Rails.root.join("spec/fixtures/files/test_fhd_artwork.jpg"))
+    end
+
+    it "regenerates thumbnail for failed artwork" do
+      expect {
+        post regenerate_thumbnail_content_artwork_path(content, artwork)
+      }.to change { artwork.reload.thumbnail_generation_status }.from("failed").to("pending")
+
+      expect(DerivativeProcessingJob).to have_been_enqueued.at_least(:once)
+      expect(response).to redirect_to(content)
+      follow_redirect!
+      expect(response.body).to include("YouTube用サムネイルの再生成を開始しました")
+    end
+
+    context "when artwork is already processing" do
+      before do
+        clear_enqueued_jobs
+        artwork.update!(thumbnail_generation_status: :processing)
+      end
+
+      it "does not regenerate and returns info message" do
+        expect {
+          post regenerate_thumbnail_content_artwork_path(content, artwork)
+        }.not_to change { enqueued_jobs.size }
+
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("サムネイル生成は既に実行中です")
+      end
+    end
+
+    context "when artwork is not eligible" do
+      before do
+        allow_any_instance_of(Artwork).to receive(:youtube_thumbnail_eligible?).and_return(false)
+      end
+
+      it "does not regenerate and returns error message" do
+        post regenerate_thumbnail_content_artwork_path(content, artwork)
+
+        expect(DerivativeProcessingJob).not_to have_been_enqueued
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include("YouTube用サムネイル生成の対象外です")
+      end
+    end
+
+    context "when request is via Turbo Stream" do
+      let(:headers) { { "Accept" => "text/vnd.turbo-stream.html" } }
+
+      it "returns turbo stream response" do
+        post regenerate_thumbnail_content_artwork_path(content, artwork), headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include("text/vnd.turbo-stream.html")
+        expect(response.body).to include("turbo-stream")
+      end
+
+      it "schedules thumbnail regeneration" do
+        post regenerate_thumbnail_content_artwork_path(content, artwork), headers: headers
+
+        expect(DerivativeProcessingJob).to have_been_enqueued.at_least(:once)
+        expect(artwork.reload.thumbnail_generation_status).to eq("pending")
+        expect(artwork.thumbnail_generation_error).to be_nil
+      end
+    end
+  end
+
   private
 
   def create_test_fhd_image(path)

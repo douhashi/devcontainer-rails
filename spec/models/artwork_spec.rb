@@ -91,8 +91,76 @@ RSpec.describe Artwork, type: :model do
   end
 
   describe "#youtube_thumbnail_processing?" do
-    it "returns false (placeholder implementation)" do
-      expect(artwork.youtube_thumbnail_processing?).to be false
+    context "when status is processing" do
+      before do
+        artwork.thumbnail_generation_status_processing!
+      end
+
+      it "returns true" do
+        expect(artwork.youtube_thumbnail_processing?).to be true
+      end
+    end
+
+    context "when status is not processing" do
+      before do
+        artwork.thumbnail_generation_status_completed!
+      end
+
+      it "returns false" do
+        expect(artwork.youtube_thumbnail_processing?).to be false
+      end
+    end
+  end
+
+  describe "thumbnail_generation_status" do
+    it "has default status of pending" do
+      new_artwork = Artwork.new
+      expect(new_artwork.thumbnail_generation_status_pending?).to be true
+    end
+
+    it "can transition to processing" do
+      artwork.thumbnail_generation_status_processing!
+      expect(artwork.thumbnail_generation_status_processing?).to be true
+    end
+
+    it "can transition to completed" do
+      artwork.thumbnail_generation_status_completed!
+      expect(artwork.thumbnail_generation_status_completed?).to be true
+    end
+
+    it "can transition to failed" do
+      artwork.thumbnail_generation_status_failed!
+      expect(artwork.thumbnail_generation_status_failed?).to be true
+    end
+  end
+
+  describe "#mark_thumbnail_generation_started!" do
+    it "updates status to processing and clears error" do
+      artwork.update!(thumbnail_generation_error: "Previous error")
+      artwork.mark_thumbnail_generation_started!
+
+      expect(artwork.thumbnail_generation_status_processing?).to be true
+      expect(artwork.thumbnail_generation_error).to be_nil
+    end
+  end
+
+  describe "#mark_thumbnail_generation_completed!" do
+    it "updates status to completed and sets timestamp" do
+      artwork.mark_thumbnail_generation_completed!
+
+      expect(artwork.thumbnail_generation_status_completed?).to be true
+      expect(artwork.thumbnail_generated_at).to be_present
+      expect(artwork.thumbnail_generation_error).to be_nil
+    end
+  end
+
+  describe "#mark_thumbnail_generation_failed!" do
+    it "updates status to failed and stores error message" do
+      error_message = "Failed to generate thumbnail"
+      artwork.mark_thumbnail_generation_failed!(error_message)
+
+      expect(artwork.thumbnail_generation_status_failed?).to be true
+      expect(artwork.thumbnail_generation_error).to eq(error_message)
     end
   end
 

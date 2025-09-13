@@ -11,5 +11,56 @@
        class="<%= thumbnail_image_class %>">
   <div class="<%= label_class %>">
     <%= label %>
+    <% if artwork && image_type == "original" %>
+      <% if artwork.youtube_thumbnail_eligible? %>
+        <span class="bg-blue-600 text-white text-xs px-1 py-0.5 rounded ml-1">YouTube対応</span>
+      <% end %>
+      <%= render ArtworkThumbnailStatusBadge::Component.new(artwork: artwork) %>
+    <% end %>
   </div>
+
+  <% if artwork && image_type == "original" %>
+    <!-- サムネイル生成に関する追加情報とボタン表示エリア -->
+    <div class="absolute top-0 left-0 right-0 bg-black bg-opacity-50 p-1 text-xs">
+      <div class="flex flex-wrap gap-1 items-center">
+        <% if artwork.has_youtube_thumbnail? %>
+          <!-- ダウンロードリンク -->
+          <a href="<%= artwork.youtube_thumbnail_download_url %>"
+             class="inline-flex items-center px-1 py-0.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+             download>
+            <%= render Icon::Component.new(name: "download", size: :sm) %>
+            DL
+          </a>
+        <% end %>
+
+        <% if artwork.thumbnail_generation_status_failed? && artwork.thumbnail_generation_error %>
+          <!-- エラーメッセージ表示 -->
+          <span class="inline-flex items-center px-1 py-0.5 bg-red-800 text-red-200 text-xs rounded"
+                title="<%= artwork.thumbnail_generation_error %>">
+            <%= render Icon::Component.new(name: "delete", size: :sm) %>
+            詳細
+          </span>
+        <% end %>
+
+        <% unless artwork.thumbnail_generation_status_processing? %>
+          <!-- 再生成ボタン -->
+          <%= form_with url: regenerate_thumbnail_path,
+                        method: :post,
+                        local: false,
+                        class: "inline-block" do |f| %>
+            <%= f.button type: "submit",
+                        data: {
+                          turbo_method: :post,
+                          turbo_confirm: "YouTube用サムネイルを再生成します。現在の処理状況は初期化され、新しく処理が開始されます。よろしいですか？"
+                        },
+                        'aria-label': 'サムネイル再生成',
+                        class: "inline-flex items-center px-1 py-0.5 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors" do %>
+              <%= render Icon::Component.new(name: "spinner", size: :sm) %>
+              再生成
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>

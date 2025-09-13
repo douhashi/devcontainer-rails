@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     resources :artworks, except: [ :index, :show, :edit, :new ] do
       member do
         post :generate_thumbnail
+        post :regenerate_thumbnail
       end
     end
     resource :artwork, only: [ :destroy ]

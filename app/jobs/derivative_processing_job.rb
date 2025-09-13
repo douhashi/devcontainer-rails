@@ -18,15 +18,20 @@ class DerivativeProcessingJob < ApplicationJob
       return
     end
 
+    # Mark status as processing
+    artwork.mark_thumbnail_generation_started!
+
     # Check if already has thumbnail
     if artwork.has_youtube_thumbnail?
       Rails.logger.info "Artwork #{artwork.id} already has YouTube thumbnail, skipping"
+      artwork.mark_thumbnail_generation_completed!
       return
     end
 
     # Check if eligible for thumbnail generation
     unless artwork.youtube_thumbnail_eligible?
       Rails.logger.info "Artwork #{artwork.id} is not eligible for YouTube thumbnail generation"
+      artwork.mark_thumbnail_generation_failed!("Not eligible for YouTube thumbnail generation (dimensions must be 1920x1080)")
       return
     end
 
@@ -36,10 +41,12 @@ class DerivativeProcessingJob < ApplicationJob
       image_path = tempfile.path
       unless image_path && File.exist?(image_path)
         Rails.logger.error "Image file not found for artwork #{artwork.id}: #{image_path}"
+        artwork.mark_thumbnail_generation_failed!("Image file not found: #{image_path}")
         return
       end
     rescue => e
       Rails.logger.error "Failed to download image for artwork #{artwork.id}: #{e.message}"
+      artwork.mark_thumbnail_generation_failed!("Failed to download image: #{e.message}")
       raise
     end
 
@@ -72,6 +79,9 @@ class DerivativeProcessingJob < ApplicationJob
         end
 
         Rails.logger.info "Successfully generated YouTube thumbnail for artwork #{artwork.id}: #{result}"
+
+        # Mark as completed
+        artwork.mark_thumbnail_generation_completed!
       ensure
         # Clean up temporary files
         output_file.close if output_file
@@ -82,10 +92,12 @@ class DerivativeProcessingJob < ApplicationJob
 
     rescue ThumbnailGenerationService::GenerationError => e
       Rails.logger.error "Failed to generate YouTube thumbnail for artwork #{artwork.id}: #{e.message}"
+      artwork.mark_thumbnail_generation_failed!(e.message)
       raise # This will trigger retry
     rescue => e
       Rails.logger.error "Unexpected error in derivative processing for artwork #{artwork.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
+      artwork.mark_thumbnail_generation_failed!("#{e.class}: #{e.message}")
       raise # This will trigger retry
     end
   end

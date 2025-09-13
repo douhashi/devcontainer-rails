@@ -21,7 +21,8 @@ class ArtworkGallery::Component < ApplicationViewComponent
       image_url: artwork.image.url,
       label: "オリジナル",
       image_type: "original",
-      selected: true # デフォルトではオリジナルが選択されている
+      selected: true, # デフォルトではオリジナルが選択されている
+      artwork: artwork
     }
 
     # YouTubeサムネイル
@@ -30,7 +31,8 @@ class ArtworkGallery::Component < ApplicationViewComponent
         image_url: artwork.youtube_thumbnail_url,
         label: "YouTube",
         image_type: "youtube",
-        selected: false
+        selected: false,
+        artwork: artwork
       }
     end
 

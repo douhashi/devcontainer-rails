@@ -90,6 +90,7 @@ RSpec.describe ArtworkGallery::Component do
       before do
         allow(component).to receive(:should_render?).and_return(true)
         allow(artwork).to receive(:has_youtube_thumbnail?).and_return(false)
+        allow(artwork).to receive(:youtube_thumbnail_eligible?).and_return(true)
       end
 
       it "renders the gallery container" do
