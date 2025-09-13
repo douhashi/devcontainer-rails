@@ -18,7 +18,11 @@ Rails.application.routes.draw do
         post :generate_bulk
       end
     end
-    resources :artworks, except: [ :index, :show, :edit, :new ]
+    resources :artworks, except: [ :index, :show, :edit, :new ] do
+      member do
+        post :generate_thumbnail
+      end
+    end
     resource :artwork, only: [ :destroy ]
     resource :video, only: [ :create, :destroy ]
     resource :audio, only: [ :destroy ]

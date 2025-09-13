@@ -14,7 +14,12 @@ class ThumbnailGenerationService
 
   def initialize
     # Ensure required gems are available
-    require "vips"
+    begin
+      require "vips"
+    rescue LoadError => e
+      Rails.logger.error "Failed to load vips gem: #{e.message}"
+      raise GenerationError, "Image processing library not available: #{e.message}"
+    end
   end
 
   def generate(input_path:, output_path:)
@@ -78,8 +83,10 @@ class ThumbnailGenerationService
 
   def validate_image_dimensions!(image)
     unless image.width == EXPECTED_INPUT_WIDTH && image.height == EXPECTED_INPUT_HEIGHT
+      Rails.logger.warn "Image dimensions #{image.width}x#{image.height} do not match expected #{EXPECTED_INPUT_WIDTH}x#{EXPECTED_INPUT_HEIGHT}"
       raise GenerationError, "Invalid image dimensions: #{image.width}x#{image.height}. Expected: #{EXPECTED_INPUT_WIDTH}x#{EXPECTED_INPUT_HEIGHT}"
     end
+    Rails.logger.debug "Image dimensions validated: #{image.width}x#{image.height}"
   end
 
   def resize_to_thumbnail_size(image)
@@ -147,10 +154,15 @@ class ThumbnailGenerationService
       "/System/Library/Fonts/Arial.ttf",                    # macOS
       "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", # Ubuntu/Debian
       "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", # CentOS/RHEL
+      "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",  # Common on many systems
+      "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf", # Alternative path
       "/Windows/Fonts/arial.ttf"                            # Windows
     ]
 
-    possible_fonts.find { |font| File.exist?(font) }
+    font = possible_fonts.find { |f| File.exist?(f) }
+    Rails.logger.debug "Found system font: #{font}" if font
+    Rails.logger.warn "No suitable system font found, will use fallback rendering" unless font
+    font
   end
 
   def save_thumbnail(image, output_path)

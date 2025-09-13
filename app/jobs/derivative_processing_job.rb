@@ -2,8 +2,9 @@ class DerivativeProcessingJob < ApplicationJob
   queue_as :default
 
   # Retry configuration for different types of errors
-  retry_on ThumbnailGenerationService::GenerationError, wait: :exponentially_longer, attempts: 2
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  # Use exponentially_longer for better retry intervals
+  retry_on ThumbnailGenerationService::GenerationError, wait: :polynomially_longer, attempts: 2
+  retry_on StandardError, wait: :polynomially_longer, attempts: 3
 
   # Discard job if record is no longer available
   discard_on ActiveRecord::RecordNotFound
@@ -17,15 +18,29 @@ class DerivativeProcessingJob < ApplicationJob
       return
     end
 
-    # Check if image file exists
-    # Download the image to a temporary file for processing
-    tempfile = artwork.image.download
-    image_path = tempfile.path
-    unless image_path && File.exist?(image_path)
-      Rails.logger.error "Image file not found for artwork #{artwork.id}: #{image_path}"
-      tempfile.close if tempfile
-      tempfile.unlink if tempfile && tempfile.path
+    # Check if already has thumbnail
+    if artwork.has_youtube_thumbnail?
+      Rails.logger.info "Artwork #{artwork.id} already has YouTube thumbnail, skipping"
       return
+    end
+
+    # Check if eligible for thumbnail generation
+    unless artwork.youtube_thumbnail_eligible?
+      Rails.logger.info "Artwork #{artwork.id} is not eligible for YouTube thumbnail generation"
+      return
+    end
+
+    # Download the image to a temporary file for processing
+    begin
+      tempfile = artwork.image.download
+      image_path = tempfile.path
+      unless image_path && File.exist?(image_path)
+        Rails.logger.error "Image file not found for artwork #{artwork.id}: #{image_path}"
+        return
+      end
+    rescue => e
+      Rails.logger.error "Failed to download image for artwork #{artwork.id}: #{e.message}"
+      raise
     end
 
     # Generate YouTube thumbnail using ThumbnailGenerationService
@@ -45,9 +60,15 @@ class DerivativeProcessingJob < ApplicationJob
         # Create derivatives using Shrine's derivatives plugin
         File.open(output_file.path) do |file|
           attacher = artwork.image_attacher
-          attacher.create_derivatives({
-            youtube_thumbnail: file
-          })
+
+          # Create the derivatives hash
+          derivatives = { youtube_thumbnail: attacher.upload(file, :store) }
+
+          # Persist the derivatives to the database
+          attacher.set_derivatives(derivatives)
+
+          # Save the artwork to persist the derivatives
+          artwork.save!
         end
 
         Rails.logger.info "Successfully generated YouTube thumbnail for artwork #{artwork.id}: #{result}"
@@ -71,7 +92,8 @@ class DerivativeProcessingJob < ApplicationJob
 
   # Class method to access retry configuration for testing
   def self.retry_on_exception_attempts
-    @@retry_on_exception_attempts ||= {
+    # Return the number of attempts configured for each exception type
+    {
       ThumbnailGenerationService::GenerationError => 2,
       StandardError => 3
     }

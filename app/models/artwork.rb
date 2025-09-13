@@ -6,7 +6,8 @@ class Artwork < ApplicationRecord
   validates :image, presence: true
 
   # Callback to trigger derivative processing for eligible artworks
-  after_save :schedule_thumbnail_generation, if: :saved_change_to_image_data?
+  # Use after_commit to ensure the record is saved to the database before job is enqueued
+  after_commit :schedule_thumbnail_generation, on: [ :create, :update ], if: :saved_change_to_image_data?
 
   def youtube_thumbnail_eligible?
     return false unless image.present?
@@ -68,9 +69,26 @@ class Artwork < ApplicationRecord
   private
 
   def schedule_thumbnail_generation
-    if youtube_thumbnail_eligible? && !has_youtube_thumbnail?
-      DerivativeProcessingJob.perform_later(self)
-      Rails.logger.info "Scheduled YouTube thumbnail generation for artwork #{id}"
+    begin
+      Rails.logger.debug "Checking thumbnail generation eligibility for artwork #{id}"
+      Rails.logger.debug "Image present: #{image.present?}"
+      Rails.logger.debug "Image metadata: #{image.metadata.inspect}" if image.present?
+
+      if youtube_thumbnail_eligible?
+        Rails.logger.info "Artwork #{id} is eligible for YouTube thumbnail generation"
+
+        if has_youtube_thumbnail?
+          Rails.logger.info "Artwork #{id} already has YouTube thumbnail, skipping generation"
+        else
+          DerivativeProcessingJob.perform_later(self)
+          Rails.logger.info "Scheduled YouTube thumbnail generation for artwork #{id}"
+        end
+      else
+        Rails.logger.debug "Artwork #{id} is not eligible for YouTube thumbnail generation"
+      end
+    rescue => e
+      Rails.logger.error "Failed to schedule thumbnail generation for artwork #{id}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
     end
   end
 end

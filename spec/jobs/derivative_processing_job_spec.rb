@@ -1,190 +1,223 @@
 require "rails_helper"
-require "vips"
+require "fileutils"
 
 RSpec.describe DerivativeProcessingJob, type: :job do
-  include ActiveJob::TestHelper
+  let(:content) { create(:content) }
+  let(:image_file) { fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg') }
+  let(:artwork) { create(:artwork, content: content, image: image_file) }
 
-  let(:artwork) { create(:artwork) }
-
-  describe "#perform" do
-    context "with valid artwork" do
-      before do
-        # Mock the image download to return a tempfile
-        tempfile_double = double(path: "/tmp/test_image.jpg", close: nil, unlink: nil)
-        allow(artwork.image).to receive(:download).and_return(tempfile_double)
-        allow(File).to receive(:exist?).and_return(true)
-        allow(artwork).to receive(:persisted?).and_return(true)
-        allow(artwork.image).to receive(:present?).and_return(true)
-      end
-
-      it "calls ThumbnailGenerationService to generate thumbnail" do
-        service_double = double(ThumbnailGenerationService)
-        allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
-        allow(service_double).to receive(:generate).and_return({
-          input_size: { width: 1920, height: 1080 },
-          output_size: { width: 1280, height: 720 },
-          file_size: 125000
-        })
-
-        # Mock the derivative assignment is handled by attacher_double
-
-        subject.perform(artwork)
-
-        expect(ThumbnailGenerationService).to have_received(:new)
-        expect(service_double).to have_received(:generate)
-      end
-
-      it "assigns the generated thumbnail as a derivative" do
-        # Use real artwork with FHD image
-        artwork = create(:artwork)
-
-        # Create a real FHD test image
-        test_image_path = Rails.root.join("tmp/test_fhd_#{SecureRandom.hex}.jpg")
-        image = Vips::Image.black(1920, 1080, bands: 3)
-        image = image.add(128)
-        image.write_to_file(test_image_path.to_s, Q: 90)
-
-        # Upload the image to artwork
-        artwork.image = File.open(test_image_path)
-        artwork.save!
-
-        service_double = double(ThumbnailGenerationService)
-        allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
-        allow(service_double).to receive(:generate).and_return({
-          input_size: { width: 1920, height: 1080 },
-          output_size: { width: 1280, height: 720 },
-          file_size: 125000
-        })
-
-        # Spy on derivative creation
-        attacher = artwork.image_attacher
-        allow(attacher).to receive(:create_derivatives).and_call_original
-
-        subject.perform(artwork)
-
-        expect(attacher).to have_received(:create_derivatives)
-
-        # Cleanup
-        FileUtils.rm_f(test_image_path)
-      end
-
-      it "logs successful thumbnail generation" do
-        # Use real artwork with FHD image
-        artwork = create(:artwork)
-
-        # Create a real FHD test image
-        test_image_path = Rails.root.join("tmp/test_fhd_#{SecureRandom.hex}.jpg")
-        image = Vips::Image.black(1920, 1080, bands: 3)
-        image = image.add(128)
-        image.write_to_file(test_image_path.to_s, Q: 90)
-
-        # Upload the image to artwork
-        artwork.image = File.open(test_image_path)
-        artwork.save!
-
-        service_double = double(ThumbnailGenerationService)
-        allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
-        allow(service_double).to receive(:generate).and_return({
-          input_size: { width: 1920, height: 1080 },
-          output_size: { width: 1280, height: 720 },
-          file_size: 125000
-        })
-
-        allow(Rails.logger).to receive(:info)
-
-        subject.perform(artwork)
-
-        expect(Rails.logger).to have_received(:info).with(/Successfully generated YouTube thumbnail for artwork/)
-
-        # Cleanup
-        FileUtils.rm_f(test_image_path)
-      end
-    end
-
-    context "when artwork record is not found" do
-      it "logs the error and discards the job" do
-        non_existent_artwork = double(id: 999)
-        allow(non_existent_artwork).to receive(:persisted?).and_return(false)
-        allow(Rails.logger).to receive(:warn)
-
-        subject.perform(non_existent_artwork)
-
-        expect(Rails.logger).to have_received(:warn).with(/Artwork record not found or has been deleted/)
-      end
-    end
-
-    context "when image file is missing" do
-      before do
-        tempfile_double = double(path: "/tmp/missing_image.jpg", close: nil, unlink: nil)
-        allow(artwork.image).to receive(:download).and_return(tempfile_double)
-        allow(File).to receive(:exist?).and_return(false)
-        allow(artwork).to receive(:persisted?).and_return(true)
-        allow(artwork.image).to receive(:present?).and_return(true)
-      end
-
-      it "logs the error and discards the job" do
-        allow(Rails.logger).to receive(:error)
-
-        subject.perform(artwork)
-
-        expect(Rails.logger).to have_received(:error).with(/Image file not found/)
-      end
-    end
-
-    context "when ThumbnailGenerationService raises GenerationError" do
-      before do
-        tempfile_double = double(path: "/tmp/test_image.jpg", close: nil, unlink: nil)
-        allow(artwork.image).to receive(:download).and_return(tempfile_double)
-        allow(File).to receive(:exist?).and_return(true)
-        allow(artwork).to receive(:persisted?).and_return(true)
-        allow(artwork.image).to receive(:present?).and_return(true)
-      end
-
-      it "retries the job when generation error occurs" do
-        service_double = double(ThumbnailGenerationService)
-        allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
-        allow(service_double).to receive(:generate).and_raise(ThumbnailGenerationService::GenerationError, "Test generation error")
-
-        allow(Rails.logger).to receive(:error)
-
-        expect { subject.perform(artwork) }.to raise_error(ThumbnailGenerationService::GenerationError)
-        expect(Rails.logger).to have_received(:error).with(/Failed to generate YouTube thumbnail/)
-      end
-    end
-
-    context "when unexpected error occurs" do
-      before do
-        tempfile_double = double(path: "/tmp/test_image.jpg", close: nil, unlink: nil)
-        allow(artwork.image).to receive(:download).and_return(tempfile_double)
-        allow(File).to receive(:exist?).and_return(true)
-        allow(artwork).to receive(:persisted?).and_return(true)
-        allow(artwork.image).to receive(:present?).and_return(true)
-      end
-
-      it "retries the job when unexpected error occurs" do
-        service_double = double(ThumbnailGenerationService)
-        allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
-        allow(service_double).to receive(:generate).and_raise(StandardError, "Unexpected error")
-
-        allow(Rails.logger).to receive(:error)
-
-        expect { subject.perform(artwork) }.to raise_error(StandardError)
-        expect(Rails.logger).to have_received(:error).with(/Unexpected error in derivative processing/)
-      end
-    end
+  before do
+    allow(Rails.logger).to receive(:info)
+    allow(Rails.logger).to receive(:debug)
+    allow(Rails.logger).to receive(:warn)
+    allow(Rails.logger).to receive(:error)
   end
 
-  describe "retry behavior" do
-    it "has defined retry behavior for ThumbnailGenerationService::GenerationError" do
-      expect(DerivativeProcessingJob.retry_on_exception_attempts[ThumbnailGenerationService::GenerationError]).to eq(2)
+  describe "#perform" do
+    context "when artwork is eligible for thumbnail generation" do
+      it "generates YouTube thumbnail successfully" do
+        # Skip callbacks to prevent double job scheduling
+        Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Create artwork directly without triggering callbacks
+        test_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+
+        # Re-enable callbacks
+        Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Only mock the external service (ThumbnailGenerationService)
+        service = instance_double(ThumbnailGenerationService)
+        allow(ThumbnailGenerationService).to receive(:new).and_return(service)
+
+        # Mock the generate method to actually create a test thumbnail file
+        allow(service).to receive(:generate) do |args|
+          # Copy the HD placeholder as the generated thumbnail
+          FileUtils.cp('spec/fixtures/files/hd_placeholder.jpg', args[:output_path])
+          {
+            input_size: { width: 1920, height: 1080 },
+            output_size: { width: 1280, height: 720 },
+            file_size: File.size(args[:output_path])
+          }
+        end
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{test_artwork.id}")
+        expect(Rails.logger).to receive(:info).with(/Successfully generated YouTube thumbnail/)
+
+        # Run the job
+        described_class.perform_now(test_artwork)
+
+        # Verify the artwork has the thumbnail
+        test_artwork.reload
+        expect(test_artwork.has_youtube_thumbnail?).to be true
+      end
+
+      it "skips if artwork already has thumbnail" do
+        # Set up the artwork to have a thumbnail
+        attacher = artwork.image_attacher
+        # Upload the HD placeholder as the existing thumbnail
+        File.open('spec/fixtures/files/hd_placeholder.jpg') do |file|
+          thumbnail = attacher.upload(file, :store)
+          attacher.set_derivatives(youtube_thumbnail: thumbnail)
+        end
+        artwork.save!
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{artwork.id}")
+        expect(Rails.logger).to receive(:info).with("Artwork #{artwork.id} already has YouTube thumbnail, skipping")
+        expect(ThumbnailGenerationService).not_to receive(:new)
+
+        described_class.perform_now(artwork)
+      end
+
+      it "skips if artwork is not eligible" do
+        # Create artwork with non-eligible dimensions
+        non_eligible_image = fixture_file_upload('spec/fixtures/files/hd_placeholder.jpg', 'image/jpeg')
+        non_eligible_artwork = create(:artwork, content: content, image: non_eligible_image)
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{non_eligible_artwork.id}")
+        expect(Rails.logger).to receive(:info).with("Artwork #{non_eligible_artwork.id} is not eligible for YouTube thumbnail generation")
+        expect(ThumbnailGenerationService).not_to receive(:new)
+
+        described_class.perform_now(non_eligible_artwork)
+      end
     end
 
-    it "has defined retry behavior for StandardError" do
-      expect(DerivativeProcessingJob.retry_on_exception_attempts[StandardError]).to eq(3)
+    context "when artwork record is invalid" do
+      it "returns early if artwork is not persisted" do
+        # Create an unpersisted artwork
+        unpersisted_artwork = build(:artwork, content: content)
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{unpersisted_artwork.id}")
+        expect(Rails.logger).to receive(:warn).with("Artwork record not found or has been deleted: #{unpersisted_artwork.id}")
+        expect(ThumbnailGenerationService).not_to receive(:new)
+
+        described_class.perform_now(unpersisted_artwork)
+      end
+
+      it "returns early if artwork has no image" do
+        # Create artwork and then remove image
+        artwork_without_image = create(:artwork, content: content)
+        artwork_without_image.image = nil
+        artwork_without_image.save(validate: false)
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{artwork_without_image.id}")
+        expect(Rails.logger).to receive(:warn).with("Artwork record not found or has been deleted: #{artwork_without_image.id}")
+        expect(ThumbnailGenerationService).not_to receive(:new)
+
+        described_class.perform_now(artwork_without_image)
+      end
     end
 
-    it "has defined discard behavior for ActiveRecord::RecordNotFound" do
-      expect(DerivativeProcessingJob.discard_on_exception_classes).to include(ActiveRecord::RecordNotFound)
+    context "when image download fails" do
+      it "logs error when download fails" do
+        # Create a fresh artwork to ensure it's eligible
+        # Use skip_callback to prevent automatic job scheduling
+        Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Clear any enqueued jobs
+        ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+        # Ensure the artwork is eligible and doesn't have thumbnail yet
+        expect(fresh_artwork.youtube_thumbnail_eligible?).to be true
+        expect(fresh_artwork.has_youtube_thumbnail?).to be false
+
+        # Check if fresh_artwork is correctly persisted
+        expect(fresh_artwork.persisted?).to be true
+        expect(fresh_artwork.image.present?).to be true
+
+        # Only mock the download method to simulate failure
+        # We need to ensure this happens after the eligibility checks
+        allow_any_instance_of(Shrine::UploadedFile).to receive(:download).and_raise(StandardError, "Download failed")
+
+        # Allow some logs to pass through for debugging
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:warn)
+        allow(Rails.logger).to receive(:debug)
+        expect(Rails.logger).to receive(:error).with("Failed to download image for artwork #{fresh_artwork.id}: Download failed")
+
+        # Use perform_now which doesn't trigger retries in test environment
+        # The job should handle the error and log it
+        expect {
+          described_class.new.perform(fresh_artwork)
+        }.to raise_error(StandardError, "Download failed")
+      end
+    end
+
+    context "when thumbnail generation fails" do
+      it "logs error when ThumbnailGenerationService::GenerationError occurs" do
+        # Create a fresh artwork to ensure it's eligible
+        # Use skip_callback to prevent automatic job scheduling
+        Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Clear any enqueued jobs
+        ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+        # Ensure the artwork is eligible and doesn't have thumbnail yet
+        expect(fresh_artwork.youtube_thumbnail_eligible?).to be true
+        expect(fresh_artwork.has_youtube_thumbnail?).to be false
+
+        # Only mock the service to simulate failure
+        service = instance_double(ThumbnailGenerationService)
+        allow(ThumbnailGenerationService).to receive(:new).and_return(service)
+        allow(service).to receive(:generate).and_raise(ThumbnailGenerationService::GenerationError, "Generation failed")
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{fresh_artwork.id}")
+        expect(Rails.logger).to receive(:error).with("Failed to generate YouTube thumbnail for artwork #{fresh_artwork.id}: Generation failed")
+
+        # Use perform method directly which doesn't trigger retries in test environment
+        expect {
+          described_class.new.perform(fresh_artwork)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, "Generation failed")
+      end
+
+      it "logs error when unexpected error occurs" do
+        # Create a fresh artwork to ensure it's eligible
+        # Use skip_callback to prevent automatic job scheduling
+        Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
+
+        # Clear any enqueued jobs
+        ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+
+        # Ensure the artwork is eligible and doesn't have thumbnail yet
+        expect(fresh_artwork.youtube_thumbnail_eligible?).to be true
+        expect(fresh_artwork.has_youtube_thumbnail?).to be false
+
+        # Only mock the service to simulate failure
+        service = instance_double(ThumbnailGenerationService)
+        allow(ThumbnailGenerationService).to receive(:new).and_return(service)
+        allow(service).to receive(:generate).and_raise(StandardError, "Unexpected error")
+
+        expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{fresh_artwork.id}")
+        expect(Rails.logger).to receive(:error).with("Unexpected error in derivative processing for artwork #{fresh_artwork.id}: Unexpected error")
+        expect(Rails.logger).to receive(:error).with(anything) # backtrace
+
+        # Use perform method directly which doesn't trigger retries in test environment
+        expect {
+          described_class.new.perform(fresh_artwork)
+        }.to raise_error(StandardError, "Unexpected error")
+      end
+    end
+
+    describe "retry configuration" do
+      it "retries on ThumbnailGenerationService::GenerationError" do
+        retry_config = described_class.retry_on_exception_attempts
+        expect(retry_config[ThumbnailGenerationService::GenerationError]).to eq(2)
+      end
+
+      it "retries on StandardError" do
+        retry_config = described_class.retry_on_exception_attempts
+        expect(retry_config[StandardError]).to eq(3)
+      end
+
+      it "discards on ActiveRecord::RecordNotFound" do
+        discard_classes = described_class.discard_on_exception_classes
+        expect(discard_classes).to include(ActiveRecord::RecordNotFound)
+      end
     end
   end
 end

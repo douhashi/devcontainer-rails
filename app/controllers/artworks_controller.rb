@@ -1,6 +1,7 @@
 class ArtworksController < ApplicationController
   before_action :set_content
-  before_action :set_artwork, only: [ :update, :destroy ]
+  before_action :set_artwork, only: [ :update, :destroy, :generate_thumbnail ]
+  before_action :authorize_content_management
 
   def create
     @artwork = @content.build_artwork(artwork_params)
@@ -46,6 +47,31 @@ class ArtworksController < ApplicationController
     end
   end
 
+  def generate_thumbnail
+    unless @artwork.present?
+      redirect_to @content, alert: "アートワークが見つかりません。"
+      return
+    end
+
+    if @artwork.has_youtube_thumbnail?
+      redirect_to @content, notice: "YouTube用サムネイルは既に生成済みです。"
+      return
+    end
+
+    unless @artwork.youtube_thumbnail_eligible?
+      redirect_to @content, alert: "このアートワークはYouTube用サムネイル生成の対象外です（1920x1080である必要があります）。"
+      return
+    end
+
+    begin
+      DerivativeProcessingJob.perform_later(@artwork)
+      redirect_to @content, notice: "YouTube用サムネイルの生成を開始しました。しばらくお待ちください。"
+    rescue => e
+      Rails.logger.error "Failed to enqueue thumbnail generation for artwork #{@artwork.id}: #{e.message}"
+      redirect_to @content, alert: "サムネイル生成の開始に失敗しました: #{e.message}"
+    end
+  end
+
   private
 
   def set_content
@@ -58,6 +84,10 @@ class ArtworksController < ApplicationController
 
   def artwork_params
     params.require(:artwork).permit(:image)
+  end
+
+  def authorize_content_management
+    authorize @content, :manage?
   end
 
   def turbo_request?

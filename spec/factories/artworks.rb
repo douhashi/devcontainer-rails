@@ -21,19 +21,22 @@ FactoryBot.define do
     end
 
     after(:build) do |artwork|
-      # Use TestImageHelper to create a proper test image
-      tempfile = Tempfile.new([ 'test', '.jpg' ])
+      # Only set default image if no image is already set
+      if artwork.image.blank?
+        # Use TestImageHelper to create a proper test image
+        tempfile = Tempfile.new([ 'test', '.jpg' ])
 
-      # Include TestImageHelper module methods
-      helper = Object.new.extend(TestImageHelper)
-      helper.create_test_image_with_size(tempfile.path, 800, 600)
+        # Include TestImageHelper module methods
+        helper = Object.new.extend(TestImageHelper)
+        helper.create_test_image_with_size(tempfile.path, 800, 600)
 
-      uploaded_file = Rack::Test::UploadedFile.new(
-        tempfile,
-        'image/jpeg',
-        original_filename: 'valid_image.jpg'
-      )
-      artwork.image = uploaded_file
+        uploaded_file = Rack::Test::UploadedFile.new(
+          tempfile,
+          'image/jpeg',
+          original_filename: 'valid_image.jpg'
+        )
+        artwork.image = uploaded_file
+      end
     end
   end
 end
