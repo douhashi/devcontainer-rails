@@ -6,7 +6,7 @@
 >
   <!-- Left Section: Track Info -->
   <div class="<%= track_info_classes %>">
-    <p 
+    <p
       class="text-sm font-medium truncate"
       data-floating-audio-player-target="trackTitle"
     >
@@ -14,26 +14,8 @@
     </p>
   </div>
 
-  <!-- Center Section: Audio Player and Controls -->
+  <!-- Center Section: Control Buttons and Audio Player -->
   <div class="<%= controls_section_classes %>">
-    <!-- Audio Player (with media-chrome controls) -->
-    <media-controller
-      id="<%= audio_id %>"
-      data-floating-audio-player-target="audio"
-      class="flex-1 mx-4 min-w-0 bg-gray-700 rounded-md"
-      autohide="-1"
-    >
-      <audio
-        slot="media"
-        preload="metadata"
-      ></audio>
-      <media-control-bar class="bg-gray-700 text-gray-300 flex items-center">
-        <media-time-display show-duration class="text-xs text-gray-300 ml-2"></media-time-display>
-        <media-time-range class="flex-1 mx-2"></media-time-range>
-        <media-volume-range class="w-16 mr-2"></media-volume-range>
-      </media-control-bar>
-    </media-controller>
-
     <!-- Control Buttons Group (centered) -->
     <div class="<%= button_group_classes %>">
       <!-- Previous Button -->
@@ -76,11 +58,29 @@
         </svg>
       </button>
     </div>
+
+    <!-- Audio Player (with media-chrome controls) -->
+    <media-controller
+      id="<%= audio_id %>"
+      data-floating-audio-player-target="audio"
+      class="flex-1 mx-4 min-w-0 bg-gray-700 rounded-md"
+      autohide="-1"
+    >
+      <audio
+        slot="media"
+        preload="metadata"
+      ></audio>
+      <media-control-bar class="text-gray-300 flex items-center">
+        <media-time-display show-duration class="text-xs text-gray-300 ml-2"></media-time-display>
+        <media-time-range class="flex-1 mx-2"></media-time-range>
+        <media-volume-range class="w-16 mr-2"></media-volume-range>
+      </media-control-bar>
+    </media-controller>
   </div>
 
   <!-- Right Section: Close Button -->
   <div class="<%= close_section_classes %>">
-    <button 
+    <button
       type="button"
       class="<%= close_button_classes %>"
       data-action="click->floating-audio-player#close"

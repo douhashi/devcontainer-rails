@@ -136,4 +136,54 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(close_button["class"]).to include("hover:bg-gray-700")
     end
   end
+
+  describe "media-chrome style adjustments" do
+    subject(:rendered) { render_inline(component) }
+
+    it "media-control-bar does not have bg-gray-700 class" do
+      expect(rendered).not_to have_css("media-control-bar.bg-gray-700")
+    end
+
+    it "media-controller has proper styling classes" do
+      expect(rendered).to have_css("media-controller.bg-gray-700")
+    end
+
+    it "media-control-bar has text color but no background color" do
+      media_bar = rendered.css("media-control-bar").first
+      expect(media_bar["class"]).to include("text-gray-300")
+      expect(media_bar["class"]).not_to include("bg-gray-700")
+    end
+  end
+
+  describe "layout restructuring" do
+    subject(:rendered) { render_inline(component) }
+
+    it "elements appear in correct order: track info, controls, close button" do
+      container = rendered.css("#floating-audio-player").first
+      sections = container.css("> div")
+
+      expect(sections[0]["class"]).to include("flex-shrink-0")
+      expect(sections[0].css("[data-floating-audio-player-target='trackTitle']")).not_to be_empty
+
+      expect(sections[1]["class"]).to include("flex-1")
+      expect(sections[1].css("media-controller")).not_to be_empty
+
+      expect(sections[2]["class"]).to include("flex-shrink-0")
+      expect(sections[2].css("[data-action='click->floating-audio-player#close']")).not_to be_empty
+    end
+
+    it "control buttons are centered in controls section" do
+      expect(rendered).to have_css("div.flex-1 div.justify-center")
+    end
+
+    it "container has proper max-width constraint" do
+      container = rendered.css("#floating-audio-player").first
+      expect(container["class"]).to include("max-w-4xl")
+    end
+
+    it "container is centered horizontally" do
+      container = rendered.css("#floating-audio-player").first
+      expect(container["class"]).to include("mx-auto")
+    end
+  end
 end

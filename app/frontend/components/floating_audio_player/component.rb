@@ -25,6 +25,8 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
       "border-t",
       "border-gray-700",
       "w-full",
+      "max-w-4xl",
+      "mx-auto",
       "h-16",
       "flex",
       "items-center",
@@ -47,18 +49,18 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
   end
 
   def track_info_classes
-    "flex-shrink-0 min-w-0 mr-4"
+    "flex-shrink-0 min-w-0 mr-6 w-48"
   end
 
   def controls_section_classes
-    "flex-1 flex items-center justify-center"
+    "flex-1 flex items-center justify-center gap-4"
   end
 
   def button_group_classes
-    "flex items-center justify-center gap-2"
+    "flex-shrink-0 flex items-center justify-center gap-2"
   end
 
   def close_section_classes
-    "flex-shrink-0 ml-4"
+    "flex-shrink-0 ml-6"
   end
 end
