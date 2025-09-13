@@ -28,5 +28,18 @@
   "comments": {
     "media-chrome-dependencies": "Note: React (v19.1.1) is included as a transitive dependency of media-chrome through ce-la-react package. This is required for media-chrome's internal functionality and not directly used in our application. This dependency is automatically managed by npm and should not be removed.",
     "migration-note": "This package.json was updated as part of the migration from Plyr to media-chrome. Plyr has been completely removed and replaced with media-chrome for improved Web Components standard compliance."
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "<rootDir>/app/frontend/**/*.test.js",
+      "<rootDir>/app/frontend/**/*.spec.js",
+      "<rootDir>/spec/javascript/**/*.spec.js"
+    ],
+    "transform": {},
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/app/frontend/$1"
+    }
   }
 }

@@ -1,12 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
 import { PlaybackController } from "./playback_controller"
+import { AudioStateManager } from "../lib/audio_state_manager"
+import { PlaybackQueue } from "../lib/playback_queue"
+import { AudioEventManager } from "../lib/audio_event_manager"
 
 export default class extends Controller {
   static targets = ["audio", "trackTitle", "playButton", "playIcon", "pauseIcon"]
 
   connect() {
+    // Initialize state management
+    this.stateManager = AudioStateManager.getInstance()
+    this.playbackQueue = new PlaybackQueue()
+    this.eventManager = new AudioEventManager()
+
     this.initializePlayer()
     this.setupEventListeners()
+    this.setupStateListeners()
     this.trackList = []
     this.currentTrackIndex = 0
     this.playbackController = null
@@ -26,6 +35,9 @@ export default class extends Controller {
     }
     this.player = null
     this.removeEventListeners()
+    this.removeStateListeners()
+    this.eventManager.cleanup()
+    this.playbackQueue.clear()
   }
 
   initializePlayer() {
@@ -62,6 +74,9 @@ export default class extends Controller {
       if (this.isProcessingEvent) return
       this.isProcessingEvent = true
 
+      // Update state manager
+      this.stateManager.setState(AudioStateManager.STATES.PLAYING)
+
       // Player started playing
       this.updatePlayButton(true)
       this.stopOtherPlayers()
@@ -78,6 +93,9 @@ export default class extends Controller {
       if (this.isProcessingEvent) return
       this.isProcessingEvent = true
 
+      // Update state manager
+      this.stateManager.setState(AudioStateManager.STATES.PAUSED)
+
       // Player paused
       this.updatePlayButton(false)
 
@@ -89,6 +107,9 @@ export default class extends Controller {
     }
 
     this.handleMediaEnded = () => {
+      // Update state manager
+      this.stateManager.setState(AudioStateManager.STATES.STOPPED)
+
       // Player ended
       this.next()
     }
@@ -116,6 +137,47 @@ export default class extends Controller {
     // Legacy event listeners (for backward compatibility during transition)
     document.addEventListener("track:play", this.playHandler)
     document.addEventListener("content:play", this.contentPlayHandler)
+  }
+
+  setupStateListeners() {
+    // Listen for state changes
+    this.stateChangeHandler = (event) => {
+      const { newState } = event.detail
+
+      // Update UI based on state
+      switch (newState) {
+        case AudioStateManager.STATES.PLAYING:
+          this.updatePlayButton(true)
+          break
+        case AudioStateManager.STATES.PAUSED:
+        case AudioStateManager.STATES.STOPPED:
+          this.updatePlayButton(false)
+          break
+      }
+    }
+
+    this.stateManager.addEventListener('statechange', this.stateChangeHandler)
+
+    // Listen for track changes
+    this.trackChangeHandler = (event) => {
+      const { newTrack } = event.detail
+      if (newTrack) {
+        this.updateAllPlayButtons(newTrack.id)
+      } else {
+        this.updateAllPlayButtons(null)
+      }
+    }
+
+    this.stateManager.addEventListener('trackchange', this.trackChangeHandler)
+  }
+
+  removeStateListeners() {
+    if (this.stateChangeHandler) {
+      this.stateManager.removeEventListener('statechange', this.stateChangeHandler)
+    }
+    if (this.trackChangeHandler) {
+      this.stateManager.removeEventListener('trackchange', this.trackChangeHandler)
+    }
   }
 
   removeEventListeners() {
@@ -237,61 +299,78 @@ export default class extends Controller {
 
     console.debug('[FloatingAudioPlayer] Playing track:', trackData)
 
-    // Prevent concurrent playTrack calls
-    if (this.isLoadingTrack) {
-      console.debug('[FloatingAudioPlayer] Already loading a track, skipping...')
-      return
+    // Add to playback queue
+    const playbackItem = {
+      id: trackData.id,
+      priority: PlaybackQueue.PRIORITY.HIGH,
+      execute: async (signal) => {
+        // Update state to loading
+        this.stateManager.setState(AudioStateManager.STATES.LOADING)
+
+        // Update current track in state manager
+        this.stateManager.setCurrentTrack(trackData)
+
+        this.trackTitleTarget.textContent = trackData.title || "Untitled"
+
+        // Ensure audio element and playback controller are available
+        if (!this.audioElement || !this.playbackController) {
+          throw new Error('Audio element or playback controller not available')
+        }
+
+        // Validate URL
+        if (!trackData.url) {
+          throw new Error(`No audio URL provided in track data: ${JSON.stringify(trackData)}`)
+        }
+
+        // Check if aborted
+        if (signal.aborted) {
+          throw new DOMException('Playback aborted', 'AbortError')
+        }
+
+        console.debug('[FloatingAudioPlayer] Setting audio source:', trackData.url)
+
+        // Set new audio source
+        this.audioElement.src = trackData.url
+
+        // Set CORS attribute for cross-origin audio
+        this.audioElement.crossOrigin = 'anonymous'
+
+        // Check if browser can play the audio format
+        const canPlayType = this.audioElement.canPlayType('audio/mpeg')
+        console.debug('[FloatingAudioPlayer] Can play audio/mpeg:', canPlayType)
+
+        // Load the audio explicitly
+        this.audioElement.load()
+        console.debug('[FloatingAudioPlayer] Audio loaded')
+
+        // Update global state (for backward compatibility)
+        if (window.floatingPlayerStore) {
+          window.floatingPlayerStore.currentTrack = trackData
+        }
+
+        // Check if aborted before playing
+        if (signal.aborted) {
+          throw new DOMException('Playback aborted', 'AbortError')
+        }
+
+        // Play the new track using PlaybackController for safe playback
+        console.debug('[FloatingAudioPlayer] Attempting to play audio using PlaybackController...')
+        await this.playbackController.safePlay(true)
+
+        console.debug('[FloatingAudioPlayer] Audio playback started successfully')
+      }
     }
-    this.isLoadingTrack = true
+
+    // Enqueue the playback item
+    this.playbackQueue.enqueue(playbackItem)
 
     try {
-      this.trackTitleTarget.textContent = trackData.title || "Untitled"
-
-      // Ensure audio element and playback controller are available
-      if (!this.audioElement || !this.playbackController) {
-        console.error('[FloatingAudioPlayer] Audio element or playback controller not available')
-        return
-      }
-
-      // Validate URL
-      if (!trackData.url) {
-        console.error('[FloatingAudioPlayer] No audio URL provided in track data:', trackData)
-        return
-      }
-
-      console.debug('[FloatingAudioPlayer] Setting audio source:', trackData.url)
-
-      // Set new audio source
-      this.audioElement.src = trackData.url
-
-      // Set CORS attribute for cross-origin audio
-      this.audioElement.crossOrigin = 'anonymous'
-
-      // Check if browser can play the audio format
-      const canPlayType = this.audioElement.canPlayType('audio/mpeg')
-      console.debug('[FloatingAudioPlayer] Can play audio/mpeg:', canPlayType)
-
-      // Load the audio explicitly
-      this.audioElement.load()
-      console.debug('[FloatingAudioPlayer] Audio loaded')
-
-      // Update global state
-      if (window.floatingPlayerStore) {
-        window.floatingPlayerStore.currentTrack = trackData
-      }
-
-      // Play the new track using PlaybackController for safe playback
-      console.debug('[FloatingAudioPlayer] Attempting to play audio using PlaybackController...')
-      await this.playbackController.safePlay(true)
-
-      console.debug('[FloatingAudioPlayer] Audio playback started successfully')
-      this.updateAllPlayButtons(trackData.id)
-
+      await this.playbackQueue.process()
     } catch (error) {
       // Enhanced error handling with specific AbortError treatment
       if (error.name === 'AbortError') {
         console.debug('[FloatingAudioPlayer] Playback was safely aborted:', error.message)
-        // AbortError は正常な中断なので、ユーザーには表示しない
+        this.stateManager.setState(AudioStateManager.STATES.IDLE)
       } else {
         // Log all other errors with details
         console.error('[FloatingAudioPlayer] Failed to play audio:', {
@@ -302,6 +381,9 @@ export default class extends Controller {
           trackData: trackData
         })
 
+        // Update state to stopped on error
+        this.stateManager.setState(AudioStateManager.STATES.STOPPED)
+
         // Handle specific error types
         if (error.name === 'NotAllowedError') {
           console.error('[FloatingAudioPlayer] Playback not allowed. User interaction may be required.')
@@ -309,8 +391,6 @@ export default class extends Controller {
           console.error('[FloatingAudioPlayer] Media format not supported.')
         }
       }
-    } finally {
-      this.isLoadingTrack = false
     }
   }
 
@@ -341,15 +421,21 @@ export default class extends Controller {
     }
 
     try {
-      // Check if media is playing using audio element's paused property
-      if (!this.audioElement.paused) {
+      const currentState = this.stateManager.getState()
+
+      // Check current state and transition accordingly
+      if (currentState === AudioStateManager.STATES.PLAYING) {
         // Currently playing - pause it
         console.debug('[FloatingAudioPlayer] Toggling to pause')
         this.audioElement.pause()
-      } else {
+        // State will be updated by handleMediaPause event
+      } else if (currentState === AudioStateManager.STATES.PAUSED) {
         // Currently paused - play it using PlaybackController for safe playback
         console.debug('[FloatingAudioPlayer] Toggling to play')
         await this.playbackController.safePlay(false) // Don't pause before playing since we're already paused
+        // State will be updated by handleMediaPlay event
+      } else {
+        console.warn('[FloatingAudioPlayer] Cannot toggle play from state:', currentState)
       }
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -370,10 +456,14 @@ export default class extends Controller {
       this.audioElement.pause()
       this.audioElement.currentTime = 0
     }
+
+    // Update state manager
+    this.stateManager.setState(AudioStateManager.STATES.STOPPED)
+    this.stateManager.clearCurrentTrack()
+
     this.hide()
-    this.updateAllPlayButtons(null)
-    
-    // Clear global state
+
+    // Clear global state (for backward compatibility)
     if (window.floatingPlayerStore) {
       window.floatingPlayerStore.currentTrack = null
     }
@@ -414,9 +504,11 @@ export default class extends Controller {
       // buttonのIDからtrackIdを抽出 (例: "audio-play-button-track-123" -> 123)
       const buttonId = button.id
       const trackId = parseInt(buttonId.replace('audio-play-button-track-', ''))
-      const isPlaying = trackId === currentTrackId
+      const isCurrentTrack = this.stateManager.isCurrentTrack(trackId)
+      const isPlaying = isCurrentTrack && this.stateManager.getState() === AudioStateManager.STATES.PLAYING
+
       button.dataset.playing = isPlaying
-      
+
       // Update button visual state
       if (isPlaying) {
         // 再生中のボタンにはbg-blue-600を追加

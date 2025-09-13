@@ -22,8 +22,17 @@ import ToastController from '../controllers/toast_controller'
 import AudioGenerationController from '../controllers/audio_generation_controller'
 import UserDropdownController from '../controllers/user_dropdown_controller'
 
-// Import global store
+// Import global store and audio state management
 import '../stores/floating_player_store'
+import { AudioStateManager } from '../lib/audio_state_manager'
+
+// Initialize AudioStateManager singleton
+const audioStateManager = AudioStateManager.getInstance()
+
+// Make it available globally for debugging (optional)
+if (typeof window !== 'undefined') {
+  window.audioStateManager = audioStateManager
+}
 
 application.register('layout', LayoutController)
 application.register('delete-confirmation', DeleteConfirmationController)
