@@ -2,8 +2,9 @@
 
 require "rails_helper"
 
-RSpec.describe "Unified Audio Play Integration", type: :system, js: true do
+RSpec.describe "Unified Audio Play Integration", type: :system, js: true, playwright: true do
   include_context "ログイン済み"
+  include MediaChromeHelpers
 
   describe "基本的な再生機能" do
     let(:content) { create(:content, theme: "Test Content Theme") }

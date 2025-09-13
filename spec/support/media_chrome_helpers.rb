@@ -34,7 +34,7 @@ module MediaChromeHelpers
     find(selector).click
     wait_for_audio_player_visible
     wait_for_media_chrome_ready
-    sleep 0.5 # Additional wait for JS to complete
+    # Playwrightではsleepを削減して、より効率的な待機処理を使用
   end
 
   # Simplified player state check
