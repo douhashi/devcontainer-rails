@@ -11,7 +11,6 @@ require 'rspec/rails'
 
 # Add additional requires below this line. Rails is not loaded until this point!
 require 'capybara/rspec'
-require 'selenium/webdriver'
 require 'webmock/rspec'
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -38,22 +37,9 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 # Capybara configuration
 Capybara.configure do |config|
-  config.javascript_driver = :selenium_chrome_headless
+  config.javascript_driver = :playwright
   config.default_max_wait_time = 5
   config.server = :puma, { Silent: true }
-end
-
-Capybara.register_driver :selenium_chrome_headless do |app|
-  options = Selenium::WebDriver::Chrome::Options.new
-  options.add_argument('--headless')
-  options.add_argument('--no-sandbox')
-  options.add_argument('--disable-dev-shm-usage')
-  options.add_argument('--disable-extensions')
-  options.add_argument('--disable-gpu')
-  options.add_argument('--remote-debugging-port=0')
-  options.add_argument("--user-data-dir=/tmp/chrome-test-#{Process.pid}-#{SecureRandom.hex}")
-
-  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
 
 RSpec.configure do |config|

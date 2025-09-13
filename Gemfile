@@ -71,7 +71,6 @@ end
 
 group :test do
   gem "capybara"
-  gem "selenium-webdriver", "~> 4.27"
   gem "capybara-playwright-driver", "~> 0.5"
   gem "shoulda-matchers", "~> 6.0"
   gem "webmock", "~> 3.24"

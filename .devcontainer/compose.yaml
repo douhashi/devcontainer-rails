@@ -33,12 +33,3 @@ services:
       - 3036:3036
     <<: *logging-minimal
 
-  selenium:
-    container_name: ${COMPOSE_PROJECT_NAME}-standalone-chrome
-    image: selenium/standalone-chrome
-    healthcheck:
-      test: "curl -f http://localhost:4444/status || exit 1"
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    <<: *logging-minimal

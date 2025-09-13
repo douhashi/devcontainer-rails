@@ -36,17 +36,6 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
   test:
-    services:
-      selenium:
-        image: selenium/standalone-chrome:latest
-        ports:
-          - 4444:4444
-        options: >-
-          --shm-size 2g
-          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:4444/status"
-          --health-interval 5s
-          --health-timeout 2s
-          --health-retries 3
     runs-on: ubuntu-latest
     env:
         RAILS_ENV: test
