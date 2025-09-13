@@ -18,9 +18,13 @@ class DerivativeProcessingJob < ApplicationJob
     end
 
     # Check if image file exists
-    image_path = artwork.image.file.path
+    # Download the image to a temporary file for processing
+    tempfile = artwork.image.download
+    image_path = tempfile.path
     unless image_path && File.exist?(image_path)
       Rails.logger.error "Image file not found for artwork #{artwork.id}: #{image_path}"
+      tempfile.close if tempfile
+      tempfile.unlink if tempfile && tempfile.path
       return
     end
 
@@ -48,9 +52,11 @@ class DerivativeProcessingJob < ApplicationJob
 
         Rails.logger.info "Successfully generated YouTube thumbnail for artwork #{artwork.id}: #{result}"
       ensure
-        # Clean up temporary file
-        output_file.close
-        output_file.unlink if output_file.path && File.exist?(output_file.path)
+        # Clean up temporary files
+        output_file.close if output_file
+        output_file.unlink if output_file && output_file.path && File.exist?(output_file.path)
+        tempfile.close if tempfile
+        tempfile.unlink if tempfile && tempfile.path && File.exist?(tempfile.path)
       end
 
     rescue ThumbnailGenerationService::GenerationError => e

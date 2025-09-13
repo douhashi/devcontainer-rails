@@ -44,11 +44,30 @@ media-controller {
   --media-background-color: transparent;
   --media-text-color: rgb(209 213 219);
   --media-control-background: rgb(31 41 55);
-  --media-control-hover-background: rgb(55 65 81);
+  --media-control-hover-background: transparent;
   --media-range-track-background: rgb(75 85 99);
   --media-range-bar-color: rgb(59 130 246);
   --media-range-thumb-background: rgb(59 130 246);
   --media-control-padding: 8px;
+  --media-control-opacity: 1;
+}
+
+/* Floating player specific overrides */
+#floating-audio-player media-controller {
+  --media-control-opacity: 1;
+  --media-control-hover-background: transparent;
+}
+
+#floating-audio-player media-control-bar {
+  @apply rounded-lg flex items-center;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#floating-audio-player media-time-range,
+#floating-audio-player media-volume-range {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 media-control-bar {

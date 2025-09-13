@@ -12,6 +12,7 @@ Shrine.plugin :restore_cached_data
 Shrine.plugin :validation_helpers
 Shrine.plugin :derivatives
 Shrine.plugin :backgrounding
+Shrine.plugin :store_dimensions, analyzer: :ruby_vips
 
 # Use custom MIME type detection for better compatibility
 if Rails.env.test?

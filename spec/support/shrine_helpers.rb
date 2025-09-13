@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'shrine/storage/memory'
 
 # Shrine test helpers
 module ShrineHelpers
@@ -8,10 +9,26 @@ module ShrineHelpers
     uploaded_file = Shrine.upload(file, :cache, metadata: { "mime_type" => mime_type })
     uploaded_file
   end
+
+  def setup_test_shrine_storage
+    # Use memory storage for tests to avoid filesystem operations
+    Shrine.storages = {
+      cache: Shrine::Storage::Memory.new,
+      store: Shrine::Storage::Memory.new
+    }
+  end
 end
 
 RSpec.configure do |config|
   config.include ShrineHelpers
+
+  # Setup memory storage for job specs to avoid filesystem operations
+  config.before(:each, type: :job) do
+    Shrine.storages = {
+      cache: Shrine::Storage::Memory.new,
+      store: Shrine::Storage::Memory.new
+    }
+  end
 
   # Ensure upload directories exist before running tests
   config.before(:suite) do

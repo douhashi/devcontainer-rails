@@ -50,24 +50,8 @@ RSpec.describe GenerateVideoJob, type: :job do
 
     context "when video is pending" do
       context "with valid prerequisites" do
-        xit "starts generation process and completes successfully (needs proper Shrine mocking)" do
+        it "starts generation process and completes successfully" do
           job = described_class.new
-
-          # Use actual test files instead of mocking
-          audio_test_file = Rails.root.join('spec/test_data/sample_audio.mp3')
-          artwork_test_file = Rails.root.join('spec/test_data/sample_artwork.jpg')
-
-          # Mock Shrine file objects with actual file data
-          allow(audio.audio).to receive(:original_filename).and_return("sample_audio.mp3")
-          allow(artwork.image).to receive(:original_filename).and_return("sample_artwork.jpg")
-          allow(audio.audio).to receive(:metadata).and_return({ "filename" => "sample_audio.mp3" })
-          allow(artwork.image).to receive(:metadata).and_return({ "filename" => "sample_artwork.jpg" })
-          allow(audio.audio).to receive(:url).and_return("/uploads/sample_audio.mp3")
-          allow(artwork.image).to receive(:url).and_return("/uploads/sample_artwork.jpg")
-
-          # Mock open method to return actual test files
-          allow(audio.audio).to receive(:open).and_return(File.open(audio_test_file, 'rb'))
-          allow(artwork.image).to receive(:open).and_return(File.open(artwork_test_file, 'rb'))
 
           # Mock external VideoGenerationService (which handles FFmpeg)
           service = instance_double(VideoGenerationService)
@@ -78,25 +62,30 @@ RSpec.describe GenerateVideoJob, type: :job do
             file_size: 1024 * 1024
           })
 
-          # Mock file system operations and Shrine upload
+          # Create a proper video file with correct MIME type for Shrine
           video_file = Tempfile.new([ 'video', '.mp4' ])
-          video_file.write('fake video data')
+          # Write MP4 header to simulate real video file
+          video_file.write("\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom" + "fake video data")
           video_file.rewind
 
           allow(File).to receive(:open).and_call_original
           allow(File).to receive(:open).with(/video_.*\.mp4/, 'rb') do |&block|
-            block.call(video_file) if block
-            video_file
+            if block
+              block.call(video_file)
+            else
+              video_file
+            end
           end
           allow(File).to receive(:unlink)
           allow(File).to receive(:exist?).and_return(true)
           allow(File).to receive(:size).and_return(1024 * 1024)
 
-          # Mock Shrine upload to bypass MIME type validation
-          uploaded_file = double('uploaded_file', mime_type: 'video/mp4')
-          allow(video).to receive(:video=)
-          allow(video).to receive(:video).and_return(uploaded_file)
-          allow(video).to receive(:save!)
+          # Mock the download methods to bypass Shrine
+          allow(job).to receive(:download_audio_file).and_return(Rails.root.join('spec/test_data/sample_audio.mp3').to_s)
+          allow(job).to receive(:download_artwork_file).and_return(Rails.root.join('spec/test_data/sample_artwork.jpg').to_s)
+
+          # Use memory storage for Shrine (configured in shrine_helpers.rb)
+          # The upload will work transparently with memory storage
 
           expect { job.perform(video.id) }.to change { video.reload.status }.from('pending').to('completed')
 

@@ -1,4 +1,5 @@
 require "rails_helper"
+require "vips"
 
 RSpec.describe DerivativeProcessingJob, type: :job do
   include ActiveJob::TestHelper
@@ -8,11 +9,12 @@ RSpec.describe DerivativeProcessingJob, type: :job do
   describe "#perform" do
     context "with valid artwork" do
       before do
-        # Mock the image file to return a valid path
-        file_double = double(path: "/tmp/test_image.jpg")
-        allow(artwork.image).to receive(:file).and_return(file_double)
-        allow(File).to receive(:exist?).with("/tmp/test_image.jpg").and_return(true)
+        # Mock the image download to return a tempfile
+        tempfile_double = double(path: "/tmp/test_image.jpg", close: nil, unlink: nil)
+        allow(artwork.image).to receive(:download).and_return(tempfile_double)
+        allow(File).to receive(:exist?).and_return(true)
         allow(artwork).to receive(:persisted?).and_return(true)
+        allow(artwork.image).to receive(:present?).and_return(true)
       end
 
       it "calls ThumbnailGenerationService to generate thumbnail" do
@@ -24,8 +26,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
           file_size: 125000
         })
 
-        # Mock the derivative assignment
-        allow(artwork.image).to receive(:add_derivative)
+        # Mock the derivative assignment is handled by attacher_double
 
         subject.perform(artwork)
 
@@ -34,6 +35,19 @@ RSpec.describe DerivativeProcessingJob, type: :job do
       end
 
       it "assigns the generated thumbnail as a derivative" do
+        # Use real artwork with FHD image
+        artwork = create(:artwork)
+
+        # Create a real FHD test image
+        test_image_path = Rails.root.join("tmp/test_fhd_#{SecureRandom.hex}.jpg")
+        image = Vips::Image.black(1920, 1080, bands: 3)
+        image = image.add(128)
+        image.write_to_file(test_image_path.to_s, Q: 90)
+
+        # Upload the image to artwork
+        artwork.image = File.open(test_image_path)
+        artwork.save!
+
         service_double = double(ThumbnailGenerationService)
         allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
         allow(service_double).to receive(:generate).and_return({
@@ -42,17 +56,32 @@ RSpec.describe DerivativeProcessingJob, type: :job do
           file_size: 125000
         })
 
-        # Mock the derivative assignment
-        attacher_double = double
-        allow(attacher_double).to receive(:create_derivatives)
-        allow(artwork).to receive(:image_attacher).and_return(attacher_double)
+        # Spy on derivative creation
+        attacher = artwork.image_attacher
+        allow(attacher).to receive(:create_derivatives).and_call_original
 
         subject.perform(artwork)
 
-        expect(attacher_double).to have_received(:create_derivatives)
+        expect(attacher).to have_received(:create_derivatives)
+
+        # Cleanup
+        FileUtils.rm_f(test_image_path)
       end
 
       it "logs successful thumbnail generation" do
+        # Use real artwork with FHD image
+        artwork = create(:artwork)
+
+        # Create a real FHD test image
+        test_image_path = Rails.root.join("tmp/test_fhd_#{SecureRandom.hex}.jpg")
+        image = Vips::Image.black(1920, 1080, bands: 3)
+        image = image.add(128)
+        image.write_to_file(test_image_path.to_s, Q: 90)
+
+        # Upload the image to artwork
+        artwork.image = File.open(test_image_path)
+        artwork.save!
+
         service_double = double(ThumbnailGenerationService)
         allow(ThumbnailGenerationService).to receive(:new).and_return(service_double)
         allow(service_double).to receive(:generate).and_return({
@@ -61,14 +90,14 @@ RSpec.describe DerivativeProcessingJob, type: :job do
           file_size: 125000
         })
 
-        attacher_double = double
-        allow(attacher_double).to receive(:create_derivatives)
-        allow(artwork).to receive(:image_attacher).and_return(attacher_double)
         allow(Rails.logger).to receive(:info)
 
         subject.perform(artwork)
 
         expect(Rails.logger).to have_received(:info).with(/Successfully generated YouTube thumbnail for artwork/)
+
+        # Cleanup
+        FileUtils.rm_f(test_image_path)
       end
     end
 
@@ -86,10 +115,11 @@ RSpec.describe DerivativeProcessingJob, type: :job do
 
     context "when image file is missing" do
       before do
-        file_double = double(path: "/tmp/missing_image.jpg")
-        allow(artwork.image).to receive(:file).and_return(file_double)
-        allow(File).to receive(:exist?).with("/tmp/missing_image.jpg").and_return(false)
+        tempfile_double = double(path: "/tmp/missing_image.jpg", close: nil, unlink: nil)
+        allow(artwork.image).to receive(:download).and_return(tempfile_double)
+        allow(File).to receive(:exist?).and_return(false)
         allow(artwork).to receive(:persisted?).and_return(true)
+        allow(artwork.image).to receive(:present?).and_return(true)
       end
 
       it "logs the error and discards the job" do
@@ -103,10 +133,11 @@ RSpec.describe DerivativeProcessingJob, type: :job do
 
     context "when ThumbnailGenerationService raises GenerationError" do
       before do
-        file_double = double(path: "/tmp/test_image.jpg")
-        allow(artwork.image).to receive(:file).and_return(file_double)
-        allow(File).to receive(:exist?).with("/tmp/test_image.jpg").and_return(true)
+        tempfile_double = double(path: "/tmp/test_image.jpg", close: nil, unlink: nil)
+        allow(artwork.image).to receive(:download).and_return(tempfile_double)
+        allow(File).to receive(:exist?).and_return(true)
         allow(artwork).to receive(:persisted?).and_return(true)
+        allow(artwork.image).to receive(:present?).and_return(true)
       end
 
       it "retries the job when generation error occurs" do
@@ -123,10 +154,11 @@ RSpec.describe DerivativeProcessingJob, type: :job do
 
     context "when unexpected error occurs" do
       before do
-        file_double = double(path: "/tmp/test_image.jpg")
-        allow(artwork.image).to receive(:file).and_return(file_double)
-        allow(File).to receive(:exist?).with("/tmp/test_image.jpg").and_return(true)
+        tempfile_double = double(path: "/tmp/test_image.jpg", close: nil, unlink: nil)
+        allow(artwork.image).to receive(:download).and_return(tempfile_double)
+        allow(File).to receive(:exist?).and_return(true)
         allow(artwork).to receive(:persisted?).and_return(true)
+        allow(artwork.image).to receive(:present?).and_return(true)
       end
 
       it "retries the job when unexpected error occurs" do

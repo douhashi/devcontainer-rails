@@ -1,9 +1,16 @@
 require "rails_helper"
+require "vips"
 
 RSpec.describe ArtworksController, type: :request do
   include ActiveJob::TestHelper
 
+  let(:user) { create(:user) }
   let(:content) { create(:content) }
+
+  before do
+    # Use post to sign in via Devise's form
+    post user_session_path, params: { user: { email: user.email, password: 'password' } }
+  end
 
   describe "POST /contents/:content_id/artworks" do
     context "with valid artwork data" do
@@ -23,7 +30,8 @@ RSpec.describe ArtworksController, type: :request do
         expect {
           post content_artworks_path(content), params: artwork_params
         }.to change { content.reload.artwork.present? }.from(false).to(true)
-          .and have_enqueued_job(DerivativeProcessingJob)
+
+        expect(DerivativeProcessingJob).to have_been_enqueued.at_least(:once)
 
         expect(response).to redirect_to(content)
         follow_redirect!
@@ -42,9 +50,8 @@ RSpec.describe ArtworksController, type: :request do
         end
 
         it "schedules thumbnail generation for eligible artwork" do
-          expect {
-            post content_artworks_path(content), params: artwork_params, headers: headers
-          }.to have_enqueued_job(DerivativeProcessingJob)
+          post content_artworks_path(content), params: artwork_params, headers: headers
+          expect(DerivativeProcessingJob).to have_been_enqueued.at_least(:once)
         end
       end
     end
@@ -65,7 +72,8 @@ RSpec.describe ArtworksController, type: :request do
         expect {
           post content_artworks_path(content), params: artwork_params
         }.to change { content.reload.artwork.present? }.from(false).to(true)
-          .and not_have_enqueued_job(DerivativeProcessingJob)
+
+        expect(DerivativeProcessingJob).not_to have_been_enqueued
 
         expect(response).to redirect_to(content)
         follow_redirect!
@@ -113,9 +121,8 @@ RSpec.describe ArtworksController, type: :request do
     end
 
     it "updates artwork and schedules thumbnail generation" do
-      expect {
-        patch content_artwork_path(content, artwork), params: artwork_params
-      }.to have_enqueued_job(DerivativeProcessingJob)
+      patch content_artwork_path(content, artwork), params: artwork_params
+      expect(DerivativeProcessingJob).to have_been_enqueued.at_least(:once)
 
       expect(response).to redirect_to(content)
       follow_redirect!

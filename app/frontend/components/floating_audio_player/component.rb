@@ -51,7 +51,11 @@ class FloatingAudioPlayer::Component < ApplicationViewComponent
   end
 
   def controls_section_classes
-    "flex-1 flex items-center justify-center gap-2"
+    "flex-1 flex items-center justify-center"
+  end
+
+  def button_group_classes
+    "flex items-center justify-center gap-2"
   end
 
   def close_section_classes

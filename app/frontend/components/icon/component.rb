@@ -15,7 +15,10 @@ module Icon
       check: "fa-check",
       edit: "fa-pen-to-square",
       plus: "fa-plus",
-      arrow_left: "fa-arrow-left"
+      arrow_left: "fa-arrow-left",
+      schedule: "fa-clock",
+      check_circle: "fa-check-circle",
+      download: "fa-download"
     }.freeze
 
     # Font Awesome size mappings

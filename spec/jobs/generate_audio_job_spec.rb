@@ -11,7 +11,7 @@ RSpec.describe GenerateAudioJob do
 
   describe '#perform' do
     context 'with pending audio' do
-      xit 'starts audio generation and changes status (needs proper Shrine mocking)' do
+      it 'starts audio generation and changes status' do
         # Ensure we have enough tracks available (need at least 600 seconds total)
         track1
         track2
@@ -39,16 +39,12 @@ RSpec.describe GenerateAudioJob do
         end
         allow(File).to receive(:unlink)
 
-        # Mock Shrine upload to bypass MIME type validation
-        uploaded_file = double('uploaded_file', mime_type: 'audio/mpeg')
-        allow(audio).to receive(:audio=)
-        allow(audio).to receive(:audio).and_return(uploaded_file)
-        allow(audio).to receive(:save!)
+        # Use memory storage for Shrine (configured in shrine_helpers.rb)
+        # The upload will work transparently with memory storage
 
         job.perform(audio.id)
 
-        audio.reload
-        expect(audio.status).to eq('completed')
+        expect(audio.reload.status).to eq('completed')
       end
     end
 
@@ -124,7 +120,7 @@ RSpec.describe GenerateAudioJob do
         [ track1, track2, track3 ] # create tracks
       end
 
-      xit 'uses real services to select tracks and start concatenation (needs proper Shrine mocking)' do
+      it 'uses real services to select tracks and start concatenation' do
         # Ensure we have enough tracks (need at least 600 seconds)
         track1
         track2
@@ -156,11 +152,8 @@ RSpec.describe GenerateAudioJob do
         end
         allow(File).to receive(:unlink)
 
-        # Mock Shrine upload to bypass MIME type validation
-        uploaded_file = double('uploaded_file', mime_type: 'audio/mpeg')
-        allow(audio).to receive(:audio=)
-        allow(audio).to receive(:audio).and_return(uploaded_file)
-        allow(audio).to receive(:save!)
+        # Use memory storage for Shrine (configured in shrine_helpers.rb)
+        # The upload will work transparently with memory storage
 
         job.send(:start_generation)
 

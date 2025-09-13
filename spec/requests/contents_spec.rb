@@ -507,4 +507,69 @@ RSpec.describe "Contents", type: :request do
       end
     end
   end
+
+  describe "GET /contents/:id (コンテンツ詳細画面)" do
+    let(:content) { create(:content, duration_min: 10) }
+
+    context "音楽生成ステータス集計表示" do
+      before do
+        # 各ステータスのMusicGenerationを作成
+        create_list(:music_generation, 2, content: content, status: :pending)
+        create_list(:music_generation, 3, content: content, status: :processing)
+        create_list(:music_generation, 4, content: content, status: :completed)
+        create_list(:music_generation, 1, content: content, status: :failed)
+      end
+
+      it "ステータス集計が表示される" do
+        get content_path(content)
+        expect(response).to have_http_status(:success)
+
+        # 各ステータスの件数が表示されることを確認
+        expect(response.body).to include("待機中: 2件")
+        expect(response.body).to include("処理中: 3件")
+        expect(response.body).to include("完了: 4件")
+        expect(response.body).to include("失敗: 1件")
+
+        # 適切な色クラスを持つことを確認
+        expect(response.body).to include("text-gray-500")
+        expect(response.body).to include("text-yellow-600")
+        expect(response.body).to include("text-green-600")
+        expect(response.body).to include("text-red-600")
+      end
+    end
+
+    context "MusicGenerationが存在しない場合" do
+      it "0件のステータスも適切に表示される" do
+        get content_path(content)
+        expect(response).to have_http_status(:success)
+
+        # すべて0件で表示されることを確認
+        expect(response.body).to include("待機中: 0件")
+        expect(response.body).to include("処理中: 0件")
+        expect(response.body).to include("完了: 0件")
+        expect(response.body).to include("失敗: 0件")
+      end
+    end
+
+    context "ページをリロードした場合" do
+      it "最新の集計が表示される" do
+        # 初期状態を作成
+        create(:music_generation, content: content, status: :pending)
+
+        get content_path(content)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("待機中: 1件")
+        expect(response.body).to include("処理中: 0件")
+
+        # 新しいMusicGenerationを追加
+        create(:music_generation, content: content, status: :processing)
+
+        # 再度リクエスト
+        get content_path(content)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("待機中: 1件")
+        expect(response.body).to include("処理中: 1件")
+      end
+    end
+  end
 end
