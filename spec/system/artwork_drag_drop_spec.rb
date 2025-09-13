@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "Artwork Drag and Drop", type: :system, js: true, skip: "CI環境での不安定性のため手動テストでカバー" do
+RSpec.describe "Artwork Drag and Drop", type: :system, js: true, playwright: true do
   include_context "ログイン済み"
 
   let(:content) { create(:content) }
@@ -13,23 +13,13 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true, skip: "CI環境
   describe "アートワーク未設定時" do
     context "ファイル選択によるアップロード" do
       it "画像ファイルを選択してアップロードできる" do
-        # JavaScriptコンソールのエラーを確認
-        errors = page.driver.browser.logs.get(:browser).select { |e| e.level == "SEVERE" }
-        puts "Initial JS errors: #{errors}" if errors.any?
-
         # ファイル選択
         file_input = find('[data-artwork-drag-drop-target="fileInput"]', visible: :all)
         file_input.set(test_image_path)
 
-        # JavaScriptのchangeイベントを手動でトリガー
-        page.execute_script("document.querySelector('[data-artwork-drag-drop-target=\"fileInput\"]').dispatchEvent(new Event('change', { bubbles: true }))")
-
-        # アップロード処理の完了を待つ（CI環境では処理に時間がかかる可能性）
-        sleep 2
-
+        # Playwrightは自動的にイベントをトリガーするため、手動トリガーは不要
         # アップロード処理が完了し、画像が表示されるまで待つ
-        # CI環境では画像が非表示の可能性があるため、visible: :allを使用
-        expect(page).to have_css('img[alt="アートワーク"]', visible: :all, wait: 15)
+        expect(page).to have_css('img[alt="アートワーク"]', wait: 10)
         expect(page).to have_css('button[aria-label="削除"]', wait: 10)
 
         # DBに保存されている確認
@@ -42,37 +32,12 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true, skip: "CI環境
         # ドロップゾーンを取得
         drop_zone = find('[data-artwork-drag-drop-target="dropZone"]')
 
-        # ファイルをドラッグ&ドロップする（Capybaraの制限により、実際のD&Dは難しいため、代替手段）
-        # 実際のテストではファイル選択で代用
+        # Playwrightでもファイル選択で代用（実際のD&Dは複雑なため）
         file_input = find('[data-artwork-drag-drop-target="fileInput"]', visible: :all)
         file_input.set(test_image_path)
 
-        # JavaScriptのchangeイベントを手動でトリガー
-        # セレクターが見つからない場合に備えて、エラーハンドリングを追加
-        page.execute_script(<<~JS)
-          const fileInput = document.querySelector('[data-artwork-drag-drop-target="fileInput"]');
-          if (fileInput) {
-            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-          } else {
-            // フォームが動的に生成されるのを待機
-            const interval = setInterval(() => {
-              const input = document.querySelector('[data-artwork-drag-drop-target="fileInput"]');
-              if (input) {
-                clearInterval(interval);
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-              }
-            }, 100);
-            // 5秒後にタイムアウト
-            setTimeout(() => clearInterval(interval), 5000);
-          }
-        JS
-
-        # アップロード処理の完了を待つ（CI環境では処理に時間がかかる可能性）
-        sleep 2
-
         # アップロード成功を確認
-        # CI環境では画像が非表示の可能性があるため、visible: :allを使用
-        expect(page).to have_css('img[alt="アートワーク"]', visible: :all, wait: 15)
+        expect(page).to have_css('img[alt="アートワーク"]', wait: 10)
       end
     end
   end

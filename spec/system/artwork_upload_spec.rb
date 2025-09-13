@@ -1,7 +1,7 @@
 require "rails_helper"
 require "vips"
 
-RSpec.describe "Artwork Upload", type: :system do
+RSpec.describe "Artwork Upload", type: :system, playwright: true do
   include ActiveJob::TestHelper
   include_context "ログイン済み"
 
@@ -19,7 +19,7 @@ RSpec.describe "Artwork Upload", type: :system do
     FileUtils.rm_f(Rails.root.join("tmp/test_small_artwork.jpg"))
   end
 
-  describe "uploading an artwork", js: true do
+  describe "uploading an artwork", js: true, playwright: true do
     context "with YouTube-eligible artwork (1920x1080)" do
       it "uploads artwork and shows YouTube thumbnail status" do
         visit content_path(content)
@@ -61,7 +61,7 @@ RSpec.describe "Artwork Upload", type: :system do
     end
   end
 
-  describe "YouTube thumbnail functionality", js: true do
+  describe "YouTube thumbnail functionality", js: true, playwright: true do
     context "when uploading FHD artwork" do
       it "shows YouTube eligibility status" do
         visit content_path(content)
@@ -97,7 +97,7 @@ RSpec.describe "Artwork Upload", type: :system do
     end
   end
 
-  describe "artwork deletion", js: true do
+  describe "artwork deletion", js: true, playwright: true do
     let!(:artwork) { create(:artwork, content: content) }
 
     it "deletes artwork and removes YouTube thumbnail status" do
@@ -119,7 +119,7 @@ RSpec.describe "Artwork Upload", type: :system do
     end
   end
 
-  describe "thumbnail status display", js: true do
+  describe "thumbnail status display", js: true, playwright: true do
     context "when thumbnail generation is pending" do
       let!(:artwork) { create(:artwork, content: content, thumbnail_generation_status: :pending) }
 
@@ -184,7 +184,7 @@ RSpec.describe "Artwork Upload", type: :system do
     end
   end
 
-  describe "thumbnail regeneration", js: true do
+  describe "thumbnail regeneration", js: true, playwright: true do
     let!(:artwork) { create(:artwork, content: content, thumbnail_generation_status: :failed, thumbnail_generation_error: "Test error") }
 
     before do
@@ -214,7 +214,7 @@ RSpec.describe "Artwork Upload", type: :system do
     end
   end
 
-  describe "error handling", js: true do
+  describe "error handling", js: true, playwright: true do
     it "validates file type on upload" do
       visit content_path(content)
 
