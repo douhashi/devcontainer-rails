@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "User Dropdown", type: :system, js: true do
+RSpec.describe "User Dropdown", type: :system, js: true, playwright: true do
   include_context "ログイン済み"
 
   describe "ドロップダウンメニューの基本動作" do
@@ -55,7 +55,7 @@ RSpec.describe "User Dropdown", type: :system, js: true do
       expect(page).to have_css("[data-user-dropdown-target='menu']", visible: true)
 
       # ESCキーを押す
-      page.driver.browser.action.send_keys(:escape).perform
+      page.send_keys(:escape)
 
       # メニューが閉じる
       expect(page).to have_css("[data-user-dropdown-target='menu']", visible: false)
@@ -111,7 +111,7 @@ RSpec.describe "User Dropdown", type: :system, js: true do
   describe "レスポンシブ表示" do
     it "モバイルサイズでも適切に表示される" do
       # ビューポートをモバイルサイズに変更
-      page.driver.browser.manage.window.resize_to(375, 667)
+      page.current_window.resize_to(375, 667)
 
       # ドロップダウンが表示される
       expect(page).to have_css("[data-testid='user-dropdown']")

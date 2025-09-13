@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "MusicGenerationCard", type: :system, js: true do
+RSpec.describe "MusicGenerationCard", type: :system, js: true, playwright: true do
   describe "preview pages" do
     it "displays completed generation with tracks" do
       visit "/rails/view_components/music_generation_card/completed_with_tracks"

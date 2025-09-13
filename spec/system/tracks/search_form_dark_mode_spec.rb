@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "Track検索フォームのダークモード対応", type: :system do
+RSpec.describe "Track検索フォームのダークモード対応", type: :system, playwright: true do
   let(:user) { create(:user) }
 
   before do
@@ -161,17 +161,24 @@ RSpec.describe "Track検索フォームのダークモード対応", type: :syst
       check "q_status_in_pending"
       click_button "検索"
 
+      # ページ読み込み完了を待つ
+      expect(page).to have_content("検索結果")
+
       click_link "クリア"
+
+      # ページリダイレクト後の確認、少し待機
+      expect(page).to have_current_path(tracks_path)
+      sleep 0.5  # フォーム初期化の待機
 
       expect(find("#q_content_theme_cont").value).to eq("")
       expect(find("#q_status_in_pending")).not_to be_checked
     end
   end
 
-  describe "レスポンシブデザイン", js: true do
+  describe "レスポンシブデザイン", js: true, playwright: true do
     it "モバイル表示で正しくレイアウトされる" do
       visit tracks_path
-      page.driver.browser.manage.window.resize_to(375, 667)
+      page.current_window.resize_to(375, 667)
 
       form_container = find("div.grid")
       expect(form_container[:class]).to include("grid-cols-1")
@@ -179,7 +186,7 @@ RSpec.describe "Track検索フォームのダークモード対応", type: :syst
 
     it "タブレット表示で正しくレイアウトされる" do
       visit tracks_path
-      page.driver.browser.manage.window.resize_to(768, 1024)
+      page.current_window.resize_to(768, 1024)
 
       form_container = find("div.grid")
       expect(form_container[:class]).to include("md:grid-cols-2")
@@ -187,7 +194,7 @@ RSpec.describe "Track検索フォームのダークモード対応", type: :syst
 
     it "デスクトップ表示で正しくレイアウトされる" do
       visit tracks_path
-      page.driver.browser.manage.window.resize_to(1920, 1080)
+      page.current_window.resize_to(1920, 1080)
 
       form_container = find("div.grid")
       expect(form_container[:class]).to include("lg:grid-cols-3")
