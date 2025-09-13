@@ -12,7 +12,6 @@
     "ghcr.io/devcontainers/features/sshd:1": {
       "version": "latest"
     },
-    "ghcr.io/kreemer/features/chrometesting:1": {},
     "ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers-extra/features/direnv:1": {},
@@ -22,7 +21,6 @@
     "KAMAL_REGISTRY_USERNAME": "$KAMAL_REGISTRY_USERNAME",
     "KAMAL_REGISTRY_PASSWORD": "$KAMAL_REGISTRY_PASSWORD",
     "VITE_RUBY_HOST": "0.0.0.0",
-    "SELENIUM_URL": "http://selenium:4444/",
     "PYTHON": "/usr/bin/python3"
   },
   "forwardPorts": [
