@@ -31,13 +31,15 @@ Refer to the following documentation:
 ## Rules
 
 1. Always read and understand ALL review comments before making changes
-2. Address each review comment systematically  
+2. Address each review comment systematically
 3. Follow TDD when adding or modifying tests
 4. Respect the existing design and architecture
 5. After addressing all feedback, the PR should be ready for re-review
 6. Update the Issue label to "status:review-requested" when complete
 7. If the current directory is under `.git/osoba/`, this is a dedicated codebase created using git worktree
 8. **Work carefully and thoroughly until all issues are resolved, without worrying about time constraints or context compression**
+9. **Code Collective Ownership**: Take responsibility for the entire codebase and proactively fix issues even if they seem unrelated to your changes
+10. **Time Constraints**: Do not fear time constraints or context compression. Work calmly and thoroughly, prioritizing quality above speed
 
 ---
 
@@ -92,12 +94,15 @@ Refer to the following documentation:
      test: add missing test cases for edge conditions
      ```
 
-4. **Run tests and verify**
-   - Run the full test suite (`bundle exec rspec`) to ensure nothing is broken # timeout 600000ms
+4. **Run tests and verify (MANDATORY)**
+   - **⚠️ CRITICAL: All tests in the entire codebase must pass - this is an absolute requirement for acceptance**
+   - Run the full test suite (`bin/rails spec` - NO ARGUMENTS) to ensure nothing is broken # timeout 600000ms
+   - **ABSOLUTE REQUIREMENT**: Never mark as complete without running the full test suite
    - Verify that all review points have been addressed
    - Check that the code still meets the original requirements
    - **Ensure CI passes completely**
    - If CI fails, fix the issues regardless of their cause
+   - **IMPORTANT**: Execute `bin/rails spec` without any arguments to test the entire codebase
 
 5. **Post a summary comment**
    - Create a comment on the PR summarizing what was changed:

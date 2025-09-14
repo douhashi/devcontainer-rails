@@ -29,12 +29,14 @@ Refer to the following documentation:
 
 ## Rules
 
-1. Always review the implementation plan and follow it carefully  
-2. Follow TDD; if you can't write tests first, reconsider your design  
-3. Respect the existing design and architecture (do not change it arbitrarily)  
-4. When implementation is complete, submit a Pull Request for review  
-5. PRs must include the purpose, changes made, test details, and linked Issue  
-6. If the current directory is under `.git/osoba/`, this is a dedicated codebase created using git worktree, so you must not reference or edit any parent directories  
+1. Always review the implementation plan and follow it carefully
+2. Follow TDD; if you can't write tests first, reconsider your design
+3. Respect the existing design and architecture (do not change it arbitrarily)
+4. When implementation is complete, submit a Pull Request for review
+5. PRs must include the purpose, changes made, test details, and linked Issue
+6. If the current directory is under `.git/osoba/`, this is a dedicated codebase created using git worktree, so you must not reference or edit any parent directories
+7. **Code Collective Ownership**: Take responsibility for the entire codebase and proactively fix issues even if they seem unrelated to your changes
+8. **Time Constraints**: Do not fear time constraints or context compression. Work calmly and thoroughly, prioritizing quality above speed  
 
 ### Implementation Style Principles
 
@@ -89,10 +91,12 @@ Refer to the following documentation:
    - Run `yarn test`, `rspec`, or your project's standard method # timeout 600000ms
    - Perform manual UI/API testing if applicable
 
-5. **Run full test suite**
-   - Run `bundle exec rspec` to ensure all tests pass # timeout 600000ms
-   - Fix any failures before proceeding
-   - Confirm: All tests must pass before creating a PR
+5. **Run full test suite (MANDATORY)**
+   - **⚠️ CRITICAL: All tests in the entire codebase must pass - this is an absolute requirement for acceptance**
+   - Run `bin/rails spec` (NO ARGUMENTS - full test suite) to ensure all tests pass # timeout 600000ms
+   - Fix any failures before proceeding, even if they seem unrelated to your changes
+   - **ABSOLUTE REQUIREMENT**: Never create a PR without running the full test suite
+   - **IMPORTANT**: Execute `bin/rails spec` without any arguments to test the entire codebase
 
 6. **Create the PR template**
    - Write `./.tmp/pull-request-123.md` based on the template shown below
@@ -140,7 +144,7 @@ Refer to the following documentation:
 - テスト状況:
   - 単体テスト: ✅ パス ／ ❌ 失敗
   - 結合テスト: ✅ パス ／ ❌ 失敗
-  - フルテスト: ✅ パス ／ ❌ 失敗
+  - **フルテスト (`bin/rails spec` 引数なし)**: ✅ パス ／ ❌ 失敗
 - 関連PR: #<PR番号>
 
 ご確認のほどよろしくお願いいたします。

@@ -50,8 +50,10 @@ Be sure to run the version *without* `--comments` first to understand the requir
   - Security concerns and potential vulnerabilities
   - Unnecessary diffs (e.g., debug code, commented-out lines)
 
-### 5. Check CI Results
+### 5. Check CI Results (MANDATORY - MUST WAIT FOR COMPLETION)
 
+- **⚠️ CRITICAL: You MUST wait for CI to complete before providing review results**
+- **NEVER provide review results while CI is still running or pending**
 - Run `GH_PAGER= gh pr checks <PR number>` to verify CI status
   - All checks must ✅ pass
   - If checks are still running, wait and retry until completed
@@ -67,9 +69,15 @@ Be sure to run the version *without* `--comments` first to understand the requir
       sleep 30
     done # timeout 600000ms
     ```
+  - **ABSOLUTE REQUIREMENT**: CI completion, merge capability check, and code review ALL must be complete before providing review results
 
-### 6. Post Review Result
+### 6. Post Review Result (ONLY AFTER CI COMPLETION)
 
+- **⚠️ PREREQUISITE**: Only proceed if ALL of the following are complete:
+  1. CI has fully completed (not pending or running)
+  2. Merge capability has been verified
+  3. Code review has been completed
+- **NEVER post review results if CI is not complete**
 - Post the review result using:
   `GH_PAGER= gh pr comment <PR number> --body "$(cat ./.tmp/review-result-<issue number>.md)"`
 - Use the following template for `./.tmp/review-result-<issue number>.md`:
