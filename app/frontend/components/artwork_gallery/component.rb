@@ -50,6 +50,6 @@ class ArtworkGallery::Component < ApplicationViewComponent
   end
 
   def gallery_container_class
-    "artwork-gallery mt-4 grid grid-cols-2 gap-2 max-w-xs mx-auto"
+    "artwork-gallery mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 max-w-xs sm:max-w-sm md:max-w-md mx-auto"
   end
 end

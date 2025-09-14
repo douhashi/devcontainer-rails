@@ -6,7 +6,8 @@
             label: image_data[:label],
             image_type: image_data[:image_type],
             selected: image_data[:selected],
-            artwork: image_data[:artwork]
+            artwork: image_data[:artwork],
+            is_placeholder: image_data[:is_placeholder] || false
           ) %>
     <% end %>
   </div>

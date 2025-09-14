@@ -1,11 +1,13 @@
-<div class="<%= thumbnail_container_class %> w-24 h-24 sm:w-32 sm:h-32"
+<div class="<%= thumbnail_container_class %> w-24 h-24 sm:w-32 sm:h-32 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
      data-image-type="<%= image_type %>"
      data-image-url="<%= image_url || '' %>"
      data-action="click->artwork-switcher#switchImage keydown->artwork-switcher#handleKeydown"
      data-artwork-switcher-target="thumbnail"
      role="button"
-     tabindex="0"
-     aria-label="<%= label %>画像に切り替え">
+     tabindex="<%= is_placeholder ? '-1' : '0' %>"
+     aria-label="<%= label %>画像に切り替え"
+     aria-selected="<%= selected ? 'true' : 'false' %>"
+     aria-disabled="<%= is_placeholder ? 'true' : 'false' %>">
   <% if is_placeholder %>
     <!-- プレースホルダー表示 -->
     <div class="placeholder-content w-full h-full flex flex-col items-center justify-center bg-gray-100">

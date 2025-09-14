@@ -13,21 +13,21 @@ class ImageThumbnail::Component < ApplicationViewComponent
   end
 
   def thumbnail_container_class
-    base_class = "relative cursor-pointer rounded-lg overflow-hidden"
+    base_class = "relative rounded-lg overflow-hidden transition-all duration-200 transform"
 
     classes = if is_placeholder
-      "#{base_class} opacity-60"
+      "#{base_class} opacity-60 cursor-not-allowed"
     elsif selected
-      "#{base_class} ring-2 ring-blue-500 bg-blue-50"
+      "#{base_class} cursor-pointer ring-2 ring-blue-500 bg-blue-50 shadow-lg scale-105"
     else
-      "#{base_class} hover:ring-2 hover:ring-blue-300 transition-all"
+      "#{base_class} cursor-pointer opacity-75 hover:opacity-100 hover:ring-2 hover:ring-blue-300 hover:scale-105 hover:shadow-xl"
     end
 
     classes
   end
 
   def thumbnail_image_class
-    "w-full h-full object-cover"
+    "w-full h-full object-cover transition-transform duration-200"
   end
 
   def label_class

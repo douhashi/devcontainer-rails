@@ -113,14 +113,14 @@ RSpec.describe ImageThumbnail::Component do
       let(:selected) { true }
 
       it "includes selected styling" do
-        expected_class = "relative cursor-pointer rounded-lg overflow-hidden ring-2 ring-blue-500 bg-blue-50"
+        expected_class = "relative rounded-lg overflow-hidden transition-all duration-200 transform cursor-pointer ring-2 ring-blue-500 bg-blue-50 shadow-lg scale-105"
         expect(component.thumbnail_container_class).to eq(expected_class)
       end
     end
 
     context "when not selected" do
       it "includes default styling" do
-        expected_class = "relative cursor-pointer rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-300 transition-all"
+        expected_class = "relative rounded-lg overflow-hidden transition-all duration-200 transform cursor-pointer opacity-75 hover:opacity-100 hover:ring-2 hover:ring-blue-300 hover:scale-105 hover:shadow-xl"
         expect(component.thumbnail_container_class).to eq(expected_class)
       end
     end
