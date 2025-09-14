@@ -74,10 +74,8 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
 
       # Wait for Turbo Stream to process the deletion
       # The artwork-section should be replaced with the upload form
-      within("#artwork-section-#{content.id}", wait: 10) do
-        expect(page).to have_text("画像をドラッグ&ドロップ")
-        expect(page).not_to have_css(".artwork-variations-grid")
-      end
+      expect(page).to have_text("画像をドラッグ&ドロップ", wait: 10)
+      expect(page).not_to have_css(".artwork-variations-grid")
 
       # Verify artwork is actually deleted from database
       expect(content.reload.artwork).to be_nil

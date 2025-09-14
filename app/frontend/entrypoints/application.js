@@ -21,6 +21,7 @@ import ToastController from '../controllers/toast_controller'
 import AudioGenerationController from '../controllers/audio_generation_controller'
 import UserDropdownController from '../controllers/user_dropdown_controller'
 import InlineAudioPlayerController from '../controllers/inline_audio_player_controller'
+import ArtworkLightboxController from '../controllers/artwork_lightbox_controller'
 
 // Import global store and audio state management
 import { AudioStateManager } from '../lib/audio_state_manager'
@@ -48,5 +49,5 @@ application.register('toast', ToastController)
 application.register('audio-generation', AudioGenerationController)
 application.register('user-dropdown', UserDropdownController)
 application.register('inline-audio-player', InlineAudioPlayerController)
+application.register('artwork-lightbox', ArtworkLightboxController)
 
-console.log('Vite ⚡️ Rails with Stimulus & Turbo ready')

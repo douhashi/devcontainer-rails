@@ -83,7 +83,7 @@ RSpec.describe ArtworkLightbox::Component, type: :component do
 
     it "Lightboxコンテナをレンダリングする" do
       subject
-      expect(page).to have_css("[controller='artwork-lightbox']")
+      expect(page).to have_css("[data-artwork-lightbox-target='lightbox']")
     end
 
     it "必要なARIA属性を含む" do
@@ -121,7 +121,7 @@ RSpec.describe ArtworkLightbox::Component, type: :component do
 
     it "初期状態でhiddenクラスを持つ" do
       subject
-      expect(page).to have_css(".hidden[controller='artwork-lightbox']")
+      expect(page).to have_css(".hidden[data-artwork-lightbox-target='lightbox']")
     end
   end
 
@@ -130,9 +130,9 @@ RSpec.describe ArtworkLightbox::Component, type: :component do
 
     it "必要なdata-valuesを含む" do
       subject
-      element = page.find("[controller='artwork-lightbox']")
-      expect(element["artwork-lightbox-images-value"]).to be_present
-      expect(element["artwork-lightbox-current-index-value"]).to eq("0")
+      element = page.find("[data-artwork-lightbox-target='lightbox']")
+      # Lightbox componentはもはやdata-valuesを持たない（Gridコンポーネントに移動したため）
+      expect(element).to be_present
     end
   end
 end

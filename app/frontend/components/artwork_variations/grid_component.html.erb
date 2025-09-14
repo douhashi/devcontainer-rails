@@ -1,4 +1,8 @@
-<div class="artwork-variations-grid" data-controller="artwork-lightbox">
+<div class="artwork-variations-grid"
+     data-controller="artwork-lightbox"
+     data-artwork-lightbox-images-value="<%= variations.to_json %>"
+     data-artwork-lightbox-current-index-value="0"
+     data-action="keydown@window->artwork-lightbox#handleKeydown">
   <% if empty_state? %>
     <div class="empty-state text-center py-8 text-gray-400">
       <p class="text-lg">アートワークがありません</p>
@@ -9,7 +13,8 @@
         <div class="<%= card_classes %>">
           <div class="relative aspect-video bg-gray-900 cursor-pointer"
                data-action="click->artwork-lightbox#open"
-               data-image-index="<%= index %>">
+               data-image-index="<%= index %>"
+               data-lightbox-target="[data-controller='artwork-lightbox']">
             <%= image_tag variation[:url],
                 loading: "lazy",
                 alt: "#{variation[:label]}画像",

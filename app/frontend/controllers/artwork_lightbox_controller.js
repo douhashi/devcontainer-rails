@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [
+    "lightbox",
     "counter",
     "currentNumber",
     "currentImage",
@@ -39,10 +40,10 @@ export default class extends Controller {
       this.currentIndexValue = index
     }
 
-    this.element.classList.remove("hidden")
+    this.lightboxTarget.classList.remove("hidden")
     requestAnimationFrame(() => {
-      this.element.classList.add("opacity-100")
-      this.element.classList.remove("opacity-0")
+      this.lightboxTarget.classList.add("opacity-100")
+      this.lightboxTarget.classList.remove("opacity-0")
     })
 
     this.updateDisplay()
@@ -56,11 +57,11 @@ export default class extends Controller {
       event.preventDefault()
     }
 
-    this.element.classList.add("opacity-0")
-    this.element.classList.remove("opacity-100")
+    this.lightboxTarget.classList.add("opacity-0")
+    this.lightboxTarget.classList.remove("opacity-100")
 
     setTimeout(() => {
-      this.element.classList.add("hidden")
+      this.lightboxTarget.classList.add("hidden")
     }, 300)
 
     this.releaseFocus()
@@ -69,7 +70,8 @@ export default class extends Controller {
   }
 
   closeOnBackdrop(event) {
-    if (event.target === this.element) {
+    if (event.target === this.lightboxTarget ||
+        event.target.closest('[data-artwork-lightbox-target="imageContainer"]') === null) {
       this.close()
     }
   }
@@ -97,7 +99,7 @@ export default class extends Controller {
   }
 
   handleKeydown(event) {
-    if (!this.element.classList.contains("hidden")) {
+    if (!this.lightboxTarget.classList.contains("hidden")) {
       switch (event.key) {
         case "Escape":
           this.close()
@@ -163,11 +165,11 @@ export default class extends Controller {
     let touchStartX = 0
     let touchEndX = 0
 
-    this.element.addEventListener("touchstart", (e) => {
+    this.lightboxTarget.addEventListener("touchstart", (e) => {
       touchStartX = e.changedTouches[0].screenX
     })
 
-    this.element.addEventListener("touchend", (e) => {
+    this.lightboxTarget.addEventListener("touchend", (e) => {
       touchEndX = e.changedTouches[0].screenX
       this.handleSwipe(touchStartX, touchEndX)
     })
@@ -187,7 +189,7 @@ export default class extends Controller {
   }
 
   setupFocusTrap() {
-    this.focusableElements = this.element.querySelectorAll(
+    this.focusableElements = this.lightboxTarget.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )
 

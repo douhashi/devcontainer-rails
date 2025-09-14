@@ -32,7 +32,7 @@ module ArtworkLightbox
     end
 
     def container_classes
-      "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300 hidden"
+      "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300 hidden opacity-0"
     end
 
     def close_button_classes
@@ -55,14 +55,6 @@ module ArtworkLightbox
       "relative max-w-7xl max-h-[90vh] mx-auto"
     end
 
-    def lightbox_data_attributes
-      {
-        controller: "artwork-lightbox",
-        "artwork-lightbox-images-value": variations.to_json,
-        "artwork-lightbox-current-index-value": initial_index,
-        action: "keydown@window->artwork-lightbox#handleKeydown click->artwork-lightbox#closeOnBackdrop swipeleft->artwork-lightbox#next swiperight->artwork-lightbox#previous"
-      }
-    end
 
     def close_icon
       helpers.tag.svg(

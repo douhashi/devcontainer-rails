@@ -1,6 +1,7 @@
 <div
+  data-artwork-lightbox-target="lightbox"
   data-turbo-permanent
-  <%= tag.attributes(lightbox_data_attributes) %>
+  data-action="click->artwork-lightbox#closeOnBackdrop"
   class="<%= container_classes %>"
   role="dialog"
   aria-modal="true"
