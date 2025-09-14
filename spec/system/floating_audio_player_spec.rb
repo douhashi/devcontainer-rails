@@ -102,6 +102,73 @@ RSpec.describe "FloatingAudioPlayer", type: :system, js: true, playwright: true 
     end
   end
 
+  describe "media-controller初期化問題の修正" do
+    it "media-controllerとaudio要素が正しく連携する" do
+      # Track 1を再生
+      click_play_and_wait("#audio-play-button-track-#{track1.id}")
+
+      # media-controllerが正しく初期化されているか確認
+      within("#floating-audio-player") do
+        # media-controllerが存在することを確認
+        expect(page).to have_css("media-controller")
+
+        # audio要素が存在することを確認（visible: :all で非表示要素も検索）
+        expect(page).to have_css("audio[slot='media']", visible: :all)
+
+        # media-controllerが存在し、audio要素が正しく配置されていることを確認
+        media_state = page.evaluate_script(<<~JS)
+          (() => {
+            const mediaController = document.querySelector('#floating-audio-player media-controller');
+            const audioElement = mediaController ? mediaController.querySelector('audio[slot="media"]') : null;
+            return {
+              hasController: !!mediaController,
+              hasAudio: !!audioElement,
+              audioSrc: audioElement ? audioElement.src : null,
+              audioHasSlot: audioElement ? audioElement.hasAttribute('slot') : false
+            };
+          })()
+        JS
+
+        expect(media_state['hasController']).to be_truthy, "media-controller element not found"
+        expect(media_state['hasAudio']).to be_truthy, "audio element not found in media-controller"
+        expect(media_state['audioHasSlot']).to be_truthy, "audio element does not have slot='media' attribute"
+      end
+
+      # プレイヤーが表示されることを確認
+      expect(player_showing?("Track 1")).to be true
+    end
+
+    it "初期化エラー 'Audio element or playback controller not available' が発生しない" do
+      # コンソールエラーの収集を開始
+      page.execute_script(<<~JS)
+        window.consoleErrors = [];
+        const originalError = console.error;
+        console.error = function(...args) {
+          window.consoleErrors.push(args.join(' '));
+          originalError.apply(console, arguments);
+        };
+      JS
+
+      # Track 1を再生
+      click_play_and_wait("#audio-play-button-track-#{track1.id}")
+
+      # エラーログをチェック
+      console_errors = page.evaluate_script('window.consoleErrors || []')
+
+      # 特定のエラーメッセージが出ていないことを確認
+      init_errors = console_errors.select { |msg|
+        msg.include?("Audio element or playback controller not available") ||
+        msg.include?("Audio target not found") ||
+        msg.include?("Audio element not found in media-controller")
+      }
+
+      expect(init_errors).to be_empty, "初期化エラーが発生しました: #{init_errors}"
+
+      # プレイヤーが正常に表示されることを確認
+      expect(player_showing?("Track 1")).to be true
+    end
+  end
+
   describe "AbortError問題の修正" do
     it "連続した再生ボタンクリックでAbortErrorが発生しない" do
       # 高速で連続クリックを実行

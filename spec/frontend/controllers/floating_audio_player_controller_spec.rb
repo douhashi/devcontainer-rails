@@ -58,4 +58,40 @@ RSpec.describe 'FloatingAudioPlayerController' do
       expect(audio.status).to eq('completed')
     end
   end
+
+  describe 'media-controller initialization' do
+    it 'should wait for media-controller custom element to be defined' do
+      controller_content = File.read(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))
+
+      # Verify that the controller includes media-controller initialization handling
+      expect(controller_content).to include('initializePlayer')
+      expect(controller_content).to include('audioTarget')
+      expect(controller_content).to include('media-controller')
+    end
+
+    it 'should handle missing audio target gracefully' do
+      controller_content = File.read(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))
+
+      # Verify error handling for missing audio target
+      expect(controller_content).to include('if (!this.hasAudioTarget)')
+      expect(controller_content).to include('Audio target (media-controller) not found')
+    end
+
+    it 'should find audio element inside media-controller' do
+      controller_content = File.read(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))
+
+      # Verify that the controller looks for audio element with slot="media"
+      expect(controller_content).to include('querySelector(\'audio[slot="media"]\'')
+    end
+
+    it 'should handle PlaybackController initialization errors' do
+      controller_content = File.read(Rails.root.join('app/frontend/controllers/floating_audio_player_controller.js'))
+
+      # Verify PlaybackController initialization and error handling
+      expect(controller_content).to include('new PlaybackController')
+      expect(controller_content).to include('playbackController')
+      expect(controller_content).to include('Audio element not available after reinitialization')
+      expect(controller_content).to include('PlaybackController not available after reinitialization')
+    end
+  end
 end

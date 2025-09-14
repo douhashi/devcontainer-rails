@@ -7,18 +7,52 @@ import { AudioEventManager } from "../lib/audio_event_manager"
 export default class extends Controller {
   static targets = ["audio", "trackTitle", "playButton", "playIcon", "pauseIcon"]
 
-  connect() {
+  async connect() {
+    console.debug('[FloatingAudioPlayer] Controller connecting...')
+
     // Initialize state management
     this.stateManager = AudioStateManager.getInstance()
     this.playbackQueue = new PlaybackQueue()
     this.eventManager = new AudioEventManager()
 
-    this.initializePlayer()
-    this.setupEventListeners()
-    this.setupStateListeners()
+    // Initialize properties
     this.trackList = []
     this.currentTrackIndex = 0
     this.playbackController = null
+
+    // Wait for media-controller custom element to be defined
+    await this.waitForMediaController()
+
+    // Initialize player components
+    this.initializePlayer()
+    this.setupEventListeners()
+    this.setupStateListeners()
+
+    console.debug('[FloatingAudioPlayer] Controller connected successfully')
+  }
+
+  async waitForMediaController() {
+    // Check if media-controller custom element is already defined
+    if (customElements.get('media-controller')) {
+      console.debug('[FloatingAudioPlayer] media-controller already defined')
+      return
+    }
+
+    console.debug('[FloatingAudioPlayer] Waiting for media-controller to be defined...')
+
+    try {
+      // Wait for media-controller custom element to be defined with timeout
+      await Promise.race([
+        customElements.whenDefined('media-controller'),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('media-controller definition timeout')), 5000)
+        )
+      ])
+
+      console.debug('[FloatingAudioPlayer] media-controller defined successfully')
+    } catch (error) {
+      console.error('[FloatingAudioPlayer] Failed to wait for media-controller:', error)
+    }
   }
 
   disconnect() {
@@ -41,29 +75,47 @@ export default class extends Controller {
   }
 
   initializePlayer() {
-    if (!this.audioTarget) {
-      console.error('[FloatingAudioPlayer] Audio target not found')
+    console.debug('[FloatingAudioPlayer] Starting player initialization...')
+
+    // Check for audioTarget (media-controller)
+    if (!this.hasAudioTarget) {
+      console.error('[FloatingAudioPlayer] Audio target (media-controller) not found')
+      console.debug('[FloatingAudioPlayer] Available targets:', this.targets)
+      console.debug('[FloatingAudioPlayer] DOM structure:', this.element.innerHTML.substring(0, 500))
       return
     }
 
     // Store reference to media-controller element
     this.player = this.audioTarget
+    console.debug('[FloatingAudioPlayer] Media-controller element:', this.player)
+    console.debug('[FloatingAudioPlayer] Media-controller tagName:', this.player?.tagName)
+    console.debug('[FloatingAudioPlayer] Media-controller hasMedia:', this.player?.hasMedia)
+
+    // Ensure media-controller is fully initialized
+    if (!this.ensureMediaControllerReady()) {
+      console.error('[FloatingAudioPlayer] Media-controller not ready after initialization')
+      return
+    }
 
     // Get the audio element inside the media-controller
-    this.audioElement = this.player.querySelector('audio[slot="media"]')
+    this.audioElement = this.findAudioElement()
     if (!this.audioElement) {
-      console.error('[FloatingAudioPlayer] Audio element not found in media-controller')
-      // Try to find audio element directly as fallback
-      this.audioElement = this.element.querySelector('audio')
-      if (!this.audioElement) {
-        console.error('[FloatingAudioPlayer] No audio element found at all')
-        return
-      }
+      console.error('[FloatingAudioPlayer] Failed to find audio element after multiple attempts')
+      return
     }
-    console.debug('[FloatingAudioPlayer] Audio element initialized:', this.audioElement)
+
+    console.debug('[FloatingAudioPlayer] Audio element found:', this.audioElement)
+    console.debug('[FloatingAudioPlayer] Audio element src:', this.audioElement.src)
+    console.debug('[FloatingAudioPlayer] Audio element readyState:', this.audioElement.readyState)
 
     // Initialize PlaybackController
-    this.playbackController = new PlaybackController(this.audioElement)
+    try {
+      this.playbackController = new PlaybackController(this.audioElement)
+      console.debug('[FloatingAudioPlayer] PlaybackController initialized successfully')
+    } catch (error) {
+      console.error('[FloatingAudioPlayer] Failed to initialize PlaybackController:', error)
+      return
+    }
 
     // Bind event handlers with debounce protection
     this.isProcessingEvent = false
@@ -119,11 +171,82 @@ export default class extends Controller {
     this.audioElement.addEventListener('play', this.handleMediaPlay)
     this.audioElement.addEventListener('pause', this.handleMediaPause)
     this.audioElement.addEventListener('ended', this.handleMediaEnded)
-    
+
     // Set default volume on audio element
     if (this.audioElement) {
       this.audioElement.volume = 0.8
     }
+
+    console.debug('[FloatingAudioPlayer] Player initialization completed')
+  }
+
+  ensureMediaControllerReady() {
+    if (!this.player) return false
+
+    // Check if media-controller is properly connected to the DOM
+    if (!this.player.isConnected) {
+      console.warn('[FloatingAudioPlayer] Media-controller not connected to DOM')
+      return false
+    }
+
+    // For media-chrome v4+, check if the element is ready
+    // The media-controller should have its shadow DOM attached
+    if (this.player.shadowRoot) {
+      console.debug('[FloatingAudioPlayer] Media-controller has shadow DOM attached')
+    }
+
+    return true
+  }
+
+  findAudioElement() {
+    let audioElement = null
+    let attempts = 0
+    const maxAttempts = 3
+
+    while (!audioElement && attempts < maxAttempts) {
+      attempts++
+      console.debug(`[FloatingAudioPlayer] Attempting to find audio element (attempt ${attempts}/${maxAttempts})`)
+
+      // First try: Look for audio element with slot="media" inside media-controller
+      audioElement = this.player?.querySelector('audio[slot="media"]')
+      if (audioElement) {
+        console.debug('[FloatingAudioPlayer] Found audio element with slot="media"')
+        break
+      }
+
+      // Second try: Look for any audio element inside media-controller
+      audioElement = this.player?.querySelector('audio')
+      if (audioElement) {
+        console.debug('[FloatingAudioPlayer] Found audio element without slot attribute')
+        // Ensure it has the correct slot attribute
+        audioElement.setAttribute('slot', 'media')
+        break
+      }
+
+      // Third try: Look for audio element in the entire component
+      audioElement = this.element.querySelector('audio')
+      if (audioElement) {
+        console.debug('[FloatingAudioPlayer] Found audio element in component root')
+        // Move it to the correct location if needed
+        if (!audioElement.hasAttribute('slot')) {
+          audioElement.setAttribute('slot', 'media')
+        }
+        break
+      }
+
+      // Wait a bit before next attempt
+      if (attempts < maxAttempts) {
+        console.debug('[FloatingAudioPlayer] Audio element not found, waiting before retry...')
+        // Use a synchronous wait for simplicity in initialization
+        const waitTime = 100 * attempts // Increasing wait time
+        const start = Date.now()
+        while (Date.now() - start < waitTime) {
+          // Busy wait
+        }
+      }
+    }
+
+    return audioElement
   }
 
   setupEventListeners() {
@@ -313,8 +436,29 @@ export default class extends Controller {
         this.trackTitleTarget.textContent = trackData.title || "Untitled"
 
         // Ensure audio element and playback controller are available
-        if (!this.audioElement || !this.playbackController) {
-          throw new Error('Audio element or playback controller not available')
+        if (!this.audioElement) {
+          console.error('[FloatingAudioPlayer] Audio element not available during playback')
+          console.debug('[FloatingAudioPlayer] Player state:', {
+            hasPlayer: !!this.player,
+            playerConnected: this.player?.isConnected,
+            hasAudioTarget: this.hasAudioTarget
+          })
+          // Try to reinitialize
+          this.initializePlayer()
+          if (!this.audioElement) {
+            throw new Error('Audio element not available after reinitialization')
+          }
+        }
+
+        if (!this.playbackController) {
+          console.error('[FloatingAudioPlayer] PlaybackController not available during playback')
+          if (this.audioElement) {
+            console.debug('[FloatingAudioPlayer] Attempting to reinitialize PlaybackController')
+            this.playbackController = new PlaybackController(this.audioElement)
+          }
+          if (!this.playbackController) {
+            throw new Error('PlaybackController not available after reinitialization')
+          }
         }
 
         // Validate URL
