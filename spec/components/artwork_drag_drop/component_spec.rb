@@ -62,25 +62,16 @@ RSpec.describe ArtworkDragDrop::Component do
         allow(content).to receive(:artwork).and_return(artwork)
       end
 
-      it "renders the main image with artwork-switcher target" do
+      it "renders the main image" do
         render_inline(component)
 
-        expect(page).to have_css("img[data-artwork-switcher-target='mainImage']")
         expect(page).to have_css("img[src='https://example.com/image.jpg']")
       end
 
-      it "includes both artwork-drag-drop and artwork-switcher controllers" do
+      it "includes artwork-drag-drop controller" do
         render_inline(component)
 
         expect(page).to have_css("[data-controller*='artwork-drag-drop']")
-        expect(page).to have_css("[data-controller*='artwork-switcher']")
-      end
-
-      it "renders the artwork gallery" do
-        render_inline(component)
-
-        expect(page).to have_css("[data-artwork-switcher-target='thumbnail']")
-        expect(page).to have_css(".artwork-gallery")
       end
 
       it "renders delete button" do
@@ -97,12 +88,6 @@ RSpec.describe ArtworkDragDrop::Component do
 
         expect(page).to have_css("[data-artwork-drag-drop-target='dropZone']")
         expect(page).to have_text("画像をドラッグ&ドロップ")
-      end
-
-      it "does not render the artwork gallery" do
-        render_inline(component)
-
-        expect(page).not_to have_css(".artwork-gallery")
       end
 
       it "includes file input field" do

@@ -1,11 +1,10 @@
-<turbo-frame id="artwork_<%= content.id %>" data-controller="artwork-drag-drop artwork-switcher">
+<turbo-frame id="artwork_<%= content.id %>" data-controller="artwork-drag-drop">
     <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
       <% if has_artwork? %>
         <!-- アートワークが存在する場合 -->
         <img src="<%= artwork_url %>"
              alt="アートワーク"
-             class="w-full h-full object-cover transition-opacity duration-300"
-             data-artwork-switcher-target="mainImage">
+             class="w-full h-full object-cover transition-opacity duration-300">
         
         <!-- 削除ボタン -->
         <%= form_with url: form_url,
@@ -81,9 +80,4 @@
         </div>
       <% end %>
     </div>
-
-    <!-- アートワークギャラリー -->
-    <% if has_artwork? %>
-      <%= render ArtworkGallery::Component.new(artwork: artwork) %>
-    <% end %>
 </turbo-frame>
