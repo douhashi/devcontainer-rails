@@ -1,7 +1,7 @@
 require "rails_helper"
 require "fileutils"
 
-RSpec.describe DerivativeProcessingJob, type: :job do
+RSpec.describe DerivativeProcessingJob, type: :job, skip: "Job is no longer used - thumbnail generation is now synchronous" do
   let(:content) { create(:content) }
   let(:image_file) { fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg') }
   let(:artwork) { create(:artwork, content: content, image: image_file) }

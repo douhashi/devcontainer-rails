@@ -242,7 +242,7 @@ class SurveysController < ApplicationController
     if @survey.save
       redirect_to @survey, notice: t('.success')
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
   

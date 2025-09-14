@@ -28,6 +28,14 @@
           <%= render ArtworkThumbnailStatusBadge::Component.new(artwork: artwork) %>
 
           <% if artwork.has_youtube_thumbnail? %>
+            <!-- サムネイルプレビューボタン -->
+            <button type="button"
+                    onclick="window.open('<%= artwork.youtube_thumbnail_url %>', '_blank')"
+                    class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors">
+              <%= render Icon::Component.new(name: "preview", size: :sm) %>
+              プレビュー
+            </button>
+
             <!-- サムネイル生成完了時のダウンロードリンク -->
             <a href="<%= artwork.youtube_thumbnail_download_url %>"
                class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"

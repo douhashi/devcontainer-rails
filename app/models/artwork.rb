@@ -14,7 +14,8 @@ class Artwork < ApplicationRecord
 
   # Callback to trigger derivative processing for eligible artworks
   # Use after_commit to ensure the record is saved to the database before job is enqueued
-  after_commit :schedule_thumbnail_generation, on: [ :create, :update ], if: :saved_change_to_image_data?
+  # NOTE: Disabled as thumbnail generation is now handled synchronously in controller
+  # after_commit :schedule_thumbnail_generation, on: [ :create, :update ], if: :saved_change_to_image_data?
 
   def youtube_thumbnail_eligible?
     return false unless image.present?

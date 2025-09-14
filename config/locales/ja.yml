@@ -2,3 +2,25 @@ ja:
   time:
     formats:
       long_with_time: "%Y年%m月%d日 %H:%M"
+
+  artworks:
+    upload:
+      success: "アートワークが正常にアップロードされました。"
+      success_with_thumbnail: "アートワークが正常にアップロードされ、YouTube用サムネイルが生成されました。"
+      failure: "アートワークのアップロードに失敗しました"
+    update:
+      success: "アートワークが正常に更新されました。"
+      success_with_thumbnail: "アートワークが正常に更新され、YouTube用サムネイルが生成されました。"
+      failure: "アートワークの更新に失敗しました"
+    thumbnail:
+      generation_timeout: "サムネイル生成がタイムアウトしました。ファイルサイズを確認してください。"
+      generation_failed: "サムネイル生成に失敗しました"
+      generation_error: "サムネイル生成中にエラーが発生しました。"
+      not_eligible: "このアートワークはYouTube用サムネイル生成の対象外です（1920x1080である必要があります）。"
+      processing: "サムネイル生成は既に実行中です。"
+      already_exists: "YouTube用サムネイルは既に生成済みです。"
+      regeneration_started: "YouTube用サムネイルの再生成を開始しました。しばらくお待ちください。"
+      generation_started: "YouTube用サムネイルの生成を開始しました。しばらくお待ちください。"
+      not_found: "アートワークが見つかりません。"
+    delete:
+      success: "アートワークが削除されました。"

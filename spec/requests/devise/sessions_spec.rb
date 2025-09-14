@@ -38,7 +38,7 @@ RSpec.describe 'Devise::Sessions', type: :request do
           }
         }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         # Check that we're on the login page (not redirected to root)
         expect(response.body).to include('ログイン')
         expect(response.body).to include('user[email]')
@@ -52,7 +52,7 @@ RSpec.describe 'Devise::Sessions', type: :request do
           }
         }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         # Check that we're on the login page (not redirected to root)
         expect(response.body).to include('ログイン')
         expect(response.body).to include('user[email]')

@@ -32,8 +32,8 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
         # Wait for the upload to complete and page to update
         expect(page).to have_css("img[alt='アートワーク']")
 
-        # Verify that the derivative processing job was enqueued
-        expect(DerivativeProcessingJob).to have_been_enqueued.at_least(:once)
+        # Verify that the derivative processing job was NOT enqueued (synchronous now)
+        expect(DerivativeProcessingJob).not_to have_been_enqueued
       end
     end
 

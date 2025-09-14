@@ -16,8 +16,10 @@ class ThumbnailGenerationService
     # Ensure required gems are available
     begin
       require "vips"
+      Rails.logger.info "Vips library loaded successfully: #{Vips::VERSION}"
     rescue LoadError => e
       Rails.logger.error "Failed to load vips gem: #{e.message}"
+      Rails.logger.error "Vips library search paths: #{$LOAD_PATH.grep(/vips/)}"
       raise GenerationError, "Image processing library not available: #{e.message}"
     end
   end
@@ -62,23 +64,27 @@ class ThumbnailGenerationService
 
   def validate_input_file!(input_path)
     unless File.exist?(input_path)
+      Rails.logger.error "Input file not found: #{input_path}"
       raise GenerationError, "Input file not found: #{input_path}"
     end
 
     if File.size(input_path) == 0
+      Rails.logger.error "Input file is empty: #{input_path}"
       raise GenerationError, "Input file is empty: #{input_path}"
     end
 
     if File.size(input_path) > MAX_FILE_SIZE
+      Rails.logger.error "File size too large: #{File.size(input_path)} bytes (max: #{MAX_FILE_SIZE} bytes)"
       raise GenerationError, "File size too large: #{File.size(input_path)} bytes (max: #{MAX_FILE_SIZE} bytes)"
     end
 
     input_ext = File.extname(input_path).downcase
     unless SUPPORTED_IMAGE_FORMATS.include?(input_ext)
+      Rails.logger.error "Invalid image format: #{input_ext}. Supported formats: #{SUPPORTED_IMAGE_FORMATS.join(', ')}"
       raise GenerationError, "Invalid image format: #{input_ext}. Supported formats: #{SUPPORTED_IMAGE_FORMATS.join(', ')}"
     end
 
-    Rails.logger.debug "Input file validated: #{input_path} (#{File.size(input_path)} bytes)"
+    Rails.logger.info "Input file validated: #{input_path} (#{File.size(input_path)} bytes)"
   end
 
   def validate_image_dimensions!(image)

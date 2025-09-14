@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          lfs: true
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -27,6 +29,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          lfs: true
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -43,12 +47,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          lfs: true
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           # Install vips and all its dependencies including runtime libraries and tools
-          sudo apt-get install -y libvips-dev libvips-tools libvips42
+          # Also install JPEG/PNG libraries that vips needs for image format support
+          sudo apt-get install -y libvips-dev libvips-tools libvips42 \
+            libjpeg-dev libjpeg-turbo8-dev libpng-dev \
+            libwebp-dev libglib2.0-dev libexpat1-dev
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
