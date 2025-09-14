@@ -71,6 +71,41 @@ RSpec.describe ImageThumbnail::Component do
       expect(page).to have_css("[role='button']")
       expect(page).to have_css("[tabindex='0']")
     end
+
+    context "with placeholder image" do
+      let(:image_url) { nil }
+      let(:image_type) { "youtube_placeholder" }
+      let(:label) { "YouTube（生成中）" }
+
+      subject(:component) do
+        described_class.new(
+          image_url: image_url,
+          label: label,
+          image_type: image_type,
+          selected: selected,
+          is_placeholder: true
+        )
+      end
+
+      it "renders placeholder content instead of image" do
+        render_inline(component)
+
+        expect(page).to have_css(".placeholder-content")
+        expect(page).to have_text("生成中")
+      end
+
+      it "displays loading spinner icon" do
+        render_inline(component)
+
+        expect(page).to have_css(".animate-spin")
+      end
+
+      it "applies disabled styling" do
+        render_inline(component)
+
+        expect(page).to have_css(".opacity-60")
+      end
+    end
   end
 
   describe "#thumbnail_container_class" do

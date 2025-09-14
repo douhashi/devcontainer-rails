@@ -1,24 +1,29 @@
 # frozen_string_literal: true
 
 class ImageThumbnail::Component < ApplicationViewComponent
-  attr_reader :image_url, :label, :image_type, :selected, :artwork
+  attr_reader :image_url, :label, :image_type, :selected, :artwork, :is_placeholder
 
-  def initialize(image_url:, label:, image_type:, selected: false, artwork: nil)
+  def initialize(image_url:, label:, image_type:, selected: false, artwork: nil, is_placeholder: false)
     @image_url = image_url
     @label = label
     @image_type = image_type
     @selected = selected
     @artwork = artwork
+    @is_placeholder = is_placeholder
   end
 
   def thumbnail_container_class
     base_class = "relative cursor-pointer rounded-lg overflow-hidden"
 
-    if selected
+    classes = if is_placeholder
+      "#{base_class} opacity-60"
+    elsif selected
       "#{base_class} ring-2 ring-blue-500 bg-blue-50"
     else
       "#{base_class} hover:ring-2 hover:ring-blue-300 transition-all"
     end
+
+    classes
   end
 
   def thumbnail_image_class

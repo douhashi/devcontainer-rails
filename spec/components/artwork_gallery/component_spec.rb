@@ -38,6 +38,7 @@ RSpec.describe ArtworkGallery::Component do
     context "when artwork has original image only" do
       before do
         allow(artwork).to receive(:has_youtube_thumbnail?).and_return(false)
+        allow(artwork).to receive(:thumbnail_generation_status_processing?).and_return(false)
       end
 
       it "returns only the original image" do
@@ -66,6 +67,25 @@ RSpec.describe ArtworkGallery::Component do
 
         expect(youtube_image[:label]).to eq("YouTube")
         expect(youtube_image[:image_url]).to eq("https://example.com/youtube.jpg")
+      end
+    end
+
+    context "when YouTube thumbnail is being generated" do
+      before do
+        allow(artwork).to receive(:has_youtube_thumbnail?).and_return(false)
+        allow(artwork).to receive(:thumbnail_generation_status_processing?).and_return(true)
+      end
+
+      it "returns original image and placeholder for YouTube thumbnail" do
+        images = component.thumbnail_images
+        expect(images.size).to eq(2)
+
+        original_image = images.find { |img| img[:image_type] == "original" }
+        youtube_placeholder = images.find { |img| img[:image_type] == "youtube_placeholder" }
+
+        expect(original_image[:label]).to eq("オリジナル")
+        expect(youtube_placeholder[:label]).to eq("YouTube（生成中）")
+        expect(youtube_placeholder[:is_placeholder]).to be true
       end
     end
   end
@@ -119,9 +139,12 @@ RSpec.describe ArtworkGallery::Component do
   end
 
   describe "#gallery_container_class" do
-    it "returns the correct CSS classes" do
-      expected_class = "artwork-gallery mt-4 flex gap-3 justify-center"
-      expect(component.gallery_container_class).to eq(expected_class)
+    it "returns the correct CSS classes for grid layout" do
+      expected_classes = %w[artwork-gallery mt-4 grid grid-cols-2 gap-2 max-w-xs mx-auto]
+      actual_classes = component.gallery_container_class.split(" ")
+      expected_classes.each do |css_class|
+        expect(actual_classes).to include(css_class)
+      end
     end
   end
 end

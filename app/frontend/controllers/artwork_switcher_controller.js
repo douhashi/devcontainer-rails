@@ -13,6 +13,12 @@ export default class extends Controller {
     const imageUrl = clickedThumbnail.dataset.imageUrl
     const imageType = clickedThumbnail.dataset.imageType
 
+    // プレースホルダーの場合は切り替えない
+    if (imageType === "youtube_placeholder") {
+      console.info("Cannot switch to placeholder image")
+      return
+    }
+
     if (!imageUrl) {
       console.warn("No image URL found for thumbnail")
       return
@@ -46,6 +52,11 @@ export default class extends Controller {
   updateSelectedThumbnail(selectedThumbnail) {
     // 全てのサムネイルから選択状態を削除
     this.thumbnailTargets.forEach(thumbnail => {
+      // プレースホルダーはスキップ
+      if (thumbnail.dataset.imageType === "youtube_placeholder") {
+        return
+      }
+
       thumbnail.classList.remove("ring-2", "ring-blue-500", "bg-blue-50")
       thumbnail.classList.add("hover:ring-2", "hover:ring-blue-300", "transition-all")
     })

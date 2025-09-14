@@ -34,12 +34,22 @@ class ArtworkGallery::Component < ApplicationViewComponent
         selected: false,
         artwork: artwork
       }
+    elsif artwork.thumbnail_generation_status_processing?
+      # YouTube用サムネイル生成中のプレースホルダー
+      images << {
+        image_url: nil,
+        label: "YouTube（生成中）",
+        image_type: "youtube_placeholder",
+        selected: false,
+        is_placeholder: true,
+        artwork: artwork
+      }
     end
 
     images
   end
 
   def gallery_container_class
-    "artwork-gallery mt-4 flex gap-3 justify-center"
+    "artwork-gallery mt-4 grid grid-cols-2 gap-2 max-w-xs mx-auto"
   end
 end
