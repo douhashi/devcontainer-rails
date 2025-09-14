@@ -43,7 +43,7 @@ RSpec.describe "AudioUsedTracksTable", type: :system, js: true, playwright: true
             within(rows[0]) do
               # Check that the player column has a button (not a dash)
               within(all("td")[3]) do  # Player column is 4th column (0-indexed)
-                expect(page).to have_css("button[data-controller='audio-play-button']")
+                expect(page).to have_css("[data-controller='inline-audio-player']")
                 expect(page).not_to have_css("span.text-gray-500", text: "-")
               end
             end

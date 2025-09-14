@@ -12,10 +12,10 @@ RSpec.describe AudioUsedTracksTable::Component, type: :component do
     context "when track has completed status and audio" do
       let(:track) { create(:track, status: :completed, audio: fixture_file_upload("audio/sample.mp3", "audio/mp3")) }
 
-      it "returns AudioPlayButton component" do
+      it "returns InlineAudioPlayer component" do
         button = component.send(:play_button_component, track)
-        expect(button).to be_a(AudioPlayButton::Component)
-        expect(button.record).to eq(track)
+        expect(button).to be_a(InlineAudioPlayer::Component)
+        expect(button.track).to eq(track)
       end
     end
 
@@ -73,8 +73,12 @@ RSpec.describe AudioUsedTracksTable::Component, type: :component do
       let(:track2) { create(:track, status: :completed, audio: fixture_file_upload("audio/sample.mp3", "audio/mp3")) }
       let(:track_ids) { [ track1.id, track2.id ] }
 
-      it "renders AudioPlayButton components" do
-        expect(page).to have_css("[data-controller='audio-play-button']", count: 2)
+      it "renders InlineAudioPlayer components" do
+        # Debug: Check if table is rendered
+        expect(page).to have_css("table")
+        expect(page).to have_content("#1")
+        expect(page).to have_content("#2")
+        expect(page).to have_css("[data-controller='inline-audio-player']", count: 2)
       end
 
       it "displays track titles" do
@@ -94,7 +98,7 @@ RSpec.describe AudioUsedTracksTable::Component, type: :component do
 
       it "shows dash for player column" do
         expect(page).to have_content("-")
-        expect(page).not_to have_css("[data-controller='audio-play-button']")
+        expect(page).not_to have_css("[data-controller='inline-audio-player']")
       end
     end
   end

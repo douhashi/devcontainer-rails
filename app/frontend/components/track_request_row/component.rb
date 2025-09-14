@@ -32,7 +32,7 @@ class TrackRequestRow::Component < ApplicationViewComponent
 
   def play_button_component
     return unless show_audio_player?
-    AudioPlayButton::Component.new(track: track)
+    InlineAudioPlayer::Component.new(track: track)
   end
 
   def player_content

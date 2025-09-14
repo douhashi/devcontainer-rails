@@ -51,6 +51,6 @@ class AudioUsedTracksTable::Component < ApplicationViewComponent
 
   def play_button_component(track)
     return unless track.status.completed? && track.audio.present?
-    AudioPlayButton::Component.new(track: track)
+    InlineAudioPlayer::Component.new(track: track)
   end
 end

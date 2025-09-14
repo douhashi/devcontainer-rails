@@ -46,7 +46,7 @@ RSpec.describe TrackRequestRow::Component, type: :component do
     before { render_inline(component) }
 
     it "shows audio play button" do
-      expect(page).to have_css("[data-controller='audio-play-button']")
+      expect(page).to have_css("[data-controller='inline-audio-player']")
     end
 
     it "displays formatted duration" do
@@ -61,7 +61,7 @@ RSpec.describe TrackRequestRow::Component, type: :component do
 
     it "shows processing message instead of play button" do
       expect(page).to have_content("処理中...")
-      expect(page).not_to have_css("[data-controller='audio-play-button']")
+      expect(page).not_to have_css("[data-controller='inline-audio-player']")
     end
   end
 
@@ -72,7 +72,7 @@ RSpec.describe TrackRequestRow::Component, type: :component do
 
     it "shows unavailable message" do
       expect(page).to have_content("利用不可")
-      expect(page).not_to have_css("[data-controller='audio-play-button']")
+      expect(page).not_to have_css("[data-controller='inline-audio-player']")
     end
   end
 

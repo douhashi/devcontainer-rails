@@ -24,18 +24,18 @@ RSpec.describe 'Audio Playback', type: :request do
       audio
     end
 
-    it 'renders content page with AudioPlayButton' do
+    it 'renders content page with InlineAudioPlayer' do
       get content_path(content)
 
       expect(response).to have_http_status(:success)
 
-      # Check for AudioPlayButton data attributes
-      expect(response.body).to include('data-controller="audio-play-button"')
-      expect(response.body).to include('data-audio-play-button-type-value="content"')
-      expect(response.body).to include("data-audio-play-button-id-value=\"#{content.id}\"")
-      expect(response.body).to include("data-audio-play-button-title-value=\"#{content.theme}\"")
+      # Check for InlineAudioPlayer data attributes
+      expect(response.body).to include('data-controller="inline-audio-player"')
+      expect(response.body).to include('data-inline-audio-player-type-value="content"')
+      expect(response.body).to include("data-inline-audio-player-id-value=\"#{content.id}\"")
+      expect(response.body).to include("data-inline-audio-player-title-value=\"#{content.theme}\"")
       # Audio URL should be present
-      expect(response.body).to include('data-audio-play-button-audio-url-value=')
+      expect(response.body).to include('data-inline-audio-player-url-value=')
     end
   end
 
@@ -69,18 +69,17 @@ RSpec.describe 'Audio Playback', type: :request do
       tempfile.unlink
     end
 
-    it 'renders track with AudioPlayButton' do
+    it 'renders track with InlineAudioPlayer' do
       get content_path(content)
 
       expect(response).to have_http_status(:success)
 
-      # Check for track AudioPlayButton data attributes
-      expect(response.body).to include('data-controller="audio-play-button"')
-      expect(response.body).to include('data-audio-play-button-type-value="track"')
-      expect(response.body).to include("data-audio-play-button-id-value=\"#{track.id}\"")
-      expect(response.body).to include("data-audio-play-button-content-id-value=\"#{content.id}\"")
-      # Track list should be present
-      expect(response.body).to include('data-audio-play-button-track-list-value=')
+      # Check for track InlineAudioPlayer data attributes
+      expect(response.body).to include('data-controller="inline-audio-player"')
+      expect(response.body).to include('data-inline-audio-player-type-value="track"')
+      expect(response.body).to include("data-inline-audio-player-id-value=\"#{track.id}\"")
+      # Audio URL should be present
+      expect(response.body).to include('data-inline-audio-player-url-value=')
     end
   end
 end

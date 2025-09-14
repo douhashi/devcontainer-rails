@@ -18,7 +18,11 @@ module Icon
       arrow_left: "fa-arrow-left",
       schedule: "fa-clock",
       check_circle: "fa-check-circle",
-      download: "fa-download"
+      download: "fa-download",
+      volume_high: "fa-volume-high",
+      volume_low: "fa-volume-low",
+      volume_off: "fa-volume-off",
+      volume_xmark: "fa-volume-xmark"
     }.freeze
 
     # Font Awesome size mappings

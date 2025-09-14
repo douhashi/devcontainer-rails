@@ -65,8 +65,8 @@ RSpec.describe ExtendedTrackRow::Component, type: :component do
     end
 
     it "プレイヤーコンポーネントが表示される" do
-      # AudioPlayButton::Componentがレンダリングされることを確認
-      expect(rendered).to have_css("[id^='audio-play-button-']")
+      # InlineAudioPlayer::Componentがレンダリングされることを確認
+      expect(rendered).to have_css("[data-controller='inline-audio-player']")
     end
 
     it "削除アクションが表示される" do

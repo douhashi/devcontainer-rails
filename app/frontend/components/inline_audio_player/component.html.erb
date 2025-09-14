@@ -1,0 +1,66 @@
+<div
+  id="<%= player_id %>"
+  <%= raw stimulus_data.map { |k, v| "data-#{k.to_s.dasherize}=\"#{html_escape(v)}\"" }.join(" ") %>
+  class="inline-flex items-center gap-2 px-2 <%= player_size_class %> bg-gray-800 rounded-lg"
+>
+  <media-controller
+    audio
+    class="flex-1 flex items-center gap-2 <%= controls_size_class %>"
+  >
+    <audio
+      slot="media"
+      src="<%= audio_url %>"
+      crossorigin="anonymous"
+    ></audio>
+
+    <media-play-button
+      part="button"
+      class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+    >
+      <span slot="play">
+        <%= render Icon::Component.new(name: :play, size: :sm, color: "text-white") %>
+      </span>
+      <span slot="pause">
+        <%= render Icon::Component.new(name: :pause, size: :sm, color: "text-white") %>
+      </span>
+    </media-play-button>
+
+    <media-time-range
+      part="time-range"
+      class="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden"
+    >
+      <div slot="preview" class="hidden"></div>
+    </media-time-range>
+
+    <media-time-display
+      show-duration
+      class="text-gray-400 text-xs min-w-[80px] text-center"
+    ></media-time-display>
+
+    <media-volume-range
+      part="volume-range"
+      class="w-16 h-1 bg-gray-700 rounded-full overflow-hidden"
+    >
+      <div slot="preview" class="hidden"></div>
+    </media-volume-range>
+
+    <media-mute-button
+      part="button"
+      class="inline-flex items-center justify-center w-6 h-6 text-gray-400 hover:text-white transition-colors"
+    >
+      <span slot="high">
+        <%= render Icon::Component.new(name: :volume_high, size: :sm) %>
+      </span>
+      <span slot="medium">
+        <%= render Icon::Component.new(name: :volume_low, size: :sm) %>
+      </span>
+      <span slot="low">
+        <%= render Icon::Component.new(name: :volume_low, size: :sm) %>
+      </span>
+      <span slot="off">
+        <%= render Icon::Component.new(name: :volume_xmark, size: :sm) %>
+      </span>
+    </media-mute-button>
+  </media-controller>
+</div>
+
