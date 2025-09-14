@@ -1,27 +1,4 @@
-<turbo-frame id="artwork_<%= content.id %>" data-controller="artwork-drag-drop">
-    <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
-      <% if has_artwork? %>
-        <!-- アートワークが存在する場合 -->
-        <img src="<%= artwork_url %>"
-             alt="アートワーク"
-             class="w-full h-full object-cover transition-opacity duration-300">
-        
-        <!-- 削除ボタン -->
-        <%= form_with url: form_url,
-                      method: :delete,
-                      local: false,
-                      class: "absolute top-2 right-2" do |f| %>
-          <%= f.button type: "submit",
-                      data: { 
-                        turbo_method: :delete,
-                        turbo_confirm: "アートワークを削除しますか？"
-                      },
-                      'aria-label': '削除',
-                      class: delete_button_class do %>
-            <%= render Icon::Component.new(name: "delete") %>
-          <% end %>
-        <% end %>
-      <% else %>
+<div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden" data-controller="artwork-drag-drop">
         <!-- アートワークが存在しない場合 - ドラッグ&ドロップエリア -->
         <%= form_with model: [content, artwork],
                       url: form_url,
@@ -78,6 +55,4 @@
         <div class="hidden absolute bottom-4 left-4 right-4 bg-red-900 text-red-200 px-4 py-2 rounded-lg"
              data-artwork-drag-drop-target="errorMessage">
         </div>
-      <% end %>
-    </div>
-</turbo-frame>
+  </div>

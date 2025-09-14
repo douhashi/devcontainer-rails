@@ -18,28 +18,13 @@ RSpec.describe "artworks/_artwork.html.erb", type: :view do
   end
 
   describe "with persisted artwork" do
-    it "renders delete button as icon button" do
+    it "does not render anything when artwork exists" do
       render partial: "artworks/artwork", locals: { artwork: artwork, content: content_record }
 
-      # Check for icon button structure
-      expect(rendered).to have_css("button[type='submit'] i.fa-trash")
-
-      # Check for aria-label
-      expect(rendered).to have_css("button[aria-label='削除']")
-
-      # Check for danger variant styling
-      expect(rendered).to have_css("button.bg-red-600")
-      expect(rendered).to have_css("button.hover\\:bg-red-700")
-
-      # Check for turbo confirm
-      expect(rendered).to have_css("button[data-turbo-confirm='アートワークを削除しますか？']")
-    end
-
-    it "maintains proper button sizing" do
-      render partial: "artworks/artwork", locals: { artwork: artwork, content: content_record }
-
-      # Check for icon button class
-      expect(rendered).to have_css("button.px-4.py-2")
+      # 新しい実装では、アートワークが存在する場合は空のturbo-frameのみを表示
+      expect(rendered).to have_css("turbo-frame#artwork_#{content_record.id}")
+      expect(rendered).not_to have_css("img")
+      expect(rendered).not_to have_css("button")
     end
   end
 

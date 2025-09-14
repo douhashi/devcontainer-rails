@@ -55,7 +55,7 @@ class ArtworksController < ApplicationController
     if turbo_request?
       render_turbo_stream_remove
     else
-      redirect_to @content, notice: t("artworks.delete.success")
+      redirect_to @content, notice: t("artworks.delete.success"), status: :see_other
     end
   end
 
@@ -86,14 +86,14 @@ class ArtworksController < ApplicationController
   end
 
   def turbo_request?
-    request.headers["Accept"]&.include?("text/vnd.turbo-stream.html")
+    request.format.turbo_stream? || request.headers["Accept"]&.include?("text/vnd.turbo-stream.html")
   end
 
   def render_turbo_stream_update
     render inline: <<~HTML, content_type: "text/vnd.turbo-stream.html"
-      <turbo-stream action="replace" target="artwork_#{@content.id}">
+      <turbo-stream action="replace" target="artwork-section-#{@content.id}">
         <template>
-          #{render_to_string(ArtworkDragDrop::Component.new(content_record: @content))}
+          #{render_to_string(partial: "artworks/artwork_section", locals: { content: @content })}
         </template>
       </turbo-stream>
     HTML
@@ -101,9 +101,9 @@ class ArtworksController < ApplicationController
 
   def render_turbo_stream_remove
     render inline: <<~HTML, content_type: "text/vnd.turbo-stream.html"
-      <turbo-stream action="replace" target="artwork_#{@content.id}">
+      <turbo-stream action="replace" target="artwork-section-#{@content.id}">
         <template>
-          #{render_to_string(partial: "artworks/artwork", locals: { content: @content, artwork: @content.build_artwork })}
+          #{render_to_string(partial: "artworks/artwork_section", locals: { content: @content })}
         </template>
       </turbo-stream>
     HTML

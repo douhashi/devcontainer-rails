@@ -86,13 +86,7 @@
   <!-- 2. アートワークセクション -->
   <div class="bg-gray-800 rounded-lg p-6 mb-6 artwork-section">
     <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
-    <%= render ArtworkDragDrop::Component.new(content_record: item) %>
-
-    <% if item.artwork.present? %>
-      <div class="mt-6">
-        <%= render ArtworkVariations::GridComponent.new(artwork: item.artwork) %>
-      </div>
-    <% end %>
+    <%= render 'artworks/artwork_section', content: item %>
   </div>
 
   <!-- 3. 音楽生成リクエストセクション -->

@@ -27,8 +27,8 @@ RSpec.describe "Artwork Thumbnail Synchronous Generation", type: :system, js: tr
           expect(page).to have_content("アップロード中")
         end
 
-        # アップロード完了後の確認
-        expect(page).to have_css('img[alt="アートワーク"]', wait: 10)
+        # アップロード完了後の確認（グリッドに画像が表示される）
+        expect(page).to have_css('.artwork-variations-grid img', wait: 10)
         # 削除ボタンが表示されることを確認（アートワークが正常にアップロードされた証拠）
         expect(page).to have_button("", disabled: false) # 削除ボタン（アイコンのみ）
       end
@@ -43,8 +43,8 @@ RSpec.describe "Artwork Thumbnail Synchronous Generation", type: :system, js: tr
           attach_file "artwork[image]", file_path, make_visible: true
         end
 
-        # アップロード完了後の確認
-        expect(page).to have_css('img[alt="アートワーク"]', wait: 10)
+        # アップロード完了後の確認（グリッドに画像が表示される）
+        expect(page).to have_css('.artwork-variations-grid img', wait: 10)
         # 削除ボタンが表示されることを確認（アートワークが正常にアップロードされた証拠）
         expect(page).to have_button("", disabled: false) # 削除ボタン（アイコンのみ）
       end

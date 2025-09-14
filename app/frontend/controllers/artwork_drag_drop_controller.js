@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["dropZone", "fileInput", "form", "placeholder", "loading", "errorMessage", "thumbnailProgress"]
+  static targets = ["dropZone", "fileInput", "form", "placeholder", "loading", "errorMessage"]
   
   connect() {
     this.preventDefaults = this.preventDefaults.bind(this)
@@ -84,12 +84,6 @@ export default class extends Controller {
     // ローディング表示
     this.showLoading()
 
-    // 画像サイズをチェックしてサムネイル生成対象か判定
-    const isEligibleForThumbnail = await this.checkImageDimensions(file)
-    if (isEligibleForThumbnail) {
-      this.showThumbnailProgress()
-    }
-
     const formData = new FormData()
     formData.append('artwork[image]', file)
 
@@ -116,29 +110,9 @@ export default class extends Controller {
       console.error('Upload error:', error)
       this.showError(error.message || 'アップロードに失敗しました')
       this.hideLoading()
-      this.hideThumbnailProgress()
     }
   }
 
-  async checkImageDimensions(file) {
-    return new Promise((resolve) => {
-      const img = new Image()
-      const url = URL.createObjectURL(file)
-
-      img.onload = () => {
-        URL.revokeObjectURL(url)
-        // 1920x1080の場合のみサムネイル生成対象
-        resolve(img.width === 1920 && img.height === 1080)
-      }
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url)
-        resolve(false)
-      }
-
-      img.src = url
-    })
-  }
 
   showLoading() {
     if (this.hasPlaceholderTarget) {
@@ -183,26 +157,6 @@ export default class extends Controller {
     this.dropZoneTarget.classList.remove('border-blue-500', 'bg-gray-750')
   }
 
-  showThumbnailProgress() {
-    if (this.hasThumbnailProgressTarget) {
-      this.thumbnailProgressTarget.classList.remove('hidden')
-      this.thumbnailProgressTarget.innerHTML = `
-        <div class="flex items-center space-x-2">
-          <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span class="text-sm text-gray-600">YouTube用サムネイルを生成中...</span>
-        </div>
-      `
-    }
-  }
-
-  hideThumbnailProgress() {
-    if (this.hasThumbnailProgressTarget) {
-      this.thumbnailProgressTarget.classList.add('hidden')
-    }
-  }
 
   getCSRFToken() {
     const meta = document.querySelector('meta[name="csrf-token"]')

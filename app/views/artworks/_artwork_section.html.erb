@@ -1,0 +1,29 @@
+<div id="artwork-section-<%= content.id %>">
+  <% if content.artwork.present? %>
+    <!-- アートワークが存在する場合 -->
+    <div class="artwork-management-container">
+      <!-- グリッドレイアウト -->
+      <%= render ArtworkVariations::GridComponent.new(artwork: content.artwork) %>
+
+      <!-- 削除ボタン（グリッドの兄弟要素） -->
+      <div class="mt-4 flex justify-end">
+        <%= button_to content_artwork_path(content, content.artwork),
+                      method: :delete,
+                      data: {
+                        turbo_method: :delete,
+                        turbo_confirm: "アートワークを削除しますか？"
+                      },
+                      'aria-label': 'アートワークを削除',
+                      class: "inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" do %>
+          <%= render Icon::Component.new(name: "delete") %>
+          <span class="ml-2">アートワークを削除</span>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <!-- アートワークが存在しない場合 -->
+    <turbo-frame id="artwork_<%= content.id %>">
+      <%= render ArtworkDragDrop::Component.new(content_record: content) %>
+    </turbo-frame>
+  <% end %>
+</div>
