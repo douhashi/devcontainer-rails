@@ -58,24 +58,45 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
   describe "artwork deletion", js: true, playwright: true do
     let!(:artwork) { create(:artwork, content: content) }
 
-    it "deletes artwork and removes YouTube thumbnail status", skip: "Turbo Stream削除の動作確認は手動テストで実施" do
+    it "deletes artwork via delete button and shows upload form" do
       visit content_path(content)
 
       # Confirm artwork is displayed
       expect(page).to have_css(".artwork-variations-grid")
 
-      # Delete the artwork
+      # Ensure delete button is present
+      expect(page).to have_css('button[aria-label="アートワークを削除"]')
+
+      # Delete the artwork with confirmation
       accept_confirm do
         find('button[aria-label="アートワークを削除"]').click
       end
 
-      # Turbo Streamの処理を待つ
-      sleep 1
-
-      # Wait for deletion to complete
-      within("#artwork-section-#{content.id}") do
-        expect(page).to have_text("画像をドラッグ&ドロップ", wait: 10)
+      # Wait for Turbo Stream to process the deletion
+      # The artwork-section should be replaced with the upload form
+      within("#artwork-section-#{content.id}", wait: 10) do
+        expect(page).to have_text("画像をドラッグ&ドロップ")
+        expect(page).not_to have_css(".artwork-variations-grid")
       end
+
+      # Verify artwork is actually deleted from database
+      expect(content.reload.artwork).to be_nil
+    end
+
+    it "shows confirmation dialog when delete button is clicked" do
+      visit content_path(content)
+
+      # Confirm artwork is displayed
+      expect(page).to have_css(".artwork-variations-grid")
+
+      # Click delete button but dismiss the confirmation
+      dismiss_confirm do
+        find('button[aria-label="アートワークを削除"]').click
+      end
+
+      # Artwork should still be present
+      expect(page).to have_css(".artwork-variations-grid")
+      expect(content.reload.artwork).to be_present
     end
   end
 

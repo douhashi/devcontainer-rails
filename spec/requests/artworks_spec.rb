@@ -87,24 +87,54 @@ RSpec.describe "Artworks", type: :request do
   describe "DELETE /contents/:content_id/artworks/:id" do
     let!(:artwork) { create(:artwork, content: content) }
 
-    it "destroys artwork and responds with correct format (HTML/Turbo Stream)" do
-      # HTML format
-      expect {
-        delete content_artwork_path(content, artwork)
-      }.to change(Artwork, :count).by(-1)
-      expect(response).to redirect_to(content)
-      follow_redirect!
-      expect(response.body).to include(I18n.t('artworks.delete.success'))
+    context "when deletion succeeds" do
+      it "destroys artwork and responds with correct format (HTML/Turbo Stream)" do
+        # HTML format
+        expect {
+          delete content_artwork_path(content, artwork)
+        }.to change(Artwork, :count).by(-1)
+        expect(response).to redirect_to(content)
+        follow_redirect!
+        expect(response.body).to include(I18n.t('artworks.delete.success'))
 
-      # Turbo Stream format
-      new_artwork = create(:artwork, content: content)
-      expect {
-        delete content_artwork_path(content, new_artwork),
+        # Turbo Stream format
+        new_artwork = create(:artwork, content: content)
+        expect {
+          delete content_artwork_path(content, new_artwork),
+                 headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        }.to change(Artwork, :count).by(-1)
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include("text/vnd.turbo-stream.html")
+        expect(response.body).to include('turbo-stream')
+        expect(response.body).to include('action="replace"')
+        expect(response.body).to include("artwork-section-#{content.id}")
+      end
+
+      it "includes flash message in Turbo Stream response" do
+        delete content_artwork_path(content, artwork),
                headers: { "Accept" => "text/vnd.turbo-stream.html" }
-      }.to change(Artwork, :count).by(-1)
-      expect(response).to have_http_status(:ok)
-      expect(response.content_type).to include("text/vnd.turbo-stream.html")
-      expect(response.body).to include('turbo-stream')
+
+        expect(response).to have_http_status(:ok)
+        # Flash message should be set in the controller
+        expect(flash[:notice]).to eq(I18n.t('artworks.delete.success'))
+      end
+    end
+
+    context "when artwork does not exist" do
+      it "handles missing artwork gracefully" do
+        # Delete the artwork first to simulate not found
+        artwork.destroy
+
+        # HTML format
+        delete content_artwork_path(content, artwork.id)
+        expect(response).to redirect_to(content)
+
+        # Turbo Stream format
+        delete content_artwork_path(content, artwork.id),
+               headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include("text/vnd.turbo-stream.html")
+      end
     end
   end
 end

@@ -50,12 +50,21 @@ class ArtworksController < ApplicationController
   end
 
   def destroy
-    @artwork&.destroy
-
-    if turbo_request?
-      render_turbo_stream_remove
+    if @artwork&.destroy
+      if turbo_request?
+        flash.now[:notice] = t("artworks.delete.success")
+        render_turbo_stream_remove
+      else
+        redirect_to @content, notice: t("artworks.delete.success"), status: :see_other
+      end
     else
-      redirect_to @content, notice: t("artworks.delete.success"), status: :see_other
+      error_message = t("artworks.delete.failure")
+      if turbo_request?
+        flash.now[:alert] = error_message
+        render_turbo_stream_remove
+      else
+        redirect_to @content, alert: error_message, status: :see_other
+      end
     end
   end
 
@@ -100,6 +109,7 @@ class ArtworksController < ApplicationController
   end
 
   def render_turbo_stream_remove
+    @content.reload  # Ensure content is reloaded after artwork deletion
     render inline: <<~HTML, content_type: "text/vnd.turbo-stream.html"
       <turbo-stream action="replace" target="artwork-section-#{@content.id}">
         <template>
