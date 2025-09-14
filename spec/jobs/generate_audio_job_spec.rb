@@ -27,15 +27,14 @@ RSpec.describe GenerateAudioJob do
         allow(concatenation_service).to receive(:concatenate).and_return('/tmp/output.mp3')
         allow(analysis_service).to receive(:analyze_duration).and_return(600)
 
-        # Mock file operations and Shrine validation
-        audio_file = Tempfile.new([ 'audio', '.mp3' ])
-        audio_file.write('fake audio data')
-        audio_file.rewind
+        # Use fixture file instead of Tempfile
+        fixture_path = Rails.root.join('spec/fixtures/files/audio/sample.mp3')
 
         allow(File).to receive(:open).and_call_original
         allow(File).to receive(:open).with('/tmp/output.mp3', 'rb') do |&block|
-          block.call(audio_file) if block
-          audio_file
+          File.open(fixture_path, 'rb') do |f|
+            block.call(f) if block
+          end
         end
         allow(File).to receive(:unlink)
 
@@ -140,15 +139,14 @@ RSpec.describe GenerateAudioJob do
         allow(concatenation_service).to receive(:concatenate).and_return('/tmp/output.mp3')
         allow(analysis_service).to receive(:analyze_duration).and_return(600)
 
-        # Mock file operations and Shrine validation
-        audio_file = Tempfile.new([ 'audio', '.mp3' ])
-        audio_file.write('fake audio data')
-        audio_file.rewind
+        # Use fixture file instead of Tempfile
+        fixture_path = Rails.root.join('spec/fixtures/files/audio/sample.mp3')
 
         allow(File).to receive(:open).and_call_original
         allow(File).to receive(:open).with('/tmp/output.mp3', 'rb') do |&block|
-          block.call(audio_file) if block
-          audio_file
+          File.open(fixture_path, 'rb') do |f|
+            block.call(f) if block
+          end
         end
         allow(File).to receive(:unlink)
 

@@ -8,10 +8,6 @@ RSpec.describe "PlaybackController", type: :system, js: true, playwright: true d
   # PlaybackController は JavaScriptモジュールとして実装されており、
   # CI環境でのPlaywrightテスト実行時に不安定になる場合があるため、
   # CI環境では一時的にスキップします。
-  #
-  # PlaybackControllerの機能は以下の統合テストで十分に検証されています：
-  # - spec/system/floating_audio_player_spec.rb
-  # - spec/system/audio_play_button_integration_spec.rb
 
   describe "PlaybackController 機能確認", skip: "CI環境での不安定動作により一時スキップ" do
     it "統合テストで動作確認済み" do

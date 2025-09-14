@@ -2,38 +2,14 @@ FactoryBot.define do
   factory :artwork do
     association :content
 
-    trait :with_image do
-      after(:build) do |artwork|
-        # Use TestImageHelper to create a proper test image
-        tempfile = Tempfile.new([ 'test', '.jpg' ])
-
-        # Include TestImageHelper module methods
-        helper = Object.new.extend(TestImageHelper)
-        helper.create_test_image_with_size(tempfile.path, 800, 600)
-
-        uploaded_file = Rack::Test::UploadedFile.new(
-          tempfile,
-          'image/jpeg',
-          original_filename: 'valid_image.jpg'
-        )
-        artwork.image = uploaded_file
-      end
-    end
-
+    # デフォルトでFHD画像を設定（正常系テスト用）
     after(:build) do |artwork|
-      # Only set default image if no image is already set
       if artwork.image.blank?
-        # Use TestImageHelper to create a proper test image
-        tempfile = Tempfile.new([ 'test', '.jpg' ])
-
-        # Include TestImageHelper module methods
-        helper = Object.new.extend(TestImageHelper)
-        helper.create_test_image_with_size(tempfile.path, 800, 600)
+        fixture_path = Rails.root.join('spec', 'fixtures', 'files', 'images', 'fhd_placeholder.jpg')
 
         uploaded_file = Rack::Test::UploadedFile.new(
-          tempfile,
-          'image/jpeg',
-          original_filename: 'valid_image.jpg'
+          fixture_path,
+          'image/jpeg'
         )
         artwork.image = uploaded_file
       end

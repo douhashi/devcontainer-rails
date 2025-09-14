@@ -3,7 +3,7 @@ require "fileutils"
 
 RSpec.describe DerivativeProcessingJob, type: :job do
   let(:content) { create(:content) }
-  let(:image_file) { fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg') }
+  let(:image_file) { fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg') }
   let(:artwork) { create(:artwork, content: content, image: image_file) }
 
   before do
@@ -20,7 +20,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
 
         # Create artwork directly without triggering callbacks
-        test_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        test_artwork = create(:artwork, content: content, image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg'))
 
         # Re-enable callbacks
         Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
@@ -32,7 +32,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Mock the generate method to actually create a test thumbnail file
         allow(service).to receive(:generate) do |args|
           # Copy the HD placeholder as the generated thumbnail
-          FileUtils.cp('spec/fixtures/files/hd_placeholder.jpg', args[:output_path])
+          FileUtils.cp('spec/fixtures/files/images/hd_placeholder.jpg', args[:output_path])
           {
             input_size: { width: 1920, height: 1080 },
             output_size: { width: 1280, height: 720 },
@@ -57,7 +57,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
 
         # Create artwork directly without triggering callbacks
-        test_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        test_artwork = create(:artwork, content: content, image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg'))
 
         # Re-enable callbacks
         Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
@@ -69,7 +69,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Mock the generate method to actually create a test thumbnail file
         allow(service).to receive(:generate) do |args|
           # Copy the HD placeholder as the generated thumbnail
-          FileUtils.cp('spec/fixtures/files/hd_placeholder.jpg', args[:output_path])
+          FileUtils.cp('spec/fixtures/files/images/hd_placeholder.jpg', args[:output_path])
           {
             input_size: { width: 1920, height: 1080 },
             output_size: { width: 1280, height: 720 },
@@ -92,7 +92,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Set up the artwork to have a thumbnail
         attacher = artwork.image_attacher
         # Upload the HD placeholder as the existing thumbnail
-        File.open('spec/fixtures/files/hd_placeholder.jpg') do |file|
+        File.open('spec/fixtures/files/images/hd_placeholder.jpg') do |file|
           thumbnail = attacher.upload(file, :store)
           attacher.set_derivatives(youtube_thumbnail: thumbnail)
         end
@@ -107,7 +107,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
 
       it "skips if artwork is not eligible" do
         # Create artwork with non-eligible dimensions
-        non_eligible_image = fixture_file_upload('spec/fixtures/files/hd_placeholder.jpg', 'image/jpeg')
+        non_eligible_image = fixture_file_upload('images/hd_placeholder.jpg', 'image/jpeg')
         non_eligible_artwork = create(:artwork, content: content, image: non_eligible_image)
 
         expect(Rails.logger).to receive(:info).with("Starting derivative processing for artwork #{non_eligible_artwork.id}")
@@ -149,7 +149,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Create a fresh artwork to ensure it's eligible
         # Use skip_callback to prevent automatic job scheduling
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
-        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg'))
         Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
 
         # Clear any enqueued jobs
@@ -186,7 +186,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Create a fresh artwork to ensure it's eligible
         # Use skip_callback to prevent automatic job scheduling
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
-        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg'))
         Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
 
         # Clear any enqueued jobs
@@ -215,7 +215,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Create a fresh artwork to ensure it's eligible
         # Use skip_callback to prevent automatic job scheduling
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
-        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg'))
         Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
 
         # Clear any enqueued jobs
@@ -243,7 +243,7 @@ RSpec.describe DerivativeProcessingJob, type: :job do
         # Create a fresh artwork to ensure it's eligible
         # Use skip_callback to prevent automatic job scheduling
         Artwork.skip_callback(:commit, :after, :schedule_thumbnail_generation)
-        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('spec/fixtures/files/fhd_placeholder.jpg', 'image/jpeg'))
+        fresh_artwork = create(:artwork, content: content, image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg'))
         Artwork.set_callback(:commit, :after, :schedule_thumbnail_generation)
 
         # Clear any enqueued jobs

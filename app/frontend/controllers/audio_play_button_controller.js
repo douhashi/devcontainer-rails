@@ -20,7 +20,7 @@ export default class extends Controller {
 
     const audioData = this.buildAudioData()
     
-    // Dispatch unified custom event for floating audio player
+    // Dispatch unified custom event for audio player
     const customEvent = new CustomEvent("audio:play", {
       detail: audioData,
       bubbles: true

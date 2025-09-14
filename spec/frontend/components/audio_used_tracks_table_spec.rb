@@ -10,7 +10,7 @@ RSpec.describe AudioUsedTracksTable::Component, type: :component do
 
   describe "#play_button_component" do
     context "when track has completed status and audio" do
-      let(:track) { create(:track, status: :completed, audio: fixture_file_upload("sample.mp3", "audio/mp3")) }
+      let(:track) { create(:track, status: :completed, audio: fixture_file_upload("audio/sample.mp3", "audio/mp3")) }
 
       it "returns AudioPlayButton component" do
         button = component.send(:play_button_component, track)
@@ -69,8 +69,8 @@ RSpec.describe AudioUsedTracksTable::Component, type: :component do
     before { render_inline(component) }
 
     context "with tracks having audio" do
-      let(:track1) { create(:track, status: :completed, audio: fixture_file_upload("sample.mp3", "audio/mp3"), metadata: { "music_title" => "Test Track" }) }
-      let(:track2) { create(:track, status: :completed, audio: fixture_file_upload("sample.mp3", "audio/mp3")) }
+      let(:track1) { create(:track, status: :completed, audio: fixture_file_upload("audio/sample.mp3", "audio/mp3"), metadata: { "music_title" => "Test Track" }) }
+      let(:track2) { create(:track, status: :completed, audio: fixture_file_upload("audio/sample.mp3", "audio/mp3")) }
       let(:track_ids) { [ track1.id, track2.id ] }
 
       it "renders AudioPlayButton components" do

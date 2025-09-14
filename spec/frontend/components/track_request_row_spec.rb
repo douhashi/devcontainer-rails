@@ -38,7 +38,7 @@ RSpec.describe TrackRequestRow::Component, type: :component do
     let(:track) do
       create(:track,
         status: :completed,
-        audio: fixture_file_upload("sample.mp3", "audio/mp3"),
+        audio: fixture_file_upload("audio/sample.mp3", "audio/mp3"),
         metadata: { "music_title" => "Completed Track" }
       )
     end

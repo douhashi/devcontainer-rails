@@ -5,7 +5,7 @@ RSpec.describe AudioAnalysisService do
     let(:service) { AudioAnalysisService.new }
 
     context 'with valid audio file' do
-      let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
+      let(:audio_path) { Rails.root.join('spec/fixtures/files/audio/sample.mp3') }
 
       before do
         # Ensure test fixture exists
@@ -57,7 +57,7 @@ RSpec.describe AudioAnalysisService do
     end
 
     context 'with ffprobe command failure' do
-      let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
+      let(:audio_path) { Rails.root.join('spec/fixtures/files/audio/sample.mp3') }
 
       before do
         # Ensure test fixture exists
@@ -82,7 +82,7 @@ RSpec.describe AudioAnalysisService do
     end
 
     context 'with invalid ffprobe output' do
-      let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
+      let(:audio_path) { Rails.root.join('spec/fixtures/files/audio/sample.mp3') }
 
       before do
         # Ensure test fixture exists
@@ -109,7 +109,7 @@ RSpec.describe AudioAnalysisService do
 
   describe '#execute_ffprobe' do
     let(:service) { AudioAnalysisService.new }
-    let(:audio_path) { Rails.root.join('spec/fixtures/files/sample.mp3') }
+    let(:audio_path) { Rails.root.join('spec/fixtures/files/audio/sample.mp3') }
 
     it 'executes ffprobe command with correct arguments' do
       expected_command = [

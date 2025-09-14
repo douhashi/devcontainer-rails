@@ -75,7 +75,7 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
         # Mock external file download operation
         allow(kie_service).to receive(:download_audio) do |url, path|
           # Copy sample MP3 file to the expected path for testing
-          FileUtils.cp(Rails.root.join('spec/fixtures/files/sample.mp3'), path)
+          FileUtils.cp(Rails.root.join('spec/fixtures/files/audio/sample.mp3'), path)
           path
         end
       end
@@ -217,7 +217,7 @@ RSpec.describe GenerateMusicGenerationJob, type: :job do
         allow(kie_service).to receive(:extract_all_music_data).and_return(music_data)
         # Mock external file download operation
         allow(kie_service).to receive(:download_audio) do |url, path|
-          FileUtils.cp(Rails.root.join('spec/fixtures/files/sample.mp3'), path)
+          FileUtils.cp(Rails.root.join('spec/fixtures/files/audio/sample.mp3'), path)
           path
         end
       end

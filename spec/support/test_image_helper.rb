@@ -9,14 +9,14 @@ module TestImageHelper
     # Use existing valid images based on dimensions
     source_image = case [ width, height ]
     when [ 1920, 1080 ]
-                     Rails.root.join('spec/fixtures/files/fhd_placeholder.jpg')
+                     Rails.root.join('spec/fixtures/files/images/fhd_placeholder.jpg')
     when [ 1280, 720 ]
-                     Rails.root.join('spec/fixtures/files/hd_placeholder.jpg')
-    when [ 800, 600 ]
-                     Rails.root.join('spec/fixtures/files/small_placeholder.jpg')
+                     Rails.root.join('spec/fixtures/files/images/hd_placeholder.jpg')
+    when [ 640, 480 ]
+                     Rails.root.join('spec/fixtures/files/images/sd_placeholder.jpg')
     else
-                     # Default to small image for other sizes
-                     Rails.root.join('spec/fixtures/files/small_placeholder.jpg')
+                     # Default to SD image for other sizes
+                     Rails.root.join('spec/fixtures/files/images/sd_placeholder.jpg')
     end
 
     # Copy the source image to destination

@@ -15,7 +15,7 @@ RSpec.describe "AudioUsedTracksTable", type: :system, js: true, playwright: true
       let!(:audio) do
         # Mock audio file for first track
         track_with_audio.audio = Rack::Test::UploadedFile.new(
-          Rails.root.join("spec/fixtures/files/sample.mp3"),
+          Rails.root.join("spec/fixtures/files/audio/sample.mp3"),
           "audio/mpeg"
         )
         track_with_audio.save!

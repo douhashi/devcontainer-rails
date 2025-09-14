@@ -83,7 +83,7 @@ RSpec.describe AudioGenerationButton::Component, type: :component do
     context 'when prerequisites are met' do
       before do
         # Create an artwork instead of attaching a file
-        artwork = create(:artwork, :with_image)
+        artwork = create(:artwork)
         content.artwork = artwork
         content.save!
         create_list(:track, 2, content: content, status: :completed, duration_sec: 180)

@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe "Artworks", type: :request do
   let(:user) { create(:user) }
   let(:content) { create(:content) }
-  let(:valid_attributes) { { artwork: { image: fixture_file_upload('spec/fixtures/test_image.jpg', 'image/jpeg') } } }
+  let(:valid_attributes) { { artwork: { image: fixture_file_upload('images/fhd_placeholder.jpg', 'image/jpeg') } } }
   let(:invalid_attributes) { { artwork: { image: nil } } }
 
   before do
@@ -60,7 +60,7 @@ RSpec.describe "Artworks", type: :request do
 
   describe "PATCH /contents/:content_id/artworks/:id" do
     let!(:artwork) { create(:artwork, content: content) }
-    let(:new_image) { fixture_file_upload('spec/fixtures/new_test_image.jpg', 'image/jpeg') }
+    let(:new_image) { fixture_file_upload('images/sd_placeholder.jpg', 'image/jpeg') }
     let(:update_attributes) { { artwork: { image: new_image } } }
 
     it "updates artwork and responds with correct format (HTML/Turbo Stream)" do

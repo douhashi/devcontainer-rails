@@ -16,14 +16,12 @@ import StatusFilterController from '../controllers/status_filter_controller'
 import SingleTrackGenerationController from '../controllers/single_track_generation_controller'
 import AudioPlayerController from '../controllers/audio_player_controller'
 import ArtworkDragDropController from '../controllers/artwork_drag_drop_controller'
-import FloatingAudioPlayerController from '../controllers/floating_audio_player_controller'
 import AudioPlayButtonController from '../controllers/audio_play_button_controller'
 import ToastController from '../controllers/toast_controller'
 import AudioGenerationController from '../controllers/audio_generation_controller'
 import UserDropdownController from '../controllers/user_dropdown_controller'
 
 // Import global store and audio state management
-import '../stores/floating_player_store'
 import { AudioStateManager } from '../lib/audio_state_manager'
 
 // Initialize AudioStateManager singleton
@@ -44,7 +42,6 @@ application.register('status-filter', StatusFilterController)
 application.register('single-track-generation', SingleTrackGenerationController)
 application.register('audio-player', AudioPlayerController)
 application.register('artwork-drag-drop', ArtworkDragDropController)
-application.register('floating-audio-player', FloatingAudioPlayerController)
 application.register('audio-play-button', AudioPlayButtonController)
 application.register('toast', ToastController)
 application.register('audio-generation', AudioGenerationController)

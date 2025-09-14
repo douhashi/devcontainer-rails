@@ -6,14 +6,12 @@ RSpec.describe "Artwork Gallery", type: :system, js: true do
   let(:user) { create(:user) }
   let(:content) { create(:content) }
   let!(:artwork) do
-    # FHD画像（1920x1080）を設定してYouTubeサムネイル対象にする
-    tempfile = Tempfile.new([ 'test', '.jpg' ])
-    create_test_fhd_image(tempfile.path)
+    # FHD画像（1920x1080）のfixtureを使用してYouTubeサムネイル対象にする
+    fixture_path = Rails.root.join('spec/fixtures/files/images/fhd_placeholder.jpg')
 
     uploaded_file = Rack::Test::UploadedFile.new(
-      tempfile,
-      'image/jpeg',
-      original_filename: 'fhd_image.jpg'
+      fixture_path,
+      'image/jpeg'
     )
 
     create(:artwork, content: content, image: uploaded_file)
@@ -27,11 +25,19 @@ RSpec.describe "Artwork Gallery", type: :system, js: true do
     click_button 'ログイン'
 
     # YouTubeサムネイルのderivativeを追加
-    thumb_tempfile = Tempfile.new([ 'youtube_thumb', '.jpg' ])
-    create_test_hd_image(thumb_tempfile.path)
+    thumb_fixture = Rails.root.join('spec/fixtures/files/images/hd_placeholder.jpg')
+
+    # Tempfileを使用してコピーを作成（元ファイルが削除されるのを防ぐ）
+    require 'tempfile'
+    temp_file = Tempfile.new([ 'youtube_thumb', '.jpg' ])
+    FileUtils.cp(thumb_fixture, temp_file.path)
 
     # derivativesをモック
-    artwork.image_attacher.add_derivative(:youtube_thumbnail, thumb_tempfile)
+    File.open(temp_file.path, 'rb') do |f|
+      artwork.image_attacher.add_derivative(:youtube_thumbnail, f)
+    end
+    temp_file.close
+    temp_file.unlink
     artwork.image_attacher.write
     artwork.update!(
       thumbnail_generation_status: :completed,

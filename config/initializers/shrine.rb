@@ -25,6 +25,10 @@ if Rails.env.test?
       filename = ""
     end
 
+    # Skip dimension extraction for audio/video files
+    extension = File.extname(filename).downcase
+    return nil if [ ".mp3", ".mp4", ".wav", ".txt" ].include?(extension)
+
     case filename
     when /fhd_placeholder/, /sample\.jpg/
       [ 1920, 1080 ]
@@ -42,7 +46,23 @@ if Rails.env.test?
     end
   end
 else
-  Shrine.plugin :store_dimensions, analyzer: :ruby_vips
+  Shrine.plugin :store_dimensions, analyzer: ->(io, analyzers) do
+    # Get the filename to check extension
+    if io.respond_to?(:original_filename)
+      filename = io.original_filename.to_s
+    elsif io.respond_to?(:path)
+      filename = File.basename(io.path.to_s)
+    else
+      filename = ""
+    end
+
+    # Skip dimension extraction for audio/video files
+    extension = File.extname(filename).downcase
+    return nil if [ ".mp3", ".mp4", ".wav", ".txt" ].include?(extension)
+
+    # Use ruby_vips for image files
+    analyzers[:ruby_vips].call(io) rescue nil
+  end
 end
 Shrine.plugin :metadata_attributes
 

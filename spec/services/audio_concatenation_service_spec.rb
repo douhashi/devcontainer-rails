@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'tempfile'
 
 RSpec.describe AudioConcatenationService do
   let(:content) { create(:content) }
@@ -8,26 +7,16 @@ RSpec.describe AudioConcatenationService do
   let(:tracks) { [ track1, track2 ] }
 
   let(:service) { described_class.new(tracks) }
+  let(:fixture_path) { Rails.root.join('spec/fixtures/files/audio/sample.mp3') }
 
   before do
-    # Create temporary audio files for testing
-    @temp_files = []
+    # Use fixture file for testing
     tracks.each do |track|
-      temp_file = Tempfile.new([ 'test_audio', '.mp3' ])
-      temp_file.write("fake audio content for testing")
-      temp_file.close
-
       # Mock the track's audio file path using Shrine API
       allow(track).to receive_message_chain(:audio, :id).and_return("mock_audio_id")
-      allow(track).to receive_message_chain(:audio, :storage, :path).with("mock_audio_id").and_return(Pathname.new(temp_file.path))
+      allow(track).to receive_message_chain(:audio, :storage, :path).with("mock_audio_id").and_return(Pathname.new(fixture_path))
       allow(track).to receive_message_chain(:audio, :exists?).and_return(true)
-
-      @temp_files << temp_file
     end
-  end
-
-  after do
-    @temp_files.each(&:unlink)
   end
 
   describe 'initialization' do
