@@ -1,7 +1,7 @@
 <div
   id="<%= player_id %>"
   <%= raw stimulus_data.map { |k, v| "data-#{k.to_s.dasherize}=\"#{html_escape(v)}\"" }.join(" ") %>
-  class="inline-flex items-center gap-2 px-2 <%= player_size_class %> bg-gray-800 rounded-lg"
+  class="inline-flex flex-nowrap items-center gap-2 px-2 min-w-0 <%= player_size_class %> bg-gray-800 rounded-lg"
 >
   <media-controller
     audio
@@ -15,19 +15,19 @@
 
     <media-play-button
       part="button"
-      class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+      class="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-white transition-colors"
     >
       <span slot="play">
-        <%= render Icon::Component.new(name: :play, size: :sm, color: "text-white") %>
+        <%= render Icon::Component.new(name: :play, size: :sm) %>
       </span>
       <span slot="pause">
-        <%= render Icon::Component.new(name: :pause, size: :sm, color: "text-white") %>
+        <%= render Icon::Component.new(name: :pause, size: :sm) %>
       </span>
     </media-play-button>
 
     <media-time-range
       part="time-range"
-      class="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden"
+      class="flex-1 h-1 rounded-full overflow-hidden"
     >
       <div slot="preview" class="hidden"></div>
     </media-time-range>
@@ -39,7 +39,7 @@
 
     <media-volume-range
       part="volume-range"
-      class="w-16 h-1 bg-gray-700 rounded-full overflow-hidden"
+      class="w-16 h-1 rounded-full overflow-hidden"
     >
       <div slot="preview" class="hidden"></div>
     </media-volume-range>

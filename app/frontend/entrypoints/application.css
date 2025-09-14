@@ -57,14 +57,6 @@ media-control-bar {
   background-color: transparent;
 }
 
-media-play-button {
-  @apply transition-colors duration-200;
-}
-
-media-play-button:hover {
-  @apply bg-gray-700;
-}
-
 media-time-range {
   @apply h-1;
 }

@@ -200,6 +200,45 @@ RSpec.describe InlineAudioPlayer::Component, type: :component do
 
         expect(rendered.css("media-controller").count).to eq(1)
       end
+
+      describe "UI design consistency" do
+        it "does not have dark background on time range slider" do
+          rendered = render_inline(described_class.new(track: track))
+          time_range = rendered.css("media-time-range").first
+
+          expect(time_range["class"]).not_to include("bg-gray-700")
+        end
+
+        it "does not have dark background on volume range slider" do
+          rendered = render_inline(described_class.new(track: track))
+          volume_range = rendered.css("media-volume-range").first
+
+          expect(volume_range["class"]).not_to include("bg-gray-700")
+        end
+
+        it "has consistent play button styling with other controls" do
+          rendered = render_inline(described_class.new(track: track))
+          play_button = rendered.css("media-play-button").first
+
+          # Should not have blue background
+          expect(play_button["class"]).not_to include("bg-blue-500")
+          expect(play_button["class"]).not_to include("bg-blue-600")
+
+          # Should have gray text color like other controls
+          expect(play_button["class"]).to include("text-gray-400")
+          expect(play_button["class"]).to include("hover:text-white")
+        end
+
+        it "has responsive layout classes for preventing wrapping" do
+          rendered = render_inline(described_class.new(track: track))
+          container = rendered.css("div").first
+
+          # Should have flex-nowrap to prevent wrapping
+          expect(container["class"]).to include("flex-nowrap")
+          # Should have min-w-0 for proper flex shrinking
+          expect(container["class"]).to include("min-w-0")
+        end
+      end
     end
 
     context "when render? is false" do
