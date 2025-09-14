@@ -112,7 +112,7 @@ class ArtworksController < ApplicationController
   def render_turbo_stream_error(errors = nil, status: :unprocessable_content)
     error_messages = errors ? [ errors ] : @artwork.errors.full_messages
     render inline: <<~HTML, content_type: "text/vnd.turbo-stream.html", status: status
-      <turbo-stream action="replace" target="artwork_#{@content.id}">
+      <turbo-stream action="replace" target="artwork-section-#{@content.id}">
         <template>
           #{render_to_string(partial: "artworks/error", locals: { content: @content, artwork: @artwork, errors: error_messages })}
         </template>

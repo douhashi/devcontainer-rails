@@ -1,18 +1,20 @@
-<turbo-frame id="artwork_<%= content.id %>">
-  <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
-    <!-- エラーメッセージ -->
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div class="bg-red-900 text-red-200 px-4 py-2 rounded-lg max-w-md">
-        <p class="font-semibold mb-2">エラーが発生しました</p>
-        <ul class="list-disc list-inside">
-          <% errors.each do |error| %>
-            <li><%= error %></li>
-          <% end %>
-        </ul>
+<div id="artwork-section-<%= content.id %>">
+  <turbo-frame id="artwork-section-<%= content.id %>">
+    <div class="relative aspect-[16/9] bg-gray-900 rounded-lg overflow-hidden">
+      <!-- エラーメッセージ -->
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="bg-red-900 text-red-200 px-4 py-2 rounded-lg max-w-md">
+          <p class="font-semibold mb-2">エラーが発生しました</p>
+          <ul class="list-disc list-inside">
+            <% errors.each do |error| %>
+              <li><%= error %></li>
+            <% end %>
+          </ul>
+        </div>
       </div>
-    </div>
 
-    <!-- ArtworkDragDrop::Componentを再表示 -->
-    <%= render ArtworkDragDrop::Component.new(content_record: content) %>
-  </div>
-</turbo-frame>
+      <!-- ArtworkDragDrop::Componentを再表示 -->
+      <%= render ArtworkDragDrop::Component.new(content_record: content) %>
+    </div>
+  </turbo-frame>
+</div>

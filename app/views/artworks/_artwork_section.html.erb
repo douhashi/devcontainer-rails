@@ -22,7 +22,7 @@
     </div>
   <% else %>
     <!-- アートワークが存在しない場合 -->
-    <turbo-frame id="artwork_<%= content.id %>">
+    <turbo-frame id="artwork-section-<%= content.id %>">
       <%= render ArtworkDragDrop::Component.new(content_record: content) %>
     </turbo-frame>
   <% end %>

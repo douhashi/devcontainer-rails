@@ -25,7 +25,7 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
         visit content_path(content)
 
         # Upload the FHD image
-        within("turbo-frame#artwork_#{content.id}") do
+        within("turbo-frame#artwork-section-#{content.id}") do
           attach_file "artwork[image]", Rails.root.join("tmp/test_fhd_artwork.jpg"), visible: false
         end
 
@@ -42,7 +42,7 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
         visit content_path(content)
 
         # Upload the small image
-        within("turbo-frame#artwork_#{content.id}") do
+        within("turbo-frame#artwork-section-#{content.id}") do
           attach_file "artwork[image]", Rails.root.join("tmp/test_small_artwork.jpg"), visible: false
         end
 
@@ -91,7 +91,7 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
         # Try to attach the invalid file
         # Note: Browser validation should prevent non-image files
         # The actual validation happens client-side in the input accept attribute
-        within("turbo-frame#artwork_#{content.id}") do
+        within("turbo-frame#artwork-section-#{content.id}") do
           file_input = find('input[type="file"]', visible: false)
 
           # Check that the file input has proper accept attribute
