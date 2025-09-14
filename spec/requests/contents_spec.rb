@@ -188,6 +188,33 @@ RSpec.describe "Contents", type: :request do
       end
     end
 
+    context "with artwork variations" do
+      let!(:artwork) { create(:artwork, content: content) }
+
+      it "displays artwork variations grid" do
+        get content_path(content)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("artwork-variations-grid")
+        expect(response.body).to include("オリジナル")
+      end
+
+      context "with YouTube thumbnail" do
+        before do
+          allow_any_instance_of(Artwork).to receive(:has_youtube_thumbnail?).and_return(true)
+          allow_any_instance_of(Artwork).to receive(:youtube_thumbnail_url).and_return("/youtube_thumb.jpg")
+        end
+
+        it "displays both original and YouTube thumbnail" do
+          get content_path(content)
+
+          expect(response).to have_http_status(:success)
+          expect(response.body).to include("オリジナル")
+          expect(response.body).to include("YouTube用")
+        end
+      end
+    end
+
     context "with selected tracks including deleted tracks" do
       let(:tracks) { create_list(:track, 3, content: content, status: :completed, duration_sec: 180) }
       let!(:audio) do

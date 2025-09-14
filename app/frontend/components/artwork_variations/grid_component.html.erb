@@ -1,0 +1,51 @@
+<div class="artwork-variations-grid">
+  <% if empty_state? %>
+    <div class="empty-state text-center py-8 text-gray-400">
+      <p class="text-lg">アートワークがありません</p>
+    </div>
+  <% else %>
+    <div class="<%= grid_classes %>">
+      <% variations.each do |variation| %>
+        <div class="<%= card_classes %>">
+          <div class="relative aspect-video bg-gray-900">
+            <%= image_tag variation[:url],
+                loading: "lazy",
+                alt: "#{variation[:label]}画像",
+                class: "w-full h-full object-cover" %>
+            <div class="absolute top-2 left-2">
+              <span class="<%= label_classes(variation[:type]) %>">
+                <%= variation[:label] %>
+              </span>
+            </div>
+          </div>
+
+          <div class="p-4">
+            <div class="variation-metadata text-sm text-gray-300 space-y-1">
+              <% if variation[:metadata] %>
+                <div class="flex justify-between">
+                  <span>サイズ:</span>
+                  <span><%= variation[:metadata][:width] %>x<%= variation[:metadata][:height] %></span>
+                </div>
+                <div class="flex justify-between">
+                  <span>ファイルサイズ:</span>
+                  <span><%= format_file_size(variation[:metadata][:size]) %></span>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="mt-4">
+              <% if variation[:download_url] %>
+                <%= link_to variation[:download_url],
+                    class: "download-button inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors",
+                    download: true do %>
+                  <%= download_icon %>
+                  <span class="ml-2">ダウンロード</span>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

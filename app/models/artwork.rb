@@ -12,6 +12,13 @@ class Artwork < ApplicationRecord
     failed: 3
   }, prefix: true
 
+  VARIATION_TYPES = {
+    original: "オリジナル",
+    youtube_thumbnail: "YouTube用",
+    square: "正方形",
+    banner: "バナー"
+  }.freeze
+
   # Callback to trigger derivative processing for eligible artworks
   # Use after_commit to ensure the record is saved to the database before job is enqueued
   # NOTE: Disabled as thumbnail generation is now handled synchronously in controller
@@ -94,7 +101,111 @@ class Artwork < ApplicationRecord
     end
   end
 
+  def all_variations
+    variations = []
+
+    # Original image is always present
+    if image.present?
+      variations << {
+        type: :original,
+        label: VARIATION_TYPES[:original],
+        url: image.url,
+        metadata: original_metadata,
+        download_url: original_download_url
+      }
+    end
+
+    # YouTube thumbnail if exists
+    if has_youtube_thumbnail?
+      variations << {
+        type: :youtube_thumbnail,
+        label: VARIATION_TYPES[:youtube_thumbnail],
+        url: youtube_thumbnail_url,
+        metadata: youtube_thumbnail_metadata,
+        download_url: youtube_thumbnail_download_url
+      }
+    end
+
+    # Future variations can be added here
+    # if has_square_thumbnail?
+    #   variations << {
+    #     type: :square,
+    #     label: VARIATION_TYPES[:square],
+    #     url: square_thumbnail_url,
+    #     metadata: square_thumbnail_metadata,
+    #     download_url: square_thumbnail_download_url
+    #   }
+    # end
+
+    variations
+  end
+
+  def variation_metadata(type)
+    case type
+    when :original
+      original_metadata
+    when :youtube_thumbnail
+      youtube_thumbnail_metadata
+    else
+      {}
+    end
+  end
+
+  def has_variation?(type)
+    case type
+    when :original
+      image.present?
+    when :youtube_thumbnail
+      has_youtube_thumbnail?
+    when :square, :banner
+      # Future variations
+      false
+    else
+      false
+    end
+  end
+
   private
+
+  def original_metadata
+    return {} unless image.present?
+
+    begin
+      metadata = image.metadata
+      return {} unless metadata
+
+      {
+        width: metadata["width"],
+        height: metadata["height"],
+        size: image.size
+      }
+    rescue => e
+      Rails.logger.warn "Failed to get original metadata for artwork #{id}: #{e.message}"
+      {}
+    end
+  end
+
+  def original_download_url
+    return nil unless image.present?
+
+    begin
+      filename = "#{content.theme.gsub(/[^a-zA-Z0-9\-_.]/, '_')}_original.jpg"
+      "#{image.url}?disposition=attachment&filename=#{CGI.escape(filename)}"
+    rescue => e
+      Rails.logger.warn "Failed to generate original download URL for artwork #{id}: #{e.message}"
+      nil
+    end
+  end
+
+  def youtube_thumbnail_metadata
+    return {} unless has_youtube_thumbnail?
+
+    {
+      width: 1280,
+      height: 720,
+      size: nil # Size information would need to be stored or calculated
+    }
+  end
 
   def schedule_thumbnail_generation
     begin

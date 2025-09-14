@@ -174,6 +174,71 @@ RSpec.describe Artwork, type: :model do
     end
   end
 
+  describe "#all_variations" do
+    it "returns an array with original image" do
+      variations = artwork.all_variations
+      expect(variations).to be_an(Array)
+      expect(variations.first[:type]).to eq(:original)
+      expect(variations.first[:label]).to eq("オリジナル")
+    end
+
+    context "when YouTube thumbnail exists" do
+      before do
+        allow(artwork).to receive(:has_youtube_thumbnail?).and_return(true)
+        allow(artwork).to receive(:youtube_thumbnail_url).and_return("http://example.com/youtube.jpg")
+      end
+
+      it "includes YouTube thumbnail in variations" do
+        variations = artwork.all_variations
+        expect(variations.size).to eq(2)
+        expect(variations.map { |v| v[:type] }).to include(:original, :youtube_thumbnail)
+      end
+    end
+  end
+
+  describe "#variation_metadata" do
+    it "returns metadata for original type" do
+      metadata = artwork.variation_metadata(:original)
+      expect(metadata).to be_a(Hash)
+      expect(metadata).to have_key(:width)
+      expect(metadata).to have_key(:height)
+      expect(metadata).to have_key(:size)
+    end
+
+    context "when YouTube thumbnail exists" do
+      before do
+        allow(artwork).to receive(:has_youtube_thumbnail?).and_return(true)
+      end
+
+      it "returns metadata for YouTube thumbnail type" do
+        metadata = artwork.variation_metadata(:youtube_thumbnail)
+        expect(metadata).to be_a(Hash)
+        expect(metadata[:width]).to eq(1280)
+        expect(metadata[:height]).to eq(720)
+      end
+    end
+  end
+
+  describe "#has_variation?" do
+    it "returns true for original type" do
+      expect(artwork.has_variation?(:original)).to be true
+    end
+
+    it "returns false for non-existent type" do
+      expect(artwork.has_variation?(:square)).to be false
+    end
+
+    context "when YouTube thumbnail exists" do
+      before do
+        allow(artwork).to receive(:has_youtube_thumbnail?).and_return(true)
+      end
+
+      it "returns true for YouTube thumbnail type" do
+        expect(artwork.has_variation?(:youtube_thumbnail)).to be true
+      end
+    end
+  end
+
   # Callback tests are disabled since thumbnail generation is now synchronous
   # describe "after save callback" do
   #   it "calls schedule_thumbnail_generation when image data changes" do
