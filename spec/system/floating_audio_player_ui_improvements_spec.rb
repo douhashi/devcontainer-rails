@@ -179,4 +179,54 @@ RSpec.describe "FloatingAudioPlayer UI Improvements", type: :system, js: true, p
       end
     end
   end
+
+  describe "media-controllerの垂直中央配置" do
+    it "media-controllerがプレイヤー領域の縦中央に配置されている" do
+      within("#floating-audio-player") do
+        media_controller = find("media-controller")
+        controls_section = find(".flex-1.flex.items-center")
+
+        # controls_sectionがitems-centerクラスを持っていることを確認
+        expect(controls_section[:class]).to include("items-center")
+
+        # media-controllerがself-centerクラスを持っていることを確認
+        expect(media_controller[:class]).to include("self-center")
+
+        # JavaScriptで実際の位置を確認
+        controller_top = page.evaluate_script("arguments[0].getBoundingClientRect().top", media_controller)
+        controller_height = page.evaluate_script("arguments[0].getBoundingClientRect().height", media_controller)
+        controller_center = controller_top + (controller_height / 2)
+
+        section_top = page.evaluate_script("arguments[0].getBoundingClientRect().top", controls_section)
+        section_height = page.evaluate_script("arguments[0].getBoundingClientRect().height", controls_section)
+        section_center = section_top + (section_height / 2)
+
+        # 中央位置の誤差が2px以内であることを確認
+        expect((controller_center - section_center).abs).to be <= 2
+      end
+    end
+
+    it "異なるビューポートサイズでも垂直中央配置が維持される" do
+      # デスクトップサイズ
+      page.driver.resize_window_to(page.driver.current_window_handle, 1280, 720)
+      within("#floating-audio-player") do
+        media_controller = find("media-controller")
+        expect(media_controller[:class]).to include("self-center")
+      end
+
+      # タブレットサイズ
+      page.driver.resize_window_to(page.driver.current_window_handle, 768, 1024)
+      within("#floating-audio-player") do
+        media_controller = find("media-controller")
+        expect(media_controller[:class]).to include("self-center")
+      end
+
+      # モバイルサイズ
+      page.driver.resize_window_to(page.driver.current_window_handle, 375, 667)
+      within("#floating-audio-player") do
+        media_controller = find("media-controller")
+        expect(media_controller[:class]).to include("self-center")
+      end
+    end
+  end
 end

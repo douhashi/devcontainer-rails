@@ -186,4 +186,24 @@ RSpec.describe FloatingAudioPlayer::Component, type: :component do
       expect(container["class"]).to include("mx-auto")
     end
   end
+
+  describe "vertical centering of media-controller" do
+    subject(:rendered) { render_inline(component) }
+
+    it "controls section has vertical centering classes" do
+      controls_section = rendered.css("div.flex-1.flex.items-center").first
+      expect(controls_section).not_to be_nil
+      expect(controls_section["class"]).to include("items-center")
+    end
+
+    it "media-controller has self-center alignment" do
+      media_controller = rendered.css("media-controller").first
+      expect(media_controller["class"]).to include("self-center")
+    end
+
+    it "media-control-bar maintains vertical alignment" do
+      media_bar = rendered.css("media-control-bar").first
+      expect(media_bar["class"]).to include("items-center")
+    end
+  end
 end
