@@ -5,9 +5,11 @@
     </div>
   <% else %>
     <div class="<%= grid_classes %>">
-      <% variations.each do |variation| %>
+      <% variations.each_with_index do |variation, index| %>
         <div class="<%= card_classes %>">
-          <div class="relative aspect-video bg-gray-900">
+          <div class="relative aspect-video bg-gray-900 cursor-pointer"
+               data-action="click->artwork-lightbox#open"
+               data-image-index="<%= index %>">
             <%= image_tag variation[:url],
                 loading: "lazy",
                 alt: "#{variation[:label]}画像",
@@ -47,5 +49,8 @@
         </div>
       <% end %>
     </div>
+
+    <!-- Lightboxコンポーネント -->
+    <%= render ArtworkLightbox::Component.new(variations: variations) %>
   <% end %>
 </div>

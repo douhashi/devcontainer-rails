@@ -1,0 +1,69 @@
+<div
+  data-turbo-permanent
+  <%= tag.attributes(lightbox_data_attributes) %>
+  class="<%= container_classes %>"
+  role="dialog"
+  aria-modal="true"
+  aria-label="画像プレビュー">
+
+  <!-- 画像カウンター -->
+  <div data-artwork-lightbox-target="counter" class="<%= counter_classes %>">
+    <span data-artwork-lightbox-target="currentNumber"><%= initial_index + 1 %></span> / <%= total_images %>
+  </div>
+
+  <!-- 閉じるボタン -->
+  <button
+    type="button"
+    data-action="click->artwork-lightbox#close"
+    class="<%= close_button_classes %>"
+    aria-label="閉じる">
+    <%= close_icon %>
+  </button>
+
+  <!-- 前へボタン -->
+  <button
+    type="button"
+    data-action="click->artwork-lightbox#previous"
+    class="<%= nav_button_classes %> left-4"
+    aria-label="前の画像">
+    <%= previous_icon %>
+  </button>
+
+  <!-- 次へボタン -->
+  <button
+    type="button"
+    data-action="click->artwork-lightbox#next"
+    class="<%= nav_button_classes %> right-4"
+    aria-label="次の画像">
+    <%= next_icon %>
+  </button>
+
+  <!-- 画像コンテナ -->
+  <div data-artwork-lightbox-target="imageContainer" class="<%= image_container_classes %>">
+    <img
+      data-artwork-lightbox-target="currentImage"
+      src=""
+      alt=""
+      class="max-w-full max-h-[90vh] object-contain"
+      loading="eager">
+
+    <!-- メタデータ表示 -->
+    <div data-artwork-lightbox-target="metadata" class="<%= metadata_classes %>">
+      <h3 data-artwork-lightbox-target="imageLabel" class="text-lg font-semibold mb-2"></h3>
+      <div class="flex flex-wrap gap-4 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">サイズ:</span>
+          <span data-artwork-lightbox-target="imageDimensions"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">ファイルサイズ:</span>
+          <span data-artwork-lightbox-target="imageSize"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">フォーマット:</span>
+          <span data-artwork-lightbox-target="imageFormat"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
