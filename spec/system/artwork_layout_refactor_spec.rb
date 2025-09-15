@@ -1,7 +1,7 @@
 require "rails_helper"
 require "vips"
 
-RSpec.describe "Artwork Layout Refactor", type: :system, playwright: true do
+RSpec.describe "Artwork Layout Refactor", type: :system do
   include ActiveJob::TestHelper
 
   let(:content) { create(:content) }
@@ -16,7 +16,7 @@ RSpec.describe "Artwork Layout Refactor", type: :system, playwright: true do
     FileUtils.rm_f(Rails.root.join("tmp/test_fhd_artwork.jpg"))
   end
 
-  describe "リファクタリング後のレイアウト", js: true, playwright: true do
+  describe "リファクタリング後のレイアウト", js: true do
     context "アートワークがアップロードされた場合" do
       it "大きなプレビューを表示せず、コンパクトな管理インターフェースを表示する" do
         visit content_path(content)
@@ -137,7 +137,7 @@ RSpec.describe "Artwork Layout Refactor", type: :system, playwright: true do
     end
   end
 
-  describe "削除機能", js: true, playwright: true do
+  describe "削除機能", js: true do
     let!(:artwork) { create(:artwork, content: content) }
 
     it "削除ボタンクリックで確認ダイアログを表示し、削除を実行できる", skip: "Turbo Stream削除の動作確認は手動テストで実施" do

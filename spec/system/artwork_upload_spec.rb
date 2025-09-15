@@ -1,7 +1,7 @@
 require "rails_helper"
 require "vips"
 
-RSpec.describe "Artwork Upload", type: :system, playwright: true do
+RSpec.describe "Artwork Upload", type: :system do
   include ActiveJob::TestHelper
 
   let(:content) { create(:content) }
@@ -18,7 +18,7 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
     FileUtils.rm_f(Rails.root.join("tmp/test_small_artwork.jpg"))
   end
 
-  describe "uploading an artwork", js: true, playwright: true do
+  describe "uploading an artwork", js: true do
     context "with YouTube-eligible artwork (1920x1080)" do
       it "uploads artwork successfully" do
         visit content_path(content)
@@ -54,7 +54,7 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
     end
   end
 
-  describe "artwork deletion", js: true, playwright: true do
+  describe "artwork deletion", js: true do
     let!(:artwork) { create(:artwork, content: content) }
 
     it "deletes artwork via delete button and shows upload form" do
@@ -97,7 +97,7 @@ RSpec.describe "Artwork Upload", type: :system, playwright: true do
     end
   end
 
-  describe "error handling", js: true, playwright: true do
+  describe "error handling", js: true do
     it "validates file type on upload" do
       visit content_path(content)
 

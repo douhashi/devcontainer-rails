@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "Track検索フォームのダークモード対応", type: :system, playwright: true do
+RSpec.describe "Track検索フォームのダークモード対応", type: :system do
   before do
     # テスト用のTrackデータを作成
     content1 = create(:content, theme: "LoFi BGM 1")
@@ -171,7 +171,7 @@ RSpec.describe "Track検索フォームのダークモード対応", type: :syst
     end
   end
 
-  describe "レスポンシブデザイン", js: true, playwright: true do
+  describe "レスポンシブデザイン", js: true do
     it "モバイル表示で正しくレイアウトされる" do
       visit tracks_path
       page.current_window.resize_to(375, 667)

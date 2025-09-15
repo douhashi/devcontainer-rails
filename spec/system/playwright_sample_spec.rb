@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Playwright Sample", type: :system do
-  describe "Basic browser operations with Playwright", playwright: true do
+  describe "Basic browser operations with Playwright" do
     it "loads the home page" do
       visit root_path
       expect(page).to have_content("Lofi BGM")
@@ -18,33 +18,19 @@ RSpec.describe "Playwright Sample", type: :system do
     end
   end
 
-  describe "Comparing Playwright and Selenium drivers" do
-    context "with Playwright driver", playwright: true do
-      it "executes fast page loads" do
-        start_time = Time.now
-        visit root_path
-        load_time = Time.now - start_time
+  describe "Page load performance" do
+    it "executes fast page loads" do
+      start_time = Time.now
+      visit root_path
+      load_time = Time.now - start_time
 
-        expect(page).to have_content("Lofi BGM")
-        # Playwright typically loads faster
-        puts "Playwright load time: #{load_time.round(3)} seconds"
-      end
-    end
-
-    context "with default Selenium driver" do
-      it "executes standard page loads" do
-        start_time = Time.now
-        visit root_path
-        load_time = Time.now - start_time
-
-        expect(page).to have_content("Lofi BGM")
-        # Selenium standard load time
-        puts "Selenium load time: #{load_time.round(3)} seconds"
-      end
+      expect(page).to have_content("Lofi BGM")
+      # Playwright loads pages efficiently
+      puts "Page load time: #{load_time.round(3)} seconds"
     end
   end
 
-  describe "Advanced Playwright features", playwright: true do
+  describe "Advanced Playwright features", js: true do
     it "can take screenshots" do
       visit root_path
       # Ensure tmp directory exists

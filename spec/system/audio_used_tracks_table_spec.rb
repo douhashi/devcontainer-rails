@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "AudioUsedTracksTable", type: :system, js: true, playwright: true do
+RSpec.describe "AudioUsedTracksTable", type: :system, js: true do
   let(:content) { create(:content, theme: "テストテーマ", duration_min: 10) }
 
   describe "Content detail page with used tracks table" do

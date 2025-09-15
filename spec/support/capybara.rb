@@ -22,12 +22,13 @@ end
 RSpec.configure do |config|
   config.include Capybara::DSL
 
-  # Use Playwright driver for all system tests
-  config.before(:each, type: :system) do
-    driven_by :playwright
-  end
-
-  config.before(:each, type: :system, js: true) do
+  # Use Playwright driver for system tests
+  # - js: true → Playwright driver (JavaScript enabled)
+  # - playwright: true → Playwright driver (backward compatibility)
+  # - neither → Playwright driver (default for all system tests)
+  config.before(:each, type: :system) do |example|
+    # Always use Playwright for system tests
+    # (js: true, playwright: true, or neither metadata)
     driven_by :playwright
   end
 end
