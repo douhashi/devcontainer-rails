@@ -372,6 +372,61 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         FileUtils.rm_f(white_bg_path)
       end
+
+      it "renders text with transparent background, not as a white rectangle" do
+        # Create a dark background to easily verify the text is not a white rectangle
+        dark_bg_path = Rails.root.join("tmp/test_dark_bg.jpg").to_s
+        create_test_image_with_color(dark_bg_path, [ 50, 50, 50 ])
+
+        image = Vips::Image.new_from_file(dark_bg_path)
+        resized = service.send(:resize_to_thumbnail_size, image)
+
+        result = service.send(:add_text_overlay, resized)
+
+        # Sample points around the text area
+        # If text is rendered correctly with transparency, we should see:
+        # 1. White pixels where the text strokes are
+        # 2. Background color preserved where there's no text
+        # 3. NOT a solid white rectangle
+
+        # Sample a point that should be background (not covered by text)
+        # Using offset from center where there should be no text
+        bg_sample_x = 640 - 200  # Well outside the text area
+        bg_sample_y = 360
+        bg_pixel = result.getpoint(bg_sample_x, bg_sample_y)
+
+        # This pixel should be close to the dark background color, not white
+        expect(bg_pixel[0]).to be < 100  # R channel should be dark
+        expect(bg_pixel[1]).to be < 100  # G channel should be dark
+        expect(bg_pixel[2]).to be < 100  # B channel should be dark
+
+        # Sample multiple points to ensure we don't have a white rectangle
+        # Check corners of where a rectangle might be
+        rectangle_test_points = [
+          [ 640 - 150, 360 - 50 ],  # Top-left of potential rectangle
+          [ 640 + 150, 360 - 50 ],  # Top-right of potential rectangle
+          [ 640 - 150, 360 + 50 ],  # Bottom-left of potential rectangle
+          [ 640 + 150, 360 + 50 ]   # Bottom-right of potential rectangle
+        ]
+
+        rectangle_test_points.each do |x, y|
+          pixel = result.getpoint(x, y)
+          # These points should NOT all be white (which would indicate a rectangle)
+          is_white = pixel[0] > 250 && pixel[1] > 250 && pixel[2] > 250
+          # At least some of these should not be white
+        end
+
+        # Verify that not all test points are white (which would indicate a solid rectangle)
+        white_pixel_count = rectangle_test_points.count do |x, y|
+          pixel = result.getpoint(x, y)
+          pixel[0] > 250 && pixel[1] > 250 && pixel[2] > 250
+        end
+
+        # If text is rendered correctly, not all corner points should be white
+        expect(white_pixel_count).to be < 4
+
+        FileUtils.rm_f(dark_bg_path)
+      end
     end
   end
 

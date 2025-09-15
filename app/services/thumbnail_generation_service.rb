@@ -189,29 +189,25 @@ class ThumbnailGenerationService
     begin
       font_file = find_system_font
 
-      # Create shadow text first (black text with offset)
-      shadow_text = Vips::Image.text(
+      # Create text image (single render for both shadow and main text)
+      text_image = Vips::Image.text(
         text,
         font: font_spec,
         fontfile: font_file,
         rgba: true
       )
-      # Convert shadow text to black
-      shadow_text = shadow_text.new_from_image(SHADOW_COLOR + [ 255 ])  # Add alpha channel
 
-      # Create main text (white)
-      main_text = Vips::Image.text(
-        text,
-        font: font_spec,
-        fontfile: font_file,
-        rgba: true
-      )
-      # Convert main text to white
-      main_text = main_text.new_from_image(TEXT_COLOR + [ 255 ])  # Add alpha channel
+      # Create shadow by setting RGB to black while preserving alpha
+      # Formula: multiply RGB channels by 0, keep alpha as-is
+      shadow_text = text_image * [ 0, 0, 0, 1 ] + [ 0, 0, 0, 0 ]
+
+      # Create main text by setting RGB to white while preserving alpha
+      # Formula: multiply RGB channels by 0 and add 255, keep alpha as-is
+      main_text = text_image * [ 0, 0, 0, 1 ] + [ 255, 255, 255, 0 ]
 
       # Calculate positions to center the text
-      left = text_x - (main_text.width / 2)
-      top = text_y - (main_text.height / 2)
+      left = text_x - (text_image.width / 2)
+      top = text_y - (text_image.height / 2)
 
       # Composite shadow first (with offset)
       result = image.composite(shadow_text, :over, x: left + SHADOW_OFFSET, y: top + SHADOW_OFFSET)
