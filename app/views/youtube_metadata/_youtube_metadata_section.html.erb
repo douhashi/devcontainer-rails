@@ -28,17 +28,15 @@
           <% end %>
         <% end %>
 
-        <%= link_to "#",
-                    data: {
-                      controller: "modal",
-                      action: "click->modal#open",
-                      modal_target_value: "youtube-metadata-edit-modal-#{content.youtube_metadata.id}"
-                    },
-                    'aria-label': 'YouTube メタデータを編集',
-                    title: 'YouTube メタデータを編集',
-                    class: "inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" do %>
+        <button type="button"
+                data-controller="modal"
+                data-action="click->modal#open"
+                data-modal-modal-target-value="youtube-metadata-edit-modal-<%= content.youtube_metadata.id %>"
+                aria-label="YouTube メタデータを編集"
+                title="YouTube メタデータを編集"
+                class="inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           <%= render Icon::Component.new(name: "edit") %>
-        <% end %>
+        </button>
 
         <%= button_to content_youtube_metadata_path(content),
                       method: :delete,

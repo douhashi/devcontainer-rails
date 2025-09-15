@@ -18,7 +18,17 @@ export default class extends Controller {
     if (event) {
       event.preventDefault()
     }
-    const modal = this.modalTarget || this.element.closest('[data-modal-target="modal"]')
+    // Find the modal element from the button that was clicked
+    let modal = null
+    if (this.hasModalTarget) {
+      modal = this.modalTarget
+    } else if (event && event.currentTarget) {
+      // Find the closest modal parent from the clicked element
+      modal = event.currentTarget.closest('[data-modal-target="modal"]')
+    } else {
+      modal = this.element.closest('[data-modal-target="modal"]')
+    }
+
     if (modal) {
       modal.classList.add("hidden")
       document.body.style.overflow = ""

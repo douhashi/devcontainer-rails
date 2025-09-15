@@ -76,12 +76,12 @@
 
   <!-- アクション -->
   <div class="flex justify-end gap-2 pt-4">
-    <%= link_to "キャンセル", "#",
-                data: {
-                  controller: "modal",
-                  action: "click->modal#close"
-                },
-                class: "px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors" %>
+    <button type="button"
+            data-controller="modal"
+            data-action="click->modal#close"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+      キャンセル
+    </button>
 
     <%= form.submit youtube_metadata.persisted? ? "更新" : "作成",
                     class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>
