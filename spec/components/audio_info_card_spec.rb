@@ -20,10 +20,11 @@ RSpec.describe AudioInfoCard::Component, type: :component do
         expect(page).to have_text("音源情報")
       end
 
-      it "displays status badge" do
+      it "does not display status badge" do
         render_inline(component)
 
-        expect(page).to have_text("完了")
+        expect(page).not_to have_text("完了")
+        expect(page).not_to have_css(".status-badge")
       end
 
       it "displays formatted duration" do
@@ -39,12 +40,40 @@ RSpec.describe AudioInfoCard::Component, type: :component do
         expect(page).to have_text("5分0秒")
       end
 
-      it "displays delete icon button" do
+      it "does not display delete icon button in info card" do
         render_inline(component)
 
-        expect(page).to have_css("[data-turbo-method='delete']")
-        # 削除アイコンのみでテキストは表示されない
-        expect(page).not_to have_text("削除")
+        # AudioInfoCard内に削除ボタンは表示されない
+        expect(page).not_to have_css("[data-turbo-method='delete']")
+      end
+
+      context "when audio has used tracks" do
+        let(:content) { create(:content) }
+        let(:track1) { create(:track, content: content, duration_sec: 180) }
+        let(:track2) { create(:track, content: content, duration_sec: 240) }
+        let(:track3) { create(:track, content: content, duration_sec: 300) }
+        let(:audio) do
+          create(:audio,
+                 content: content,
+                 status: "completed",
+                 metadata: {
+                   duration: 720,
+                   selected_track_ids: [ track1.id, track2.id, track3.id ]
+                 })
+        end
+
+        before do
+          track1
+          track2
+          track3
+        end
+
+        it "displays total duration of used tracks" do
+          render_inline(component)
+
+          # 180 + 240 + 300 = 720秒 = 12分
+          expect(page).to have_text("12:00")
+        end
       end
     end
 
@@ -70,35 +99,83 @@ RSpec.describe AudioInfoCard::Component, type: :component do
   describe "#formatted_duration" do
     let(:audio) { build(:audio, metadata:) }
 
-    context "when duration exists in metadata" do
-      let(:metadata) { { duration: 125 } }
+    context "when audio has no used tracks" do
+      context "when duration exists in metadata" do
+        let(:metadata) { { duration: 125 } }
 
-      it "returns formatted time" do
-        expect(component.formatted_duration).to eq("2:05")
+        it "returns formatted time from metadata" do
+          expect(component.formatted_duration).to eq("2:05")
+        end
+      end
+
+      context "when duration is nil" do
+        let(:metadata) { {} }
+
+        it "returns placeholder" do
+          expect(component.formatted_duration).to eq("-")
+        end
+      end
+
+      context "when duration is zero" do
+        let(:metadata) { { duration: 0 } }
+
+        it "returns 0:00" do
+          expect(component.formatted_duration).to eq("0:00")
+        end
+      end
+
+      context "when duration is over an hour" do
+        let(:metadata) { { duration: 3665 } }
+
+        it "returns formatted time with hours" do
+          expect(component.formatted_duration).to eq("61:05")
+        end
       end
     end
 
-    context "when duration is nil" do
-      let(:metadata) { {} }
+    context "when audio has used tracks" do
+      let(:content) { create(:content) }
+      let(:track1) { create(:track, content: content, duration_sec: 180) }
+      let(:track2) { create(:track, content: content, duration_sec: 240) }
+      let(:audio) do
+        create(:audio,
+               content: content,
+               metadata: {
+                 duration: 420,
+                 selected_track_ids: [ track1.id, track2.id ]
+               })
+      end
 
-      it "returns placeholder" do
-        expect(component.formatted_duration).to eq("-")
+      before do
+        track1
+        track2
+      end
+
+      it "returns total duration of used tracks" do
+        expect(component.formatted_duration).to eq("7:00")
       end
     end
 
-    context "when duration is zero" do
-      let(:metadata) { { duration: 0 } }
-
-      it "returns 0:00" do
-        expect(component.formatted_duration).to eq("0:00")
+    context "when used tracks have nil duration_sec" do
+      let(:content) { create(:content) }
+      let(:track1) { create(:track, content: content, duration_sec: 180) }
+      let(:track2) { create(:track, content: content, duration_sec: nil) }
+      let(:audio) do
+        create(:audio,
+               content: content,
+               metadata: {
+                 duration: 180,
+                 selected_track_ids: [ track1.id, track2.id ]
+               })
       end
-    end
 
-    context "when duration is over an hour" do
-      let(:metadata) { { duration: 3665 } }
+      before do
+        track1
+        track2
+      end
 
-      it "returns formatted time with hours" do
-        expect(component.formatted_duration).to eq("61:05")
+      it "skips tracks with nil duration" do
+        expect(component.formatted_duration).to eq("3:00")
       end
     end
   end

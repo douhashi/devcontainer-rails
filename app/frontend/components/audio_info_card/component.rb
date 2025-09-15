@@ -9,10 +9,16 @@ module AudioInfoCard
     end
 
     def formatted_duration
-      return "-" unless audio&.metadata&.dig("duration")
-
-      duration = audio.metadata["duration"].to_i
-      return "0:00" if duration.zero?
+      # 使用トラックがある場合はその総和を計算
+      if has_used_tracks?
+        duration = calculate_total_tracks_duration
+        return "-" if duration.zero?
+      else
+        # 使用トラックがない場合はmetadataから取得
+        return "-" unless audio&.metadata&.dig("duration")
+        duration = audio.metadata["duration"].to_i
+        return "0:00" if duration.zero?
+      end
 
       minutes = duration / 60
       seconds = duration % 60
@@ -69,6 +75,23 @@ module AudioInfoCard
 
     def render?
       true
+    end
+
+    def has_used_tracks?
+      return false unless audio
+
+      track_ids = audio.metadata&.dig("selected_track_ids")
+      track_ids.present? && track_ids.any?
+    end
+
+    def calculate_total_tracks_duration
+      return 0 unless audio
+
+      track_ids = audio.metadata&.dig("selected_track_ids")
+      return 0 if track_ids.blank?
+
+      tracks = Track.where(id: track_ids)
+      tracks.sum { |track| track.duration_sec.to_i }
     end
   end
 end
