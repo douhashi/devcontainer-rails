@@ -51,6 +51,173 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
     end
   end
 
+  describe 'public methods' do
+    describe '#video_file_url' do
+      context 'when video does not exist' do
+        it 'returns nil' do
+          expect(component.video_file_url).to be_nil
+        end
+      end
+
+      context 'when video exists but not completed' do
+        let!(:video) { create(:video, content: content_record, status: :processing) }
+
+        it 'returns nil' do
+          expect(component.video_file_url).to be_nil
+        end
+      end
+
+      context 'when video is completed with file' do
+        let!(:video) { create(:video, content: content_record, status: :completed) }
+
+        before do
+          allow(video).to receive(:video).and_return(double(url: 'https://example.com/video.mp4'))
+        end
+
+        it 'returns the video URL' do
+          expect(component.video_file_url).to eq('https://example.com/video.mp4')
+        end
+      end
+
+      context 'when video is completed without file' do
+        let!(:video) { create(:video, content: content_record, status: :completed) }
+
+        before do
+          allow(video).to receive(:video).and_return(nil)
+        end
+
+        it 'returns nil' do
+          expect(component.video_file_url).to be_nil
+        end
+      end
+    end
+
+    describe '#video_info' do
+      context 'when video does not exist' do
+        it 'returns nil' do
+          expect(component.video_info).to be_nil
+        end
+      end
+
+      context 'when video exists' do
+        let!(:video) { create(:video, content: content_record, status: :completed, resolution: '1920x1080', file_size: 1024000, duration_seconds: 120) }
+
+        it 'returns video information hash' do
+          info = component.video_info
+          expect(info).to include(
+            status: 'completed',
+            resolution: '1920x1080',
+            file_size: 1024000,
+            duration_seconds: 120
+          )
+          expect(info[:created_at]).to eq(video.created_at)
+        end
+      end
+    end
+
+    describe '#formatted_file_size' do
+      it 'returns nil for nil input' do
+        expect(component.formatted_file_size(nil)).to be_nil
+      end
+
+      it 'formats bytes to KB for small files' do
+        expect(component.formatted_file_size(512000)).to eq('500.0 KB')
+      end
+
+      it 'formats bytes to MB for large files' do
+        expect(component.formatted_file_size(5242880)).to eq('5.0 MB')
+      end
+    end
+
+    describe '#formatted_duration' do
+      it 'returns nil for nil input' do
+        expect(component.formatted_duration(nil)).to be_nil
+      end
+
+      it 'formats seconds to mm:ss' do
+        expect(component.formatted_duration(65)).to eq('1:05')
+        expect(component.formatted_duration(120)).to eq('2:00')
+        expect(component.formatted_duration(5)).to eq('0:05')
+      end
+    end
+
+    describe '#formatted_generation_duration' do
+      context 'when generation_duration is nil' do
+        before do
+          allow(component).to receive(:generation_duration).and_return(nil)
+        end
+
+        it 'returns nil' do
+          expect(component.formatted_generation_duration).to be_nil
+        end
+      end
+
+      context 'when duration is less than 60 seconds' do
+        before do
+          allow(component).to receive(:generation_duration).and_return(45)
+        end
+
+        it 'returns formatted seconds' do
+          expect(component.formatted_generation_duration).to eq('45秒')
+        end
+      end
+
+      context 'when duration is more than 60 seconds' do
+        before do
+          allow(component).to receive(:generation_duration).and_return(150)
+        end
+
+        it 'returns formatted minutes and seconds' do
+          expect(component.formatted_generation_duration).to eq('2分30秒')
+        end
+      end
+    end
+
+    describe '#technical_specs' do
+      it 'returns technical specifications hash' do
+        specs = component.technical_specs
+        expect(specs).to include(
+          video_codec: 'H.264 (libx264)',
+          audio_codec: 'AAC (192kbps, 48kHz)',
+          frame_rate: '30fps',
+          optimization: '標準動画設定'
+        )
+      end
+    end
+
+    describe '#delete_confirmation_message' do
+      context 'when video does not exist' do
+        it 'returns default message' do
+          expect(component.delete_confirmation_message).to eq('動画を削除しますか？')
+        end
+      end
+
+      context 'when video is failed' do
+        let!(:video) { create(:video, content: content_record, status: :failed) }
+
+        it 'returns failed-specific message' do
+          expect(component.delete_confirmation_message).to eq('失敗した動画を削除しますか？')
+        end
+      end
+
+      context 'when video is completed' do
+        let!(:video) { create(:video, content: content_record, status: :completed) }
+
+        it 'returns completed-specific message' do
+          expect(component.delete_confirmation_message).to eq('動画を削除しますか？削除後、再生成が可能になります。')
+        end
+      end
+
+      context 'when video has other status' do
+        let!(:video) { create(:video, content: content_record, status: :processing) }
+
+        it 'returns default message' do
+          expect(component.delete_confirmation_message).to eq('動画を削除しますか？')
+        end
+      end
+    end
+  end
+
   describe 'private methods' do
     let!(:artwork) { create(:artwork, content: content_record) }
     let!(:audio) { create(:audio, content: content_record, status: :completed) }
@@ -234,50 +401,6 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
       end
     end
 
-    describe '#delete_confirmation_message' do
-      context 'when video does not exist' do
-        it 'returns default message' do
-          expect(component.send(:delete_confirmation_message)).to eq('動画を削除しますか？')
-        end
-      end
-
-      context 'when video exists' do
-        let!(:video) { create(:video, content: content_record, status: status) }
-
-        context 'with failed status' do
-          let(:status) { :failed }
-          it 'returns failed-specific message' do
-            expect(component.send(:delete_confirmation_message)).to eq('失敗した動画を削除しますか？')
-          end
-        end
-
-        context 'with completed status' do
-          let(:status) { :completed }
-          it 'returns completed-specific message' do
-            expect(component.send(:delete_confirmation_message)).to eq('動画を削除しますか？削除後、再生成が可能になります。')
-          end
-        end
-
-        context 'with other status' do
-          let(:status) { :processing }
-          it 'returns default message' do
-            expect(component.send(:delete_confirmation_message)).to eq('動画を削除しますか？')
-          end
-        end
-      end
-    end
-
-    describe '#technical_specs' do
-      it 'returns correct technical specifications' do
-        specs = component.send(:technical_specs)
-        expect(specs).to include(
-          video_codec: 'H.264 (libx264)',
-          audio_codec: 'AAC (192kbps, 48kHz)',
-          frame_rate: '30fps',
-          optimization: '標準動画設定'
-        )
-      end
-    end
 
     describe '#generation_duration' do
       context 'when video does not exist' do
@@ -302,38 +425,6 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
 
         it 'returns zero duration' do
           expect(component.send(:generation_duration)).to eq(0)
-        end
-      end
-    end
-
-    describe '#formatted_generation_duration' do
-      context 'when duration is less than 60 seconds' do
-        before do
-          allow(component).to receive(:generation_duration).and_return(45)
-        end
-
-        it 'returns formatted seconds' do
-          expect(component.send(:formatted_generation_duration)).to eq('45秒')
-        end
-      end
-
-      context 'when duration is more than 60 seconds' do
-        before do
-          allow(component).to receive(:generation_duration).and_return(150) # 2 minutes 30 seconds
-        end
-
-        it 'returns formatted minutes and seconds' do
-          expect(component.send(:formatted_generation_duration)).to eq('2分30秒')
-        end
-      end
-
-      context 'when duration is nil' do
-        before do
-          allow(component).to receive(:generation_duration).and_return(nil)
-        end
-
-        it 'returns nil' do
-          expect(component.send(:formatted_generation_duration)).to be_nil
         end
       end
     end

@@ -16,6 +16,79 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     content_record.video.status
   end
 
+  def video_file_url
+    return nil unless video_exists? && video_status == "completed"
+
+    content_record.video.video&.url
+  end
+
+  def video_info
+    return nil unless video_exists?
+
+    video = content_record.video
+    {
+      status: video.status,
+      created_at: video.created_at,
+      resolution: video.resolution,
+      file_size: video.file_size,
+      duration_seconds: video.duration_seconds,
+      has_file: video.video&.present?
+    }
+  end
+
+  def formatted_file_size(size_bytes)
+    return nil unless size_bytes
+
+    if size_bytes < 1024 * 1024
+      "#{(size_bytes / 1024.0).round(1)} KB"
+    else
+      "#{(size_bytes / 1024.0 / 1024.0).round(1)} MB"
+    end
+  end
+
+  def formatted_duration(seconds)
+    return nil unless seconds
+
+    minutes = seconds / 60
+    remaining_seconds = seconds % 60
+    "#{minutes}:#{remaining_seconds.to_s.rjust(2, '0')}"
+  end
+
+  def formatted_generation_duration
+    duration = generation_duration
+    return nil unless duration
+
+    if duration < 60
+      "#{duration}秒"
+    else
+      minutes = duration / 60
+      seconds = duration % 60
+      "#{minutes}分#{seconds}秒"
+    end
+  end
+
+  def technical_specs
+    {
+      video_codec: "H.264 (libx264)",
+      audio_codec: "AAC (192kbps, 48kHz)",
+      frame_rate: "30fps",
+      optimization: "標準動画設定"
+    }
+  end
+
+  def delete_confirmation_message
+    return "動画を削除しますか？" unless video_exists?
+
+    case video_status
+    when "failed"
+      "失敗した動画を削除しますか？"
+    when "completed"
+      "動画を削除しますか？削除後、再生成が可能になります。"
+    else
+      "動画を削除しますか？"
+    end
+  end
+
   private
 
   def can_generate_video?
@@ -107,44 +180,6 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     content_record.video_generation_missing_prerequisites
   end
 
-  def video_info
-    return nil unless video_exists?
-
-    video = content_record.video
-    {
-      status: video.status,
-      created_at: video.created_at,
-      resolution: video.resolution,
-      file_size: video.file_size,
-      duration_seconds: video.duration_seconds,
-      has_file: video.video&.present?
-    }
-  end
-
-  def video_file_url
-    return nil unless video_exists? && video_status == "completed"
-
-    content_record.video.video&.url
-  end
-
-  def formatted_file_size(size_bytes)
-    return nil unless size_bytes
-
-    if size_bytes < 1024 * 1024
-      "#{(size_bytes / 1024.0).round(1)} KB"
-    else
-      "#{(size_bytes / 1024.0 / 1024.0).round(1)} MB"
-    end
-  end
-
-  def formatted_duration(seconds)
-    return nil unless seconds
-
-    minutes = seconds / 60
-    remaining_seconds = seconds % 60
-    "#{minutes}:#{remaining_seconds.to_s.rjust(2, '0')}"
-  end
-
   def tooltip_text
     errors = prerequisite_errors
     return nil if errors.empty?
@@ -213,45 +248,10 @@ class VideoGenerationButton::Component < ApplicationViewComponent
     end
   end
 
-  def delete_confirmation_message
-    return "動画を削除しますか？" unless video_exists?
-
-    case video_status
-    when "failed"
-      "失敗した動画を削除しますか？"
-    when "completed"
-      "動画を削除しますか？削除後、再生成が可能になります。"
-    else
-      "動画を削除しますか？"
-    end
-  end
-
-  def technical_specs
-    {
-      video_codec: "H.264 (libx264)",
-      audio_codec: "AAC (192kbps, 48kHz)",
-      frame_rate: "30fps",
-      optimization: "標準動画設定"
-    }
-  end
-
   def generation_duration
     return nil unless video_exists?
     return nil if content_record.video.created_at.blank? || content_record.video.updated_at.blank?
 
     (content_record.video.updated_at - content_record.video.created_at).to_i
-  end
-
-  def formatted_generation_duration
-    duration = generation_duration
-    return nil unless duration
-
-    if duration < 60
-      "#{duration}秒"
-    else
-      minutes = duration / 60
-      seconds = duration % 60
-      "#{minutes}分#{seconds}秒"
-    end
   end
 end
