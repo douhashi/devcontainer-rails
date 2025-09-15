@@ -2,6 +2,7 @@ ja:
   activerecord:
     models:
       youtube_metadata: "YouTube メタデータ"
+      artwork_metadata: "アートワークメタデータ"
     attributes:
       youtube_metadata:
         title: "タイトル"
@@ -9,6 +10,9 @@ ja:
         description_ja: "日本語説明"
         hashtags: "ハッシュタグ"
         status: "ステータス"
+      artwork_metadata:
+        positive_prompt: "ポジティブプロンプト"
+        negative_prompt: "ネガティブプロンプト"
     errors:
       models:
         youtube_metadata:
@@ -24,6 +28,12 @@ ja:
               too_long: "日本語説明は5000文字以下で入力してください"
             hashtags:
               too_long: "ハッシュタグは500文字以下で入力してください"
+        artwork_metadata:
+          attributes:
+            positive_prompt:
+              blank: "ポジティブプロンプトを入力してください"
+            negative_prompt:
+              blank: "ネガティブプロンプトを入力してください"
 
   enumerize:
     youtube_metadata:
@@ -75,3 +85,14 @@ ja:
       draft: "下書き"
       ready: "準備完了"
       published: "公開済み"
+
+  artwork_metadata:
+    create:
+      success: "アートワークメタデータが作成されました。"
+      failure: "アートワークメタデータの作成に失敗しました"
+    update:
+      success: "アートワークメタデータが更新されました。"
+      failure: "アートワークメタデータの更新に失敗しました"
+    delete:
+      success: "アートワークメタデータが削除されました。"
+      failure: "アートワークメタデータの削除に失敗しました。"

@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_15_090050) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_15_110706) do
+  create_table "artwork_metadatas", force: :cascade do |t|
+    t.integer "content_id", null: false
+    t.text "positive_prompt", null: false
+    t.text "negative_prompt", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "content_id" ], name: "index_artwork_metadatas_on_content_id", unique: true
+  end
+
   create_table "artworks", force: :cascade do |t|
     t.integer "content_id", null: false
     t.json "image_data"
@@ -100,6 +109,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_15_090050) do
     t.index [ "status" ], name: "index_youtube_metadatas_on_status"
   end
 
+  add_foreign_key "artwork_metadatas", "contents"
   add_foreign_key "artworks", "contents"
   add_foreign_key "audios", "contents"
   add_foreign_key "music_generations", "contents"

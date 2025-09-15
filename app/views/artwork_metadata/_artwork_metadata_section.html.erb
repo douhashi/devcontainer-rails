@@ -1,0 +1,50 @@
+<div id="artwork-metadata-section-<%= content.id %>">
+  <% if content.artwork_metadata.present? %>
+    <!-- アートワークメタデータが存在する場合 -->
+    <div class="artwork-metadata-management-container">
+      <%= render 'artwork_metadata/artwork_metadata_display', artwork_metadata: content.artwork_metadata %>
+
+      <!-- 編集・削除ボタン -->
+      <div class="mt-4 flex justify-end gap-2">
+        <%= link_to "#",
+                    data: {
+                      controller: "modal",
+                      action: "click->modal#open",
+                      modal_target_value: "artwork-metadata-edit-modal-#{content.artwork_metadata.id}"
+                    },
+                    'aria-label': 'アートワークメタデータを編集',
+                    title: 'アートワークメタデータを編集',
+                    class: "inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" do %>
+          <%= render Icon::Component.new(name: "edit") %>
+        <% end %>
+
+        <%= button_to content_artwork_metadata_path(content),
+                      method: :delete,
+                      data: {
+                        turbo_method: :delete,
+                        turbo_confirm: "アートワークメタデータを削除しますか？"
+                      },
+                      'aria-label': 'アートワークメタデータを削除',
+                      title: 'アートワークメタデータを削除',
+                      class: "inline-flex items-center justify-center p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" do %>
+          <%= render Icon::Component.new(name: "delete") %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- 編集モーダル -->
+    <div id="artwork-metadata-edit-modal-<%= content.artwork_metadata.id %>"
+         data-modal-target="modal"
+         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <h3 class="text-lg font-semibold text-white mb-4">アートワークメタデータを編集</h3>
+        <%= render 'artwork_metadata/form', content: content, artwork_metadata: content.artwork_metadata %>
+      </div>
+    </div>
+  <% else %>
+    <!-- アートワークメタデータが存在しない場合 -->
+    <turbo-frame id="artwork-metadata-section-<%= content.id %>">
+      <%= render 'artwork_metadata/new_form', content: content %>
+    </turbo-frame>
+  <% end %>
+</div>

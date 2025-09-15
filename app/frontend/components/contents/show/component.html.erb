@@ -159,4 +159,18 @@
     <%= render 'youtube_metadata/youtube_metadata_section', content: item %>
   <% end %>
 
+  <!-- 7. アートワークメタデータセクション -->
+  <%= render ContentSection::Component.new(title: "アートワークメタデータ", class: "artwork-metadata-section") do |section| %>
+    <% if item.artwork_metadata.present? %>
+      <% section.with_badge do %>
+        <%= render StatusBadge::Component.new(
+          status: :configured,
+          size: :small
+        ) %>
+      <% end %>
+    <% end %>
+
+    <%= render 'artwork_metadata/artwork_metadata_section', content: item %>
+  <% end %>
+
 </div>
