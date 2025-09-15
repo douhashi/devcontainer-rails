@@ -4,13 +4,7 @@ require "vips"
 RSpec.describe ArtworksController, type: :request do
   include ActiveJob::TestHelper
 
-  let(:user) { create(:user) }
   let(:content) { create(:content) }
-
-  before do
-    # Use post to sign in via Devise's form
-    post user_session_path, params: { user: { email: user.email, password: 'password' } }
-  end
 
   describe "POST /contents/:content_id/artworks" do
     context "with valid artwork data" do

@@ -1,13 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe "Tracks", type: :request do
-  let(:user) { create(:user) }
-
-  before do
-    # Use post to sign in via Devise's form
-    post user_session_path, params: { user: { email: user.email, password: 'password' } }
-  end
-
   describe "GET /tracks" do
     let!(:content1) { create(:content, theme: "レコード、古いスピーカー") }
     let!(:content2) { create(:content, :cafe_theme) }

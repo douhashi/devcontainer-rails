@@ -17,8 +17,4 @@ class Layout::ApplicationComponent < ApplicationViewComponent
   def show_menu_toggle?
     true
   end
-
-  def current_user
-    helpers.current_user if helpers.respond_to?(:current_user)
-  end
 end

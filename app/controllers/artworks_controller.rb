@@ -3,7 +3,6 @@ require "timeout"
 class ArtworksController < ApplicationController
   before_action :set_content
   before_action :set_artwork, only: [ :update, :destroy, :generate_thumbnail, :regenerate_thumbnail ]
-  before_action :authorize_content_management
 
   def create
     @artwork = @content.build_artwork(artwork_params)
@@ -90,9 +89,6 @@ class ArtworksController < ApplicationController
     params.require(:artwork).permit(:image)
   end
 
-  def authorize_content_management
-    authorize @content, :manage?
-  end
 
   def turbo_request?
     request.format.turbo_stream? || request.headers["Accept"]&.include?("text/vnd.turbo-stream.html")

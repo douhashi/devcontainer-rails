@@ -3,7 +3,6 @@ require "vips"
 
 RSpec.describe "Artwork Layout Refactor", type: :system, playwright: true do
   include ActiveJob::TestHelper
-  include_context "ログイン済み"
 
   let(:content) { create(:content) }
 

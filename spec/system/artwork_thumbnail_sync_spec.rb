@@ -1,11 +1,9 @@
 require "rails_helper"
 
 RSpec.describe "Artwork Thumbnail Synchronous Generation", type: :system, js: true do
-  let(:user) { create(:user) }
   let(:content) { create(:content) }
 
   before do
-    login_as(user, scope: :user)
     I18n.locale = :ja
   end
 

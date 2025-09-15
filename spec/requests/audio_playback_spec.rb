@@ -3,12 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Audio Playback', type: :request do
-  let(:user) { create(:user) }
-
-  before do
-    post user_session_path, params: { user: { email: user.email, password: 'password' } }
-  end
-
   describe 'GET /contents/:id with audio play button' do
     let(:content) { create(:content, theme: 'Test Content') }
     let!(:audio) do

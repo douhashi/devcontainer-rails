@@ -49,10 +49,6 @@ RSpec.configure do |config|
   config.include Capybara::RSpecMatchers, type: :component
   config.include ActiveJob::TestHelper, type: :job
   config.include ActiveJob::TestHelper, type: :model
-  config.include Devise::Test::IntegrationHelpers, type: :request
-  config.include Devise::Test::ControllerHelpers, type: :controller
-  config.include Devise::Test::IntegrationHelpers, type: :system
-  config.include Warden::Test::Helpers
 
   config.define_derived_metadata(file_path: %r{/spec/components}) do |metadata|
     metadata[:type] = :component

@@ -1,12 +1,8 @@
 require "rails_helper"
 
 RSpec.describe "Contents", type: :system, playwright: true do
-  let(:user) { create(:user) }
   let(:content) { create(:content, duration_min: 10) }
 
-  before do
-    login_as(user, scope: :user)
-  end
 
   describe "コンテンツ詳細画面" do
     context "一覧に戻るリンクのアイコン化", js: true do

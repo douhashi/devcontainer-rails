@@ -1,7 +1,6 @@
 require "rails_helper"
 
 RSpec.describe "Artwork Lightbox", type: :system, js: true do
-  let(:user) { create(:user) }
   let!(:content) { create(:content) }
   let!(:artwork) { create(:artwork, content: content) }  # let! to ensure creation
 
@@ -37,8 +36,6 @@ RSpec.describe "Artwork Lightbox", type: :system, js: true do
         metadata: { width: 1080, height: 1080, size: 1536000, format: "JPEG" }
       }
     ])
-
-    login_as(user, scope: :user)
   end
 
   describe "Lightbox表示" do

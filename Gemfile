@@ -15,9 +15,6 @@ gem "puma", ">= 5.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
-# Authentication with Devise
-gem "devise"
-
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
@@ -82,7 +79,6 @@ gem "dry-initializer", "~> 3.2"
 
 gem "factory_bot_rails", "~> 6.5"
 
-gem "pundit", "~> 2.5"
 gem "enumerize", "~> 2.8"
 gem "shrine", "~> 3.6"
 gem "marcel", "~> 1.0"

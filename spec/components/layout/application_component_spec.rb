@@ -36,8 +36,6 @@ RSpec.describe Layout::ApplicationComponent, type: :component do
 
   describe "rendering" do
     before do
-      # Mock the current_user method to avoid Devise::MissingWarden error
-      allow(component).to receive(:current_user).and_return(nil)
       render_inline(component) do
         "<p>Main content</p>".html_safe
       end

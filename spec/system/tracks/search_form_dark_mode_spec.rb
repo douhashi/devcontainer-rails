@@ -1,11 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Track検索フォームのダークモード対応", type: :system, playwright: true do
-  let(:user) { create(:user) }
-
   before do
-    # ユーザーログイン（Systemテスト用）
-    login_as user, scope: :user
     # テスト用のTrackデータを作成
     content1 = create(:content, theme: "LoFi BGM 1")
     content2 = create(:content, theme: "LoFi BGM 2")
