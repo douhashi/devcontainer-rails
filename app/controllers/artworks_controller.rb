@@ -2,7 +2,7 @@ require "timeout"
 
 class ArtworksController < ApplicationController
   before_action :set_content
-  before_action :set_artwork, only: [ :update, :destroy, :generate_thumbnail, :regenerate_thumbnail ]
+  before_action :set_artwork, only: [ :update, :destroy, :generate_thumbnail, :regenerate_thumbnail, :download ]
 
   def create
     @artwork = @content.build_artwork(artwork_params)
@@ -75,6 +75,46 @@ class ArtworksController < ApplicationController
     process_thumbnail_generation(regenerate: true)
   end
 
+  def download
+    variation = params[:variation]&.to_sym
+
+    # Validate variation parameter
+    unless variation.present?
+      return render json: { error: "Variation parameter is required" }, status: :bad_request if request.format.json?
+      return head :bad_request
+    end
+
+    # Check if artwork has the requested variation
+    unless @artwork.has_variation?(variation)
+      return render_not_found("Variation not found")
+    end
+
+    begin
+      filename = @artwork.generate_download_filename(variation)
+
+      # Get the file path based on variation type
+      file_path = case variation
+      when :original
+        get_original_file_path
+      when :youtube_thumbnail
+        get_youtube_thumbnail_file_path
+      else
+        return render_not_found("Unsupported variation")
+      end
+
+      return render_not_found("File not found") unless file_path && File.exist?(file_path)
+
+      # Send file with proper headers
+      send_file file_path,
+                filename: filename,
+                disposition: "attachment",
+                type: get_content_type(file_path)
+    rescue => e
+      Rails.logger.error "Failed to download artwork #{@artwork.id} variation #{variation}: #{e.message}"
+      render_not_found("Download failed")
+    end
+  end
+
   private
 
   def set_content
@@ -83,6 +123,14 @@ class ArtworksController < ApplicationController
 
   def set_artwork
     @artwork = @content.artwork
+    unless @artwork
+      respond_to do |format|
+        format.html { head :not_found }
+        format.json { render json: { error: "Artwork not found" }, status: :not_found }
+        format.any { head :not_found }
+      end
+      nil
+    end
   end
 
   def artwork_params
@@ -305,6 +353,44 @@ class ArtworksController < ApplicationController
       "#{(size_bytes / 1_048_576.0).round(2)}MB"
     rescue
       "unknown"
+    end
+  end
+
+  def render_not_found(message = "Not found")
+    respond_to do |format|
+      format.html { head :not_found }
+      format.json { render json: { error: message }, status: :not_found }
+      format.any { head :not_found }
+    end
+  end
+
+  def get_original_file_path
+    return nil unless @artwork.image.present?
+
+    @artwork.image.storage.path(@artwork.image.id)
+  end
+
+  def get_youtube_thumbnail_file_path
+    return nil unless @artwork.has_youtube_thumbnail?
+
+    derivative = @artwork.image_attacher.derivatives[:youtube_thumbnail]
+    return nil unless derivative
+
+    derivative.storage.path(derivative.id)
+  end
+
+  def get_content_type(file_path)
+    case File.extname(file_path).downcase
+    when ".png"
+      "image/png"
+    when ".jpg", ".jpeg"
+      "image/jpeg"
+    when ".gif"
+      "image/gif"
+    when ".webp"
+      "image/webp"
+    else
+      "application/octet-stream"
     end
   end
 end

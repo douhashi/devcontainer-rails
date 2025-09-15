@@ -124,13 +124,12 @@ RSpec.describe "Artworks", type: :request do
 
         # HTML format
         delete content_artwork_path(content, artwork.id)
-        expect(response).to redirect_to(content)
+        expect(response).to have_http_status(:not_found)
 
         # Turbo Stream format
         delete content_artwork_path(content, artwork.id),
                headers: { "Accept" => "text/vnd.turbo-stream.html" }
-        expect(response).to have_http_status(:ok)
-        expect(response.content_type).to include("text/vnd.turbo-stream.html")
+        expect(response).to have_http_status(:not_found)
       end
     end
   end

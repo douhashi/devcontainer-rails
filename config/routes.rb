@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       member do
         post :generate_thumbnail
         post :regenerate_thumbnail
+        get "download/:variation", to: "artworks#download", as: :download
       end
     end
     resource :video, only: [ :create, :destroy ]

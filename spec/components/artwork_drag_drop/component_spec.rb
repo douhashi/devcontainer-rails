@@ -58,7 +58,7 @@ RSpec.describe ArtworkDragDrop::Component do
         allow(artwork).to receive(:thumbnail_generation_status_processing?).and_return(false)
         allow(artwork).to receive(:thumbnail_generation_status_failed?).and_return(false)
         allow(artwork).to receive(:youtube_thumbnail_processing?).and_return(false)
-        allow(artwork).to receive(:youtube_thumbnail_download_url).and_return(nil)
+        allow(artwork).to receive(:download_path_for).with(:youtube_thumbnail).and_return(nil)
         allow(content).to receive(:artwork).and_return(artwork)
       end
 

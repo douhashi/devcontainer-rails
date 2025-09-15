@@ -39,8 +39,7 @@
             <div class="mt-4">
               <% if variation[:download_url] %>
                 <%= link_to variation[:download_url],
-                    class: "download-button inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors",
-                    download: true do %>
+                    class: "download-button inline-flex items-center justify-center w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors" do %>
                   <%= download_icon %>
                   <span class="ml-2">ダウンロード</span>
                 <% end %>

@@ -37,12 +37,12 @@ RSpec.describe "Artwork UI Improvements", type: :system do
       visit content_path(content)
 
       within(".artwork-section") do
-        # ダウンロードリンクが正しいファイル名を持つことを確認
+        # ダウンロードリンクが正しいパスを持つことを確認
         download_link = find("a.download-button", match: :first)
         href = download_link[:href]
 
-        # content_0001_original.jpg形式のファイル名を含むことを確認
-        expect(href).to include("filename=content_0001_original.jpg")
+        # 新しいダウンロードパス形式を確認
+        expect(href).to include("/download/original")
       end
     end
 
@@ -56,7 +56,8 @@ RSpec.describe "Artwork UI Improvements", type: :system do
           download_link = find("a.download-button", match: :first)
           href = download_link[:href]
 
-          expect(href).to include("filename=content_0999_original.jpg")
+          expect(href).to include("/contents/999/artworks/")
+          expect(href).to include("/download/original")
         end
       end
     end
@@ -71,7 +72,8 @@ RSpec.describe "Artwork UI Improvements", type: :system do
           download_link = find("a.download-button", match: :first)
           href = download_link[:href]
 
-          expect(href).to include("filename=content_10001_original.jpg")
+          expect(href).to include("/contents/10001/artworks/")
+          expect(href).to include("/download/original")
         end
       end
     end

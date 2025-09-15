@@ -86,22 +86,6 @@ class Artwork < ApplicationRecord
     )
   end
 
-  def youtube_thumbnail_download_url
-    return nil unless has_youtube_thumbnail?
-
-    begin
-      base_url = youtube_thumbnail_url
-      return nil unless base_url
-
-      # Generate systematic filename: content_{id4桁0埋め}_youtube_thumbnail.{拡張子}
-      content_id_padded = content.id.to_s.rjust(4, "0")
-      filename = "content_#{content_id_padded}_youtube_thumbnail.jpg"
-      "#{base_url}?disposition=attachment&filename=#{CGI.escape(filename)}"
-    rescue => e
-      Rails.logger.warn "Failed to generate YouTube thumbnail download URL for artwork #{id}: #{e.message}"
-      nil
-    end
-  end
 
   def all_variations
     variations = []
@@ -113,7 +97,7 @@ class Artwork < ApplicationRecord
         label: VARIATION_TYPES[:original],
         url: image.url,
         metadata: original_metadata,
-        download_url: original_download_url
+        download_url: download_path_for(:original)
       }
     end
 
@@ -124,7 +108,7 @@ class Artwork < ApplicationRecord
         label: VARIATION_TYPES[:youtube_thumbnail],
         url: youtube_thumbnail_url,
         metadata: youtube_thumbnail_metadata,
-        download_url: youtube_thumbnail_download_url
+        download_url: download_path_for(:youtube_thumbnail)
       }
     end
 
@@ -135,7 +119,7 @@ class Artwork < ApplicationRecord
     #     label: VARIATION_TYPES[:square],
     #     url: square_thumbnail_url,
     #     metadata: square_thumbnail_metadata,
-    #     download_url: square_thumbnail_download_url
+    #     download_url: new_download_url(:square)
     #   }
     # end
 
@@ -167,6 +151,47 @@ class Artwork < ApplicationRecord
     end
   end
 
+  def generate_download_filename(variation)
+    content_id_padded = content.id.to_s.rjust(4, "0")
+
+    # Map variation type to filename part
+    variation_name = case variation
+    when :youtube_thumbnail
+      "youtube"
+    else
+      variation.to_s
+    end
+
+    # Determine file extension
+    extension = case variation
+    when :original
+      # Get extension from original filename
+      if image.present? && image.original_filename.present?
+        File.extname(image.original_filename).delete(".")
+      else
+        "jpg"
+      end
+    else
+      # YouTube thumbnails and other variations are always JPG
+      "jpg"
+    end
+
+    "content_#{content_id_padded}_#{variation_name}.#{extension}"
+  end
+
+  def download_path_for(variation)
+    begin
+      Rails.application.routes.url_helpers.download_content_artwork_path(
+        content_id: content.id,
+        id: id,
+        variation: variation
+      )
+    rescue => e
+      Rails.logger.warn "Failed to generate download URL for artwork #{id} variation #{variation}: #{e.message}"
+      nil
+    end
+  end
+
   private
 
   def original_metadata
@@ -187,21 +212,6 @@ class Artwork < ApplicationRecord
     end
   end
 
-  def original_download_url
-    return nil unless image.present?
-
-    begin
-      # Generate systematic filename: content_{id4桁0埋め}_original.{拡張子}
-      content_id_padded = content.id.to_s.rjust(4, "0")
-      # Extract file extension from original filename or metadata
-      extension = File.extname(image.original_filename.presence || "image.jpg").delete(".")
-      filename = "content_#{content_id_padded}_original.#{extension}"
-      "#{image.url}?disposition=attachment&filename=#{CGI.escape(filename)}"
-    rescue => e
-      Rails.logger.warn "Failed to generate original download URL for artwork #{id}: #{e.message}"
-      nil
-    end
-  end
 
   def youtube_thumbnail_metadata
     return {} unless has_youtube_thumbnail?
