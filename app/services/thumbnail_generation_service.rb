@@ -14,6 +14,12 @@ class ThumbnailGenerationService
   BORDER_RECT_WIDTH = 1024
   BORDER_RECT_HEIGHT = 576
 
+  # Text styling constants
+  TEXT_SIZE = 72  # Increased from 48pt
+  TEXT_COLOR = [ 255, 255, 255 ]  # White
+  SHADOW_COLOR = [ 0, 0, 0 ]  # Black
+  SHADOW_OFFSET = 3  # Shadow offset in pixels
+
   def initialize
     # Ensure required gems are available
     begin
@@ -178,29 +184,48 @@ class ThumbnailGenerationService
 
     # Create text with specified styling
     # Use system font with fallbacks
-    font_spec = "Noto Sans Bold 48"
+    font_spec = "Noto Sans Bold #{TEXT_SIZE}"
 
     begin
-      # Create text image
-      text_image = Vips::Image.text(
+      font_file = find_system_font
+
+      # Create shadow text first (black text with offset)
+      shadow_text = Vips::Image.text(
         text,
         font: font_spec,
-        fontfile: find_system_font,
+        fontfile: font_file,
         rgba: true
       )
+      # Convert shadow text to black
+      shadow_text = shadow_text.new_from_image(SHADOW_COLOR + [ 255 ])  # Add alpha channel
 
-      # Create a composite with the text centered
-      # Calculate position to center the text
-      left = text_x - (text_image.width / 2)
-      top = text_y - (text_image.height / 2)
+      # Create main text (white)
+      main_text = Vips::Image.text(
+        text,
+        font: font_spec,
+        fontfile: font_file,
+        rgba: true
+      )
+      # Convert main text to white
+      main_text = main_text.new_from_image(TEXT_COLOR + [ 255 ])  # Add alpha channel
 
-      # Composite the text onto the image
-      image.composite(text_image, :over, x: left, y: top)
+      # Calculate positions to center the text
+      left = text_x - (main_text.width / 2)
+      top = text_y - (main_text.height / 2)
+
+      # Composite shadow first (with offset)
+      result = image.composite(shadow_text, :over, x: left + SHADOW_OFFSET, y: top + SHADOW_OFFSET)
+
+      # Then composite main text on top
+      result.composite(main_text, :over, x: left, y: top)
     rescue Vips::Error => e
       Rails.logger.warn "Failed to render text with system font, using basic text rendering: #{e.message}"
 
       # Fallback to simpler text rendering if font rendering fails
-      image.draw_text(text, text_x - 100, text_y - 20, color: [ 255, 255, 255 ])
+      # Draw shadow first
+      result = image.draw_text(text, text_x - 100 + SHADOW_OFFSET, text_y - 20 + SHADOW_OFFSET, color: SHADOW_COLOR)
+      # Draw main text
+      result.draw_text(text, text_x - 100, text_y - 20, color: TEXT_COLOR)
     end
   end
 
