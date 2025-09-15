@@ -82,7 +82,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         expect {
           service.generate(input_path: nonexistent_path, output_path: output_path)
-        }.to raise_error(ThumbnailGenerationService::GenerationError, /Input file not found/)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, /入力ファイルが見つかりません/)
       end
 
       it "raises an error when input file is empty" do
@@ -91,7 +91,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         expect {
           service.generate(input_path: empty_file_path, output_path: output_path)
-        }.to raise_error(ThumbnailGenerationService::GenerationError, /Input file is empty/)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, /入力ファイルが空です/)
 
         FileUtils.rm_f(empty_file_path)
       end
@@ -102,7 +102,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         expect {
           service.generate(input_path: invalid_file_path, output_path: output_path)
-        }.to raise_error(ThumbnailGenerationService::GenerationError, /Invalid image format/)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, /サポートされていない画像形式です/)
 
         FileUtils.rm_f(invalid_file_path)
       end
@@ -114,7 +114,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         expect {
           service.generate(input_path: input_path, output_path: output_path)
-        }.to raise_error(ThumbnailGenerationService::GenerationError, /File size too large/)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, /ファイルサイズが大きすぎます/)
       end
 
       it "raises an error when input image has incorrect dimensions" do
@@ -123,7 +123,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         expect {
           service.generate(input_path: wrong_size_path, output_path: output_path)
-        }.to raise_error(ThumbnailGenerationService::GenerationError, /Invalid image dimensions/)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, /画像サイズが不正です/)
 
         FileUtils.rm_f(wrong_size_path)
       end
@@ -133,12 +133,12 @@ RSpec.describe ThumbnailGenerationService, type: :service do
       it "raises an error with appropriate message" do
         create_test_fhd_image(input_path)
 
-        # Mock Vips to raise an error
-        allow(Vips::Image).to receive(:new_from_file).with(input_path).and_raise(Vips::Error, "Test vips error")
+        # Mock Vips to raise an error (allow both sequential and normal access)
+        allow(Vips::Image).to receive(:new_from_file).and_raise(Vips::Error, "Test vips error")
 
         expect {
           service.generate(input_path: input_path, output_path: output_path)
-        }.to raise_error(ThumbnailGenerationService::GenerationError, /Image processing failed: Test vips error/)
+        }.to raise_error(ThumbnailGenerationService::GenerationError, /有効な画像ファイルではありません/)
 
         FileUtils.rm_f(input_path)
       end
@@ -176,7 +176,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
         it "raises an error" do
           expect {
             service.send(:validate_input_file!, "/nonexistent/file.jpg")
-          }.to raise_error(ThumbnailGenerationService::GenerationError, /Input file not found/)
+          }.to raise_error(ThumbnailGenerationService::GenerationError, /入力ファイルが見つかりません/)
         end
       end
 
@@ -187,7 +187,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
           expect {
             service.send(:validate_input_file!, empty_file)
-          }.to raise_error(ThumbnailGenerationService::GenerationError, /Input file is empty/)
+          }.to raise_error(ThumbnailGenerationService::GenerationError, /入力ファイルが空です/)
 
           FileUtils.rm_f(empty_file)
         end
@@ -200,7 +200,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
           expect {
             service.send(:validate_input_file!, input_path)
-          }.to raise_error(ThumbnailGenerationService::GenerationError, /File size too large/)
+          }.to raise_error(ThumbnailGenerationService::GenerationError, /ファイルサイズが大きすぎます/)
         end
       end
 
@@ -211,7 +211,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
           expect {
             service.send(:validate_input_file!, txt_file)
-          }.to raise_error(ThumbnailGenerationService::GenerationError, /Invalid image format/)
+          }.to raise_error(ThumbnailGenerationService::GenerationError, /サポートされていない画像形式です/)
 
           FileUtils.rm_f(txt_file)
         end
@@ -233,7 +233,7 @@ RSpec.describe ThumbnailGenerationService, type: :service do
     end
 
     describe "#draw_white_borders" do
-      it "draws white borders at specified positions" do
+      it "draws white borders as a rectangle frame" do
         create_test_fhd_image(input_path)
         image = Vips::Image.new_from_file(input_path)
         resized = service.send(:resize_to_thumbnail_size, image)
@@ -242,7 +242,68 @@ RSpec.describe ThumbnailGenerationService, type: :service do
 
         expect(result.width).to eq(1280)
         expect(result.height).to eq(720)
-        # More detailed pixel-level tests would be in integration tests
+
+        # Test that the frame is correctly positioned
+        # Frame should be at (128, 72) with size 1024x576
+        # We'll verify this by checking pixels at key positions
+
+        # Top-left corner of the frame (128, 72) should be white
+        top_left_pixel = result.getpoint(128, 72)
+        expect(top_left_pixel).to eq([ 255, 255, 255 ])
+
+        # Top-right corner of the frame (128 + 1024 - 1, 72) should be white
+        top_right_pixel = result.getpoint(128 + 1024 - 1, 72)
+        expect(top_right_pixel).to eq([ 255, 255, 255 ])
+
+        # Bottom-left corner of the frame (128, 72 + 576 - 1) should be white
+        bottom_left_pixel = result.getpoint(128, 72 + 576 - 1)
+        expect(bottom_left_pixel).to eq([ 255, 255, 255 ])
+
+        # Bottom-right corner of the frame (128 + 1024 - 1, 72 + 576 - 1) should be white
+        bottom_right_pixel = result.getpoint(128 + 1024 - 1, 72 + 576 - 1)
+        expect(bottom_right_pixel).to eq([ 255, 255, 255 ])
+
+        # Check that the border has correct thickness (10px)
+        # Inner edge should not be white (at 128+10, 72+10)
+        inner_pixel = result.getpoint(128 + 10, 72 + 10)
+        expect(inner_pixel).not_to eq([ 255, 255, 255 ])
+
+        # Outer edge should not be white (at 128-1, 72-1) if within bounds
+        if 128 - 1 >= 0 && 72 - 1 >= 0
+          outer_pixel = result.getpoint(128 - 1, 72 - 1)
+          expect(outer_pixel).not_to eq([ 255, 255, 255 ])
+        end
+
+        FileUtils.rm_f(input_path)
+      end
+
+      it "creates a rectangular frame with 10px border width" do
+        create_test_fhd_image(input_path)
+        image = Vips::Image.new_from_file(input_path)
+        resized = service.send(:resize_to_thumbnail_size, image)
+
+        result = service.send(:draw_white_borders, resized)
+
+        # Verify border width is exactly 10px
+        # Check horizontal border at top (y=72 to y=81 should be white)
+        (72..81).each do |y|
+          pixel = result.getpoint(640, y)  # Check at center x position
+          expect(pixel).to eq([ 255, 255, 255 ]), "Expected white at (640, #{y})"
+        end
+
+        # Check that y=82 (just inside the border) is not white
+        inside_pixel = result.getpoint(640, 82)
+        expect(inside_pixel).not_to eq([ 255, 255, 255 ])
+
+        # Check vertical border at left (x=128 to x=137 should be white)
+        (128..137).each do |x|
+          pixel = result.getpoint(x, 360)  # Check at center y position
+          expect(pixel).to eq([ 255, 255, 255 ]), "Expected white at (#{x}, 360)"
+        end
+
+        # Check that x=138 (just inside the border) is not white
+        inside_pixel = result.getpoint(138, 360)
+        expect(inside_pixel).not_to eq([ 255, 255, 255 ])
 
         FileUtils.rm_f(input_path)
       end

@@ -9,8 +9,10 @@ class ThumbnailGenerationService
   EXPECTED_INPUT_HEIGHT = 1080
   JPEG_QUALITY = 92
   BORDER_WIDTH = 10
-  BORDER_POSITION_TOP = 100
-  BORDER_POSITION_BOTTOM = 620  # 720 - 100
+  BORDER_RECT_X = 128
+  BORDER_RECT_Y = 72
+  BORDER_RECT_WIDTH = 1024
+  BORDER_RECT_HEIGHT = 576
 
   def initialize
     # Ensure required gems are available
@@ -65,23 +67,32 @@ class ThumbnailGenerationService
   def validate_input_file!(input_path)
     unless File.exist?(input_path)
       Rails.logger.error "Input file not found: #{input_path}"
-      raise GenerationError, "Input file not found: #{input_path}"
+      raise GenerationError, "入力ファイルが見つかりません"
     end
 
     if File.size(input_path) == 0
       Rails.logger.error "Input file is empty: #{input_path}"
-      raise GenerationError, "Input file is empty: #{input_path}"
+      raise GenerationError, "入力ファイルが空です"
     end
 
+    file_size_mb = File.size(input_path) / (1024.0 * 1024.0)
     if File.size(input_path) > MAX_FILE_SIZE
-      Rails.logger.error "File size too large: #{File.size(input_path)} bytes (max: #{MAX_FILE_SIZE} bytes)"
-      raise GenerationError, "File size too large: #{File.size(input_path)} bytes (max: #{MAX_FILE_SIZE} bytes)"
+      Rails.logger.error "File size too large: #{file_size_mb.round(2)}MB (max: #{MAX_FILE_SIZE / (1024 * 1024)}MB)"
+      raise GenerationError, "ファイルサイズが大きすぎます: #{file_size_mb.round(2)}MB (最大: #{MAX_FILE_SIZE / (1024 * 1024)}MB)"
     end
 
     input_ext = File.extname(input_path).downcase
     unless SUPPORTED_IMAGE_FORMATS.include?(input_ext)
       Rails.logger.error "Invalid image format: #{input_ext}. Supported formats: #{SUPPORTED_IMAGE_FORMATS.join(', ')}"
-      raise GenerationError, "Invalid image format: #{input_ext}. Supported formats: #{SUPPORTED_IMAGE_FORMATS.join(', ')}"
+      raise GenerationError, "サポートされていない画像形式です: #{input_ext}"
+    end
+
+    # Check if file is actually an image
+    begin
+      Vips::Image.new_from_file(input_path, access: :sequential)
+    rescue Vips::Error => e
+      Rails.logger.error "File is not a valid image: #{e.message}"
+      raise GenerationError, "有効な画像ファイルではありません"
     end
 
     Rails.logger.info "Input file validated: #{input_path} (#{File.size(input_path)} bytes)"
@@ -90,7 +101,7 @@ class ThumbnailGenerationService
   def validate_image_dimensions!(image)
     unless image.width == EXPECTED_INPUT_WIDTH && image.height == EXPECTED_INPUT_HEIGHT
       Rails.logger.warn "Image dimensions #{image.width}x#{image.height} do not match expected #{EXPECTED_INPUT_WIDTH}x#{EXPECTED_INPUT_HEIGHT}"
-      raise GenerationError, "Invalid image dimensions: #{image.width}x#{image.height}. Expected: #{EXPECTED_INPUT_WIDTH}x#{EXPECTED_INPUT_HEIGHT}"
+      raise GenerationError, "画像サイズが不正です: #{image.width}x#{image.height}px (必須: #{EXPECTED_INPUT_WIDTH}x#{EXPECTED_INPUT_HEIGHT}px)"
     end
     Rails.logger.debug "Image dimensions validated: #{image.width}x#{image.height}"
   end
@@ -102,18 +113,57 @@ class ThumbnailGenerationService
   end
 
   def draw_white_borders(image)
-    # Create white rectangles at specified positions
-    # Top border: y=100, width=1280, height=10
-    # Bottom border: y=620, width=1280, height=10
+    # Create a rectangular frame at (128, 72) with size 1024x576 and 10px border width
+    # This creates a frame by drawing 4 separate rectangles for each side
 
     result = image.copy
     white_color = [ 255, 255, 255 ]  # RGB white
 
-    # Draw top border
-    result = result.draw_rect(white_color, 0, BORDER_POSITION_TOP, TARGET_WIDTH, BORDER_WIDTH, fill: true)
+    # Calculate frame positions
+    frame_left = BORDER_RECT_X
+    frame_top = BORDER_RECT_Y
+    frame_right = BORDER_RECT_X + BORDER_RECT_WIDTH
+    frame_bottom = BORDER_RECT_Y + BORDER_RECT_HEIGHT
 
-    # Draw bottom border
-    result = result.draw_rect(white_color, 0, BORDER_POSITION_BOTTOM, TARGET_WIDTH, BORDER_WIDTH, fill: true)
+    # Draw top border (horizontal)
+    result = result.draw_rect(
+      white_color,
+      frame_left,
+      frame_top,
+      BORDER_RECT_WIDTH,
+      BORDER_WIDTH,
+      fill: true
+    )
+
+    # Draw bottom border (horizontal)
+    result = result.draw_rect(
+      white_color,
+      frame_left,
+      frame_bottom - BORDER_WIDTH,
+      BORDER_RECT_WIDTH,
+      BORDER_WIDTH,
+      fill: true
+    )
+
+    # Draw left border (vertical)
+    result = result.draw_rect(
+      white_color,
+      frame_left,
+      frame_top,
+      BORDER_WIDTH,
+      BORDER_RECT_HEIGHT,
+      fill: true
+    )
+
+    # Draw right border (vertical)
+    result = result.draw_rect(
+      white_color,
+      frame_right - BORDER_WIDTH,
+      frame_top,
+      BORDER_WIDTH,
+      BORDER_RECT_HEIGHT,
+      fill: true
+    )
 
     result
   end
