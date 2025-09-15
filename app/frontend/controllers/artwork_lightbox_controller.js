@@ -8,7 +8,6 @@ export default class extends Controller {
     "currentImage",
     "imageLabel",
     "imageDimensions",
-    "imageSize",
     "imageFormat",
     "metadata",
     "imageContainer",
@@ -154,27 +153,9 @@ export default class extends Controller {
         this.imageDimensionsTarget.textContent = `${metadata.width}x${metadata.height}`
       }
 
-      if (metadata.size) {
-        this.imageSizeTarget.textContent = this.formatFileSize(metadata.size)
-      }
-
       if (metadata.format) {
         this.imageFormatTarget.textContent = metadata.format
       }
-    }
-  }
-
-  formatFileSize(sizeInBytes) {
-    if (!sizeInBytes) return "N/A"
-
-    const size = typeof sizeInBytes === "string" ? parseInt(sizeInBytes) : sizeInBytes
-
-    if (size < 1024) {
-      return `${size}B`
-    } else if (size < 1024 * 1024) {
-      return `${(size / 1024).toFixed(1)}KB`
-    } else {
-      return `${(size / (1024 * 1024)).toFixed(1)}MB`
     }
   }
 

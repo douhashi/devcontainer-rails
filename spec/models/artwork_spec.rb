@@ -150,6 +150,41 @@ RSpec.describe Artwork, type: :model do
     end
   end
 
+  describe "#original_download_url" do
+    context "when content_id is 1" do
+      before do
+        allow(content).to receive(:id).and_return(1)
+      end
+
+      it "returns filename with format content_0001_original.jpg" do
+        expected_filename = "content_0001_original.jpg"
+        expect(artwork.send(:original_download_url)).to include("filename=#{CGI.escape(expected_filename)}")
+      end
+    end
+
+    context "when content_id is 999" do
+      before do
+        allow(content).to receive(:id).and_return(999)
+      end
+
+      it "returns filename with format content_0999_original.jpg" do
+        expected_filename = "content_0999_original.jpg"
+        expect(artwork.send(:original_download_url)).to include("filename=#{CGI.escape(expected_filename)}")
+      end
+    end
+
+    context "when content_id is 10000" do
+      before do
+        allow(content).to receive(:id).and_return(10000)
+      end
+
+      it "returns filename with format content_10000_original.jpg" do
+        expected_filename = "content_10000_original.jpg"
+        expect(artwork.send(:original_download_url)).to include("filename=#{CGI.escape(expected_filename)}")
+      end
+    end
+  end
+
   describe "#youtube_thumbnail_download_url" do
     context "when YouTube thumbnail exists" do
       before do
@@ -157,9 +192,37 @@ RSpec.describe Artwork, type: :model do
         allow(artwork).to receive(:youtube_thumbnail_url).and_return("http://example.com/thumbnail.jpg")
       end
 
-      it "returns the download URL with attachment disposition" do
-        expected_url = "http://example.com/thumbnail.jpg?disposition=attachment&filename=#{artwork.content.theme.gsub(/[^a-zA-Z0-9\-_.]/, '_')}_youtube_thumbnail.jpg"
-        expect(artwork.youtube_thumbnail_download_url).to eq(expected_url)
+      context "when content_id is 1" do
+        before do
+          allow(content).to receive(:id).and_return(1)
+        end
+
+        it "returns filename with format content_0001_youtube_thumbnail.jpg" do
+          expected_filename = "content_0001_youtube_thumbnail.jpg"
+          expect(artwork.youtube_thumbnail_download_url).to include("filename=#{CGI.escape(expected_filename)}")
+        end
+      end
+
+      context "when content_id is 999" do
+        before do
+          allow(content).to receive(:id).and_return(999)
+        end
+
+        it "returns filename with format content_0999_youtube_thumbnail.jpg" do
+          expected_filename = "content_0999_youtube_thumbnail.jpg"
+          expect(artwork.youtube_thumbnail_download_url).to include("filename=#{CGI.escape(expected_filename)}")
+        end
+      end
+
+      context "when content_id is 10000" do
+        before do
+          allow(content).to receive(:id).and_return(10000)
+        end
+
+        it "returns filename with format content_10000_youtube_thumbnail.jpg" do
+          expected_filename = "content_10000_youtube_thumbnail.jpg"
+          expect(artwork.youtube_thumbnail_download_url).to include("filename=#{CGI.escape(expected_filename)}")
+        end
       end
     end
 

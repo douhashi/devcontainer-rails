@@ -75,7 +75,7 @@ RSpec.describe "Artwork Lightbox", type: :system, js: true do
       within "[data-artwork-lightbox-target='metadata']" do
         expect(page).to have_text("オリジナル")
         expect(page).to have_text("1920x1080")
-        expect(page).to have_text("2.0MB")
+        # ファイルサイズの表示は削除されました
         expect(page).to have_text("JPEG")
       end
     end

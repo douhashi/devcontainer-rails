@@ -93,7 +93,9 @@ class Artwork < ApplicationRecord
       base_url = youtube_thumbnail_url
       return nil unless base_url
 
-      filename = "#{content.theme.gsub(/[^a-zA-Z0-9\-_.]/, '_')}_youtube_thumbnail.jpg"
+      # Generate systematic filename: content_{id4桁0埋め}_youtube_thumbnail.{拡張子}
+      content_id_padded = content.id.to_s.rjust(4, "0")
+      filename = "content_#{content_id_padded}_youtube_thumbnail.jpg"
       "#{base_url}?disposition=attachment&filename=#{CGI.escape(filename)}"
     rescue => e
       Rails.logger.warn "Failed to generate YouTube thumbnail download URL for artwork #{id}: #{e.message}"
@@ -189,7 +191,11 @@ class Artwork < ApplicationRecord
     return nil unless image.present?
 
     begin
-      filename = "#{content.theme.gsub(/[^a-zA-Z0-9\-_.]/, '_')}_original.jpg"
+      # Generate systematic filename: content_{id4桁0埋め}_original.{拡張子}
+      content_id_padded = content.id.to_s.rjust(4, "0")
+      # Extract file extension from original filename or metadata
+      extension = File.extname(image.original_filename.presence || "image.jpg").delete(".")
+      filename = "content_#{content_id_padded}_original.#{extension}"
       "#{image.url}?disposition=attachment&filename=#{CGI.escape(filename)}"
     rescue => e
       Rails.logger.warn "Failed to generate original download URL for artwork #{id}: #{e.message}"

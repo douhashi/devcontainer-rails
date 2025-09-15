@@ -20,6 +20,10 @@ RSpec.describe ArtworkVariations::GridComponent, type: :component do
       it "displays metadata" do
         expect(rendered).to have_css(".variation-metadata")
       end
+
+      it "does not display file size" do
+        expect(rendered).not_to have_text("ファイルサイズ")
+      end
     end
 
     context "with YouTube thumbnail" do
