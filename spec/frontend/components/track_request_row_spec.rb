@@ -22,9 +22,10 @@ RSpec.describe TrackRequestRow::Component, type: :component do
       expect(page).to have_content("Test Track")
     end
 
-    it "displays creation date" do
-      expect(page).to have_content(I18n.l(track.created_at, format: :long_with_time))
-    end
+    # Creation date column removed as per Issue #348
+    # it "displays creation date" do
+    #   expect(page).to have_content(I18n.l(track.created_at, format: :long_with_time))
+    # end
 
     # Status badge removed as per Issue #243
 

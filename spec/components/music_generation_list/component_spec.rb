@@ -50,7 +50,8 @@ RSpec.describe MusicGenerationList::Component, type: :component do
         expect(page).to have_css("th", text: "タイトル")
         expect(page).to have_css("th", text: "曲の長さ")
         expect(page).to have_css("th", text: "プレイヤー")
-        expect(page).to have_css("th", text: "作成日時")
+        # Creation date column removed as per Issue #348
+        # expect(page).to have_css("th", text: "作成日時")
       end
 
       it "displays track titles" do

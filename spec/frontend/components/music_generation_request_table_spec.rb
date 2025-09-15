@@ -35,7 +35,8 @@ RSpec.describe MusicGenerationRequestTable::Component, type: :component do
       expect(page).to have_content("タイトル")
       expect(page).to have_content("曲の長さ")
       expect(page).to have_content("プレイヤー")
-      expect(page).to have_content("作成日時")
+      # Creation date column removed as per Issue #348
+      # expect(page).to have_content("作成日時")
     end
 
     it "does not show delete actions" do
