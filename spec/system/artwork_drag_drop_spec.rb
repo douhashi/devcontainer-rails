@@ -18,7 +18,14 @@ RSpec.describe "Artwork Drag and Drop", type: :system, js: true, playwright: tru
         # Playwrightは自動的にイベントをトリガーするため、手動トリガーは不要
         # アップロード処理が完了し、グリッドが表示されるまで待つ
         expect(page).to have_css('.artwork-variations-grid', wait: 10)
-        expect(page).to have_css('button[aria-label="アートワークを削除"]', wait: 10)
+
+        # ページをリロードして最新の状態を取得
+        page.refresh
+
+        # 削除ボタンはcontent-section-actionsに移動
+        within '.artwork-section' do
+          expect(page).to have_css('.content-section-actions button[aria-label="アートワークを削除"]', wait: 10)
+        end
 
         # DBに保存されている確認
         expect(content.reload.artwork).to be_present

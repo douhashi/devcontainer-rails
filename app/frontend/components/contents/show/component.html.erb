@@ -85,21 +85,54 @@
   <% end %>
 
   <!-- 2. アートワークセクション -->
-  <%= render ContentSection::Component.new(title: "アートワーク", class: "artwork-section") do %>
+  <%= render ContentSection::Component.new(title: "アートワーク", class: "artwork-section") do |section| %>
+    <% if item.artwork.present? %>
+      <% section.with_action do %>
+        <%= button_to content_artwork_path(item, item.artwork),
+                      method: :delete,
+                      data: {
+                        turbo_method: :delete,
+                        turbo_confirm: "アートワークを削除しますか？"
+                      },
+                      'aria-label': 'アートワークを削除',
+                      title: 'アートワークを削除',
+                      class: "inline-flex items-center justify-center p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" do %>
+          <%= render Icon::Component.new(name: "delete") %>
+        <% end %>
+      <% end %>
+    <% end %>
+
     <%= render 'artworks/artwork_section', content: item %>
   <% end %>
 
   <!-- 3. 音楽生成リクエストセクション -->
-  <%= render ContentSection::Component.new(title: "音楽生成リクエスト", class: "music-generations-section") do %>
-    <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <%= render MusicGenerationStatusSummary::Component.new(
-        content_record: item
-      ) %>
+  <%= render ContentSection::Component.new(title: "音楽生成リクエスト", class: "music-generations-section") do |section| %>
+    <% pending_count = item.music_generations.where(status: 'pending').count %>
+    <% processing_count = item.music_generations.where(status: 'processing').count %>
+
+    <% if pending_count > 0 || processing_count > 0 %>
+      <% section.with_badge do %>
+        <div class="flex gap-2 text-sm">
+          <% if pending_count > 0 %>
+            <span class="text-yellow-400">待機中: <%= pending_count %>件</span>
+          <% end %>
+          <% if processing_count > 0 %>
+            <span class="text-blue-400">処理中: <%= processing_count %>件</span>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <% section.with_action do %>
       <%= render TrackGenerationControls::Component.new(
         content_record: item,
         can_generate_more: true
       ) %>
-    </div>
+    <% end %>
+
+    <%= render MusicGenerationStatusSummary::Component.new(
+      content_record: item
+    ) %>
     <%= render MusicGenerationList::Component.new(
       tracks: item.tracks.includes(:content).order(created_at: :desc)
     ) %>
@@ -139,6 +172,35 @@
     <% if video_component.video_exists? %>
       <% section.with_badge do %>
         <%= render StatusBadge::Component.new(status: video_component.video_status.to_sym, size: :small) %>
+      <% end %>
+
+      <% if video_component.video_status == "completed" || video_component.video_status == "failed" %>
+        <% if video_component.video_status == "completed" && video_component.video_file_url %>
+          <% section.with_action do %>
+            <%= link_to video_component.video_file_url,
+                  class: "inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors",
+                  target: "_blank",
+                  download: "#{item.theme}_video.mp4",
+                  title: "ダウンロード",
+                  "aria-label": "動画をダウンロード" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <% section.with_action do %>
+          <%= form_with url: content_video_path(item), method: :delete, local: true, class: "inline" do |f| %>
+            <button type="submit"
+                    class="inline-flex items-center justify-center p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    data-turbo-confirm="<%= video_component.delete_confirmation_message %>"
+                    title="削除"
+                    aria-label="動画を削除">
+              <%= render Icon::Component.new(name: :delete, size: :md) %>
+            </button>
+          <% end %>
+        <% end %>
       <% end %>
     <% end %>
 

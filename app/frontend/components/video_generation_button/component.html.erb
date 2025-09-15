@@ -75,38 +75,6 @@
           </div>
         </div>
 
-        <!-- Download and Delete Buttons (for completed/failed videos) -->
-        <% if video_status == "completed" || video_status == "failed" %>
-          <div class="flex gap-2">
-            <% if video_status == "completed" && video_file_url %>
-              <%= link_to video_file_url, 
-                    class: "flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors",
-                    target: "_blank",
-                    download: "#{content_record.theme}_video.mp4" do %>
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                ダウンロード
-              <% end %>
-            <% end %>
-            
-            <%= form_with url: content_video_path(content_record), method: :delete, local: true, class: "flex-1" do |f| %>
-              <%= render Button::Component.new(
-                text: "削除",
-                variant: :danger,
-                size: :md,
-                disabled: delete_button_disabled?,
-                loading: false,
-                type: "submit",
-                class: "w-full",
-                data: { turbo_confirm: delete_confirmation_message }
-              ) do %>
-                <%= render Icon::Component.new(name: :delete, size: :sm) %>
-                <span class="ml-1.5">削除</span>
-              <% end %>
-            <% end %>
-          </div>
-        <% end %>
 
         <!-- Error Message (for failed videos) -->
         <% if video_status == "failed" && content_record.video.error_message %>

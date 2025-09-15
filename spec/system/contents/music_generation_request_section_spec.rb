@@ -23,26 +23,31 @@ RSpec.describe "音楽生成リクエストセクション", type: :system do
       expect(page).to have_text("音楽生成リクエスト")
     end
 
-    it "生成ボタンが右側に配置されていること" do
+    it "生成ボタンがactionsエリアに配置されていること" do
       within ".music-generations-section" do
-        expect(page).to have_css(".generation-controls.flex.justify-end")
-        expect(page).to have_button("1件生成")
-        expect(page).to have_button("一括生成")
+        expect(page).to have_css(".content-section-actions")
+        within ".content-section-actions" do
+          expect(page).to have_button("1件生成")
+          expect(page).to have_button("一括生成")
+        end
       end
     end
 
-    it "ステータスサマリーが左側、ボタンが右側に配置されていること" do
+    it "待機中・処理中の情報がヘッダーバッジエリアに表示されること" do
       within ".music-generations-section" do
-        section = find(".content-section-body div.flex.justify-between")
-        expect(section).to have_css(".music-generation-status-summary")
-        expect(section).to have_css(".generation-controls")
+        within ".content-section-header" do
+          expect(page).to have_text("待機中: 2件")
+          expect(page).to have_text("処理中: 1件")
+        end
       end
     end
 
-    context "レスポンシブデザイン" do
-      it "デスクトップサイズで横並びになること" do
+    context "DOM構造の統一性" do
+      it "ContentSectionコンポーネントの標準構造に従っていること" do
         within ".music-generations-section" do
-          expect(page).to have_css(".content-section-body div.flex.sm\\:flex-row")
+          expect(page).to have_css(".content-section-header")
+          expect(page).to have_css(".content-section-body")
+          expect(page).to have_css(".content-section-actions")
         end
       end
     end
@@ -83,15 +88,15 @@ RSpec.describe "音楽生成リクエストセクション", type: :system do
       visit content_path(content)
     end
 
-    it "作品概要セクションと同様の右側配置になっていること" do
+    it "作品概要セクションと同様のDOM構造になっていること" do
       # 作品概要セクションのボタン配置確認
       within first(".bg-gray-800") do
-        expect(page).to have_css("div.flex.justify-end.gap-4")
+        expect(page).to have_css(".content-section-actions.flex.justify-end.gap-4")
       end
 
       # 音楽生成リクエストセクションのボタン配置確認
       within ".music-generations-section" do
-        expect(page).to have_css(".generation-controls.flex.justify-end")
+        expect(page).to have_css(".content-section-actions")
       end
     end
   end

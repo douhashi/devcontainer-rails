@@ -34,9 +34,10 @@ RSpec.describe VideoGenerationButton::Component, type: :component do
     context 'when video is completed' do
       let!(:video) { create(:video, content: content_record, status: :completed) }
 
-      it 'renders delete button with ButtonComponent' do
+      it 'does not render delete button in component body' do
         rendered = render_inline(component)
-        expect(rendered.css('button').text).to include('削除')
+        # 削除ボタンはコンポーネント外（content-section-actions）に移動
+        expect(rendered.css('.flex.gap-2 button').text).not_to include('削除')
       end
     end
 

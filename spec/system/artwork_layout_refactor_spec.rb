@@ -40,24 +40,18 @@ RSpec.describe "Artwork Layout Refactor", type: :system, playwright: true do
         end
       end
 
-      it "削除ボタンがグリッドの兄弟要素として配置されている" do
+      it "削除ボタンがcontent-section-actionsに配置されている" do
         # 既存のアートワークを作成
         artwork = create(:artwork, content: content)
 
         visit content_path(content)
 
         within(".artwork-section") do
-          # 削除ボタンが存在することを確認
-          expect(page).to have_css("button[aria-label='アートワークを削除']")
-
           # グリッドコンポーネントが存在することを確認
           expect(page).to have_css(".artwork-variations-grid")
 
-          # 削除ボタンがグリッドの兄弟要素として配置されていることを確認
-          # （同じ親要素内に存在することを確認）
-          container = find(".artwork-management-container")
-          expect(container).to have_css(".artwork-variations-grid")
-          expect(container).to have_css("button[aria-label='アートワークを削除']")
+          # 削除ボタンがcontent-section-actionsに存在することを確認
+          expect(page).to have_css(".content-section-actions button[aria-label='アートワークを削除']")
         end
       end
     end

@@ -13,12 +13,13 @@ RSpec.describe "video_generation_button component", type: :request do
   end
 
   describe "GET /rails/view_components/video_generation_button/completed" do
-    it "shows download link and delete button" do
+    it "shows video player and technical specifications" do
       get "/rails/view_components/video_generation_button/completed"
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("ダウンロード")
-      expect(response.body).to include("削除")
+      expect(response.body).to include("技術仕様")
+      # ダウンロード/削除ボタンはコンポーネント外に移動
+      expect(response.body).not_to include("ダウンロード")
     end
   end
 
@@ -33,12 +34,13 @@ RSpec.describe "video_generation_button component", type: :request do
   end
 
   describe "GET /rails/view_components/video_generation_button/failed" do
-    it "shows failed message and delete button" do
+    it "shows failed message without delete button" do
       get "/rails/view_components/video_generation_button/failed"
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("生成失敗")
-      expect(response.body).to include("削除")
+      # 削除ボタンはコンポーネント外に移動
+      expect(response.body).not_to include("削除")
     end
   end
 end
