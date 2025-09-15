@@ -551,11 +551,11 @@ RSpec.describe "Contents", type: :request do
         expect(response.body).to include("完了: 4件")
         expect(response.body).to include("失敗: 1件")
 
-        # 適切な色クラスを持つことを確認
-        expect(response.body).to include("text-gray-500")
-        expect(response.body).to include("text-yellow-600")
-        expect(response.body).to include("text-green-600")
-        expect(response.body).to include("text-red-600")
+        # 適切な色クラスを持つことを確認（ダークモード対応）
+        expect(response.body).to include("text-gray-300")
+        expect(response.body).to include("text-yellow-300")
+        expect(response.body).to include("text-green-300")
+        expect(response.body).to include("text-red-300")
       end
     end
 

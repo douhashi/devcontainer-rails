@@ -36,22 +36,22 @@ class MusicGenerationStatusSummary::Component < ApplicationViewComponent
       pending: {
         label: "待機中",
         icon: "clock",
-        color_class: "text-gray-500 bg-gray-100"
+        color_class: "text-gray-300 bg-gray-700"
       },
       processing: {
         label: "処理中",
         icon: "spinner",
-        color_class: "text-yellow-600 bg-yellow-100"
+        color_class: "text-yellow-300 bg-yellow-900"
       },
       completed: {
         label: "完了",
         icon: "check-circle",
-        color_class: "text-green-600 bg-green-100"
+        color_class: "text-green-300 bg-green-900"
       },
       failed: {
         label: "失敗",
         icon: "exclamation-circle",
-        color_class: "text-red-600 bg-red-100"
+        color_class: "text-red-300 bg-red-900"
       }
     }
   end

@@ -92,13 +92,13 @@
   <!-- 3. 音楽生成リクエストセクション -->
   <div class="bg-gray-800 rounded-lg p-6 mb-6 music-generations-section">
     <h2 class="text-xl font-bold text-gray-200 mb-4">音楽生成リクエスト</h2>
-    <div class="mb-4">
+    <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <%= render MusicGenerationStatusSummary::Component.new(
+        content_record: item
+      ) %>
       <%= render TrackGenerationControls::Component.new(
         content_record: item,
         can_generate_more: true
-      ) %>
-      <%= render MusicGenerationStatusSummary::Component.new(
-        content_record: item
       ) %>
     </div>
     <%= render MusicGenerationList::Component.new(
