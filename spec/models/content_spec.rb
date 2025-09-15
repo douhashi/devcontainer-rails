@@ -68,6 +68,22 @@ RSpec.describe Content, type: :model do
       end
     end
 
+    describe '#youtube_metadata_status' do
+      context 'when youtube_metadata exists' do
+        before { create(:youtube_metadata, content: content) }
+
+        it 'returns configured status' do
+          expect(content.youtube_metadata_status).to eq(:configured)
+        end
+      end
+
+      context 'when youtube_metadata does not exist' do
+        it 'returns not_configured status' do
+          expect(content.youtube_metadata_status).to eq(:not_configured)
+        end
+      end
+    end
+
     describe '#completion_status' do
       context 'when all tracks are completed and artwork is configured' do
         before do

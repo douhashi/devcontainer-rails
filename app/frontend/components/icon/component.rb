@@ -22,7 +22,8 @@ module Icon
       volume_high: "fa-volume-high",
       volume_low: "fa-volume-low",
       volume_off: "fa-volume-off",
-      volume_xmark: "fa-volume-xmark"
+      volume_xmark: "fa-volume-xmark",
+      error: "fa-exclamation-triangle"
     }.freeze
 
     # Font Awesome size mappings

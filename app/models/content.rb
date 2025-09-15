@@ -4,6 +4,7 @@ class Content < ApplicationRecord
   has_one :artwork, dependent: :destroy
   has_one :audio, dependent: :destroy
   has_one :video, dependent: :destroy
+  has_one :youtube_metadata, dependent: :destroy
 
   validates :theme, presence: true, length: { maximum: 256 }
   validates :duration_min, presence: true, numericality: { greater_than: 0 }
@@ -109,6 +110,10 @@ class Content < ApplicationRecord
 
   def video_generated?
     video.present? && video.completed?
+  end
+
+  def youtube_metadata_status
+    youtube_metadata.present? ? :configured : :not_configured
   end
 
   private

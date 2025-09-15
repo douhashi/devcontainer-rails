@@ -29,6 +29,16 @@ module StatusBadge
       failed: {
         text: "失敗",
         color_classes: "bg-red-100 text-red-800 border-red-200"
+      },
+      # YouTube Metadata statuses
+      draft: {
+        color_classes: "bg-gray-100 text-gray-800 border-gray-200"
+      },
+      ready: {
+        color_classes: "bg-yellow-100 text-yellow-800 border-yellow-200"
+      },
+      published: {
+        color_classes: "bg-green-100 text-green-800 border-green-200"
       }
     }.freeze
 
@@ -49,7 +59,15 @@ module StatusBadge
     private
 
     def status_text
-      STATUS_CONFIG.dig(status, :text) || status.to_s.humanize
+      text_key = STATUS_CONFIG.dig(status, :text)
+      if text_key&.include?(".")
+        I18n.t(text_key)
+      elsif [ :draft, :ready, :published ].include?(status)
+        # YouTube Metadata statuses use enumerize i18n
+        I18n.t("enumerize.youtube_metadata.status.#{status}")
+      else
+        text_key || status.to_s.humanize
+      end
     end
 
     def color_classes

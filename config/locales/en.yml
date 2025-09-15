@@ -32,3 +32,53 @@ en:
   time:
     formats:
       long_with_time: "%Y年%m月%d日 %H:%M"
+
+  activerecord:
+    models:
+      youtube_metadata: "YouTube Metadata"
+    attributes:
+      youtube_metadata:
+        title: "Title"
+        description_en: "English Description"
+        description_ja: "Japanese Description"
+        hashtags: "Hashtags"
+        status: "Status"
+    errors:
+      models:
+        youtube_metadata:
+          attributes:
+            title:
+              blank: "Title is required"
+              too_long: "Title must be 100 characters or less"
+            description_en:
+              blank: "English description is required"
+              too_long: "English description must be 5000 characters or less"
+            description_ja:
+              blank: "Japanese description is required"
+              too_long: "Japanese description must be 5000 characters or less"
+            hashtags:
+              too_long: "Hashtags must be 500 characters or less"
+
+  enumerize:
+    youtube_metadata:
+      status:
+        draft: "Draft"
+        ready: "Ready"
+        published: "Published"
+
+  youtube_metadata:
+    create:
+      success: "YouTube metadata was created successfully."
+      failure: "Failed to create YouTube metadata"
+    update:
+      success: "YouTube metadata was updated successfully."
+      failure: "Failed to update YouTube metadata"
+    delete:
+      success: "YouTube metadata was deleted successfully."
+      failure: "Failed to delete YouTube metadata."
+    errors:
+      invalid_status_transition: "Cannot change from %{from} to %{to}"
+    statuses:
+      draft: "Draft"
+      ready: "Ready"
+      published: "Published"

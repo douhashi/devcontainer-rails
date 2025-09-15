@@ -27,6 +27,7 @@ Rails.application.routes.draw do
     resource :video, only: [ :create, :destroy ]
     resource :audio, only: [ :destroy ]
     resources :music_generations, only: [ :destroy ]
+    resource :youtube_metadata, except: [ :show, :new, :edit ]
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

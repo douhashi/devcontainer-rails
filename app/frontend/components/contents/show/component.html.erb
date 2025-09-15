@@ -144,3 +144,19 @@
 
     <%= render video_component %>
   <% end %>
+
+  <!-- 6. YouTube メタデータセクション -->
+  <%= render ContentSection::Component.new(title: "YouTube メタデータ", class: "youtube-metadata-section") do |section| %>
+    <% if item.youtube_metadata.present? %>
+      <% section.with_badge do %>
+        <%= render StatusBadge::Component.new(
+          status: item.youtube_metadata.status.to_sym,
+          size: :small
+        ) %>
+      <% end %>
+    <% end %>
+
+    <%= render 'youtube_metadata/youtube_metadata_section', content: item %>
+  <% end %>
+
+</div>

@@ -1,4 +1,37 @@
 ja:
+  activerecord:
+    models:
+      youtube_metadata: "YouTube メタデータ"
+    attributes:
+      youtube_metadata:
+        title: "タイトル"
+        description_en: "英語説明"
+        description_ja: "日本語説明"
+        hashtags: "ハッシュタグ"
+        status: "ステータス"
+    errors:
+      models:
+        youtube_metadata:
+          attributes:
+            title:
+              blank: "タイトルを入力してください"
+              too_long: "タイトルは100文字以下で入力してください"
+            description_en:
+              blank: "英語説明を入力してください"
+              too_long: "英語説明は5000文字以下で入力してください"
+            description_ja:
+              blank: "日本語説明を入力してください"
+              too_long: "日本語説明は5000文字以下で入力してください"
+            hashtags:
+              too_long: "ハッシュタグは500文字以下で入力してください"
+
+  enumerize:
+    youtube_metadata:
+      status:
+        draft: "下書き"
+        ready: "準備完了"
+        published: "公開済み"
+
   time:
     formats:
       long_with_time: "%Y年%m月%d日 %H:%M"
@@ -25,3 +58,20 @@ ja:
     delete:
       success: "アートワークが削除されました。"
       failure: "アートワークの削除に失敗しました。"
+
+  youtube_metadata:
+    create:
+      success: "YouTube メタデータが作成されました。"
+      failure: "YouTube メタデータの作成に失敗しました"
+    update:
+      success: "YouTube メタデータが更新されました。"
+      failure: "YouTube メタデータの更新に失敗しました"
+    delete:
+      success: "YouTube メタデータが削除されました。"
+      failure: "YouTube メタデータの削除に失敗しました。"
+    errors:
+      invalid_status_transition: "%{from}から%{to}への変更はできません"
+    statuses:
+      draft: "下書き"
+      ready: "準備完了"
+      published: "公開済み"
