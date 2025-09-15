@@ -177,6 +177,93 @@ RSpec.describe "Artwork Lightbox", type: :system, js: true do
     end
   end
 
+  describe "クリック領域によるナビゲーション" do
+    before do
+      visit content_path(content)
+      find(".variation-card", match: :first).find("[data-action*='artwork-lightbox#open']").click
+      sleep 0.5  # アニメーション完了を待つ
+    end
+
+    it "画像の左側30%領域をクリックすると前の画像に切り替わる" do
+      expect(page).to have_text("1 / 3")
+
+      # 画像コンテナの左側領域をクリック
+      find("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='previous']").click
+
+      expect(page).to have_text("3 / 3")
+      expect(page).to have_text("正方形")
+    end
+
+    it "画像の右側30%領域をクリックすると次の画像に切り替わる" do
+      expect(page).to have_text("1 / 3")
+
+      # 画像コンテナの右側領域をクリック
+      find("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='next']").click
+
+      expect(page).to have_text("2 / 3")
+      expect(page).to have_text("YouTubeサムネイル")
+    end
+
+    it "画像の中央40%領域をクリックしても何も起こらない" do
+      expect(page).to have_text("1 / 3")
+
+      # 画像コンテナの中央領域をクリック
+      find("[data-artwork-lightbox-target='centerArea']").click
+
+      # ページが変わらないことを確認
+      expect(page).to have_text("1 / 3")
+      expect(page).to have_text("オリジナル")
+    end
+
+    it "左側領域ホバー時にカーソルが変更される" do
+      left_area = find("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='previous']")
+
+      # CSSクラスにホバー用のカーソルスタイルが含まれることを確認
+      expect(left_area[:class]).to include("cursor-pointer")
+    end
+
+    it "右側領域ホバー時にカーソルが変更される" do
+      right_area = find("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='next']")
+
+      # CSSクラスにホバー用のカーソルスタイルが含まれることを確認
+      expect(right_area[:class]).to include("cursor-pointer")
+    end
+
+    it "中央領域ホバー時にカーソルは変更されない" do
+      center_area = find("[data-artwork-lightbox-target='centerArea']")
+
+      # CSSクラスにdefaultカーソルスタイルが含まれることを確認
+      expect(center_area[:class]).to include("cursor-default")
+    end
+
+    it "クリック領域と既存のナビゲーションボタンが共存する" do
+      # 既存のボタンが存在することを確認
+      expect(page).to have_css("[data-action='click->artwork-lightbox#next']")
+      expect(page).to have_css("[data-action='click->artwork-lightbox#previous']")
+
+      # クリック領域も存在することを確認
+      expect(page).to have_css("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='next']")
+      expect(page).to have_css("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='previous']")
+
+      # ボタンで次へ移動
+      find("[data-action='click->artwork-lightbox#next']").click
+      expect(page).to have_text("2 / 3")
+
+      # クリック領域で前へ移動
+      find("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='previous']").click
+      expect(page).to have_text("1 / 3")
+    end
+
+    it "クリック領域からのイベントがバックドロップクリックと競合しない" do
+      # 右側領域をクリック
+      find("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='next']").click
+
+      # Lightboxが閉じずに、次の画像に切り替わることを確認
+      expect(page).to have_css("[data-artwork-lightbox-target='lightbox']:not(.hidden)")
+      expect(page).to have_text("2 / 3")
+    end
+  end
+
   describe "アニメーション効果" do
     it "Lightboxがフェードインで開く" do
       visit content_path(content)

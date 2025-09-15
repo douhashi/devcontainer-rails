@@ -11,7 +11,9 @@ export default class extends Controller {
     "imageSize",
     "imageFormat",
     "metadata",
-    "imageContainer"
+    "imageContainer",
+    "navigationOverlay",
+    "centerArea"
   ]
 
   static values = {
@@ -96,6 +98,21 @@ export default class extends Controller {
 
     this.currentIndexValue = (this.currentIndexValue - 1 + this.imagesValue.length) % this.imagesValue.length
     this.updateDisplay()
+  }
+
+  navigateByClick(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    const direction = event.currentTarget.dataset.navigationDirection
+
+    if (direction === "previous") {
+      this.previous()
+    } else if (direction === "next") {
+      this.next()
+    }
   }
 
   handleKeydown(event) {

@@ -123,6 +123,35 @@ RSpec.describe ArtworkLightbox::Component, type: :component do
       subject
       expect(page).to have_css(".hidden[data-artwork-lightbox-target='lightbox']")
     end
+
+    it "クリック領域オーバーレイを含む" do
+      subject
+      expect(page).to have_css("[data-artwork-lightbox-target='navigationOverlay']")
+    end
+
+    it "左側のクリック領域を含む" do
+      subject
+      expect(page).to have_css("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='previous']")
+    end
+
+    it "右側のクリック領域を含む" do
+      subject
+      expect(page).to have_css("[data-action='click->artwork-lightbox#navigateByClick'][data-navigation-direction='next']")
+    end
+
+    it "中央のクリック領域を含む" do
+      subject
+      expect(page).to have_css("[data-artwork-lightbox-target='centerArea']")
+    end
+
+    it "クリック領域に適切なaria-label属性を含む" do
+      subject
+      left_area = page.find("[data-navigation-direction='previous']")
+      right_area = page.find("[data-navigation-direction='next']")
+
+      expect(left_area["aria-label"]).to eq("前の画像へ")
+      expect(right_area["aria-label"]).to eq("次の画像へ")
+    end
   end
 
   describe "データ属性" do

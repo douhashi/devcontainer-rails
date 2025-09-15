@@ -55,6 +55,21 @@ module ArtworkLightbox
       "relative max-w-7xl max-h-[90vh] mx-auto"
     end
 
+    def navigation_overlay_classes
+      "absolute inset-0 flex pointer-events-none z-10"
+    end
+
+    def left_click_area_classes
+      "w-[30%] h-full pointer-events-auto cursor-pointer hover:bg-white hover:bg-opacity-5 transition-colors"
+    end
+
+    def center_area_classes
+      "w-[40%] h-full pointer-events-auto cursor-default"
+    end
+
+    def right_click_area_classes
+      "w-[30%] h-full pointer-events-auto cursor-pointer hover:bg-white hover:bg-opacity-5 transition-colors"
+    end
 
     def close_icon
       helpers.tag.svg(

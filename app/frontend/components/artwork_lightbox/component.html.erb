@@ -48,6 +48,31 @@
       class="max-w-full max-h-[90vh] object-contain"
       loading="eager">
 
+    <!-- クリック領域オーバーレイ -->
+    <div data-artwork-lightbox-target="navigationOverlay" class="<%= navigation_overlay_classes %>">
+      <!-- 左側クリック領域（30%） -->
+      <div
+        data-action="click->artwork-lightbox#navigateByClick"
+        data-navigation-direction="previous"
+        aria-label="前の画像へ"
+        class="<%= left_click_area_classes %>">
+      </div>
+
+      <!-- 中央領域（40%） -->
+      <div
+        data-artwork-lightbox-target="centerArea"
+        class="<%= center_area_classes %>">
+      </div>
+
+      <!-- 右側クリック領域（30%） -->
+      <div
+        data-action="click->artwork-lightbox#navigateByClick"
+        data-navigation-direction="next"
+        aria-label="次の画像へ"
+        class="<%= right_click_area_classes %>">
+      </div>
+    </div>
+
     <!-- メタデータ表示 -->
     <div data-artwork-lightbox-target="metadata" class="<%= metadata_classes %>">
       <h3 data-artwork-lightbox-target="imageLabel" class="text-lg font-semibold mb-2"></h3>
