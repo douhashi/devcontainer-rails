@@ -15,22 +15,49 @@
   <div id="notifications" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
   <!-- 1. コンテンツ概要セクション -->
-  <div class="bg-gray-800 rounded-lg p-6 mb-6">
-    <!-- Header with title and status -->
-    <div class="flex justify-between items-start mb-6">
+  <%= render ContentSection::Component.new do |section| %>
+    <% section.with_header do %>
       <h1 class="text-3xl font-bold text-gray-100 flex-grow">
         <%= item.theme %>
       </h1>
-      <div class="ml-4 flex-shrink-0">
-        <%= render StatusBadge::Component.new(status: completion_status) %>
-      </div>
-    </div>
+    <% end %>
 
+    <% section.with_badge do %>
+      <%= render StatusBadge::Component.new(status: completion_status) %>
+    <% end %>
+
+    <% section.with_action do %>
+      <%= render Button::Component.new(
+        href: edit_content_path(item),
+        variant: :primary,
+        size: :md,
+        aria_label: "編集"
+      ) do %>
+        <%= render Icon::Component.new(name: :edit, size: :md) %>
+      <% end %>
+    <% end %>
+
+    <% section.with_action do %>
+      <%= render Button::Component.new(
+        href: content_path(item),
+        variant: :danger,
+        size: :md,
+        aria_label: "削除",
+        data: {
+          turbo_method: :delete,
+          controller: "delete-confirmation",
+          action: "click->delete-confirmation#confirm",
+          delete_confirmation_message_value: "本当に削除しますか？"
+        }
+      ) do %>
+        <%= render Icon::Component.new(name: :delete, size: :md) %>
+      <% end %>
+    <% end %>
 
     <!-- Work Overview (combined Audio Prompt and Basic Info) -->
     <div class="work-overview-section">
       <h2 class="text-xl font-bold text-gray-200 mb-4">作品概要</h2>
-      
+
       <!-- Audio Prompt -->
       <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-300 mb-3">音楽生成プロンプト</h3>
@@ -55,43 +82,15 @@
         </div>
       </div>
     </div>
-
-    <!-- Actions (moved to after Work Overview) -->
-    <div class="flex justify-end gap-4 mt-6">
-      <%= render Button::Component.new(
-        href: edit_content_path(item),
-        variant: :primary,
-        size: :md,
-        aria_label: "編集"
-      ) do %>
-        <%= render Icon::Component.new(name: :edit, size: :md) %>
-      <% end %>
-      <%= render Button::Component.new(
-        href: content_path(item),
-        variant: :danger,
-        size: :md,
-        aria_label: "削除",
-        data: { 
-          turbo_method: :delete,
-          controller: "delete-confirmation",
-          action: "click->delete-confirmation#confirm",
-          delete_confirmation_message_value: "本当に削除しますか？"
-        }
-      ) do %>
-        <%= render Icon::Component.new(name: :delete, size: :md) %>
-      <% end %>
-    </div>
-  </div>
+  <% end %>
 
   <!-- 2. アートワークセクション -->
-  <div class="bg-gray-800 rounded-lg p-6 mb-6 artwork-section">
-    <h2 class="text-xl font-bold text-gray-100 mb-4">アートワーク</h2>
+  <%= render ContentSection::Component.new(title: "アートワーク", class: "artwork-section") do %>
     <%= render 'artworks/artwork_section', content: item %>
-  </div>
+  <% end %>
 
   <!-- 3. 音楽生成リクエストセクション -->
-  <div class="bg-gray-800 rounded-lg p-6 mb-6 music-generations-section">
-    <h2 class="text-xl font-bold text-gray-200 mb-4">音楽生成リクエスト</h2>
+  <%= render ContentSection::Component.new(title: "音楽生成リクエスト", class: "music-generations-section") do %>
     <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <%= render MusicGenerationStatusSummary::Component.new(
         content_record: item
@@ -104,20 +103,12 @@
     <%= render MusicGenerationList::Component.new(
       tracks: item.tracks.includes(:content).order(created_at: :desc)
     ) %>
-  </div>
+  <% end %>
 
   <!-- 4. 音源生成セクション -->
-  <div class="bg-gray-800 rounded-lg p-6 mb-6">
-    <h2 class="text-xl font-bold text-gray-200 mb-4">音源生成</h2>
-    <div class="space-y-4">
-      <%= render AudioGenerationButton::Component.new(content_record: item) %>
-      <%= render AudioInfoCard::Component.new(audio: item.audio) %>
-      <%= render AudioUsedTracksTable::Component.new(audio: item.audio) %>
-    </div>
-
-    <!-- 削除ボタンをセクション下部に配置 -->
+  <%= render ContentSection::Component.new(title: "音源生成") do |section| %>
     <% if item.audio.present? && (item.audio.status == "completed" || item.audio.status == "failed") %>
-      <div class="flex justify-end mt-4 pt-4 border-t border-gray-700">
+      <% section.with_action do %>
         <%= button_to content_audio_path(item, item.audio),
             method: :delete,
             form: {
@@ -132,21 +123,24 @@
             "aria-label": "音源を削除" do %>
           <%= render Icon::Component.new(name: :delete, size: :md) %>
         <% end %>
-      </div>
+      <% end %>
     <% end %>
-  </div>
+
+    <div class="space-y-4">
+      <%= render AudioGenerationButton::Component.new(content_record: item) %>
+      <%= render AudioInfoCard::Component.new(audio: item.audio) %>
+      <%= render AudioUsedTracksTable::Component.new(audio: item.audio) %>
+    </div>
+  <% end %>
 
   <!-- 5. 動画生成セクション -->
-  <div class="bg-gray-800 rounded-lg p-6">
-    <!-- Header with title and status -->
-    <div class="flex justify-between items-start mb-6">
-      <h2 class="text-xl font-bold text-gray-200 flex-grow">動画生成</h2>
-      <% video_component = VideoGenerationButton::Component.new(content_record: item) %>
-      <% if video_component.video_exists? %>
-        <div class="ml-4 flex-shrink-0">
-          <%= render StatusBadge::Component.new(status: video_component.video_status.to_sym, size: :small) %>
-        </div>
+  <%= render ContentSection::Component.new(title: "動画生成") do |section| %>
+    <% video_component = VideoGenerationButton::Component.new(content_record: item) %>
+    <% if video_component.video_exists? %>
+      <% section.with_badge do %>
+        <%= render StatusBadge::Component.new(status: video_component.video_status.to_sym, size: :small) %>
       <% end %>
-    </div>
+    <% end %>
+
     <%= render video_component %>
-</div>
+  <% end %>

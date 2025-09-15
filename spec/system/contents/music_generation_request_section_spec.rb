@@ -33,7 +33,7 @@ RSpec.describe "音楽生成リクエストセクション", type: :system do
 
     it "ステータスサマリーが左側、ボタンが右側に配置されていること" do
       within ".music-generations-section" do
-        section = find("div.flex.justify-between")
+        section = find(".content-section-body div.flex.justify-between")
         expect(section).to have_css(".music-generation-status-summary")
         expect(section).to have_css(".generation-controls")
       end
@@ -42,7 +42,7 @@ RSpec.describe "音楽生成リクエストセクション", type: :system do
     context "レスポンシブデザイン" do
       it "デスクトップサイズで横並びになること" do
         within ".music-generations-section" do
-          expect(page).to have_css("div.flex.sm\\:flex-row")
+          expect(page).to have_css(".content-section-body div.flex.sm\\:flex-row")
         end
       end
     end
