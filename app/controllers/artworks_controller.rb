@@ -75,57 +75,7 @@ class ArtworksController < ApplicationController
     process_thumbnail_generation(regenerate: true)
   end
 
-  def preview_thumbnail
-    @artwork = @content.artwork if @content
-
-    unless @artwork
-      render json: { error: "Artwork not found" }, status: :not_found
-      return
-    end
-
-    unless @artwork.youtube_thumbnail_eligible?
-      render json: { error: "Image is not eligible for YouTube thumbnail (must be 1920x1080)" }, status: :unprocessable_content
-      return
-    end
-
-    begin
-      # Generate temporary thumbnail preview
-      preview_file = Tempfile.new([ "preview_thumbnail_#{@artwork.id}", ".jpg" ])
-
-      @artwork.image.open do |image_file|
-        service = ThumbnailGenerationService.new
-        service.generate(
-          input_path: image_file.path,
-          output_path: preview_file.path
-        )
-      end
-
-      # Upload the preview file temporarily (will be cleaned up after response)
-      preview_url = upload_temp_file(preview_file)
-
-      render json: {
-        original_url: @artwork.image_url,
-        thumbnail_url: preview_url
-      }
-    rescue ThumbnailGenerationService::GenerationError => e
-      render json: { error: "Failed to generate preview: #{e.message}" }, status: :internal_server_error
-    rescue => e
-      Rails.logger.error "Preview generation failed: #{e.message}"
-      render json: { error: "Failed to generate preview" }, status: :internal_server_error
-    ensure
-      preview_file&.close
-      preview_file&.unlink if preview_file&.path && File.exist?(preview_file.path)
-    end
-  end
-
   private
-
-  def upload_temp_file(file)
-    # For now, we'll use data URLs for the preview
-    # In production, you might want to use a temporary storage service
-    content = File.read(file.path)
-    "data:image/jpeg;base64,#{Base64.strict_encode64(content)}"
-  end
 
   def set_content
     @content = Content.find(params[:content_id])

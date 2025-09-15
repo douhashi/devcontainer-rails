@@ -23,11 +23,6 @@ Rails.application.routes.draw do
         post :regenerate_thumbnail
       end
     end
-    resource :artwork, only: [] do
-      member do
-        get :preview_thumbnail
-      end
-    end
     resource :video, only: [ :create, :destroy ]
     resource :audio, only: [ :destroy ]
     resources :music_generations, only: [ :destroy ]
