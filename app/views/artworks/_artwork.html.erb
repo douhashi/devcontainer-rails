@@ -1,8 +1,0 @@
-<turbo-frame id="artwork_<%= content.id %>">
-  <% if artwork.persisted? && artwork.image.present? %>
-    <!-- アートワークが存在する場合はドラッグ&ドロップコンポーネントは非表示 -->
-  <% else %>
-    <!-- アートワークが存在しない場合 - ArtworkDragDrop::Componentを表示 -->
-    <%= render ArtworkDragDrop::Component.new(content_record: content) %>
-  <% end %>
-</turbo-frame>

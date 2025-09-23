@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# Setup database on first deployment
-echo "Setting up database..."
-bundle exec kamal app exec "bin/rails db:setup"

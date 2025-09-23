@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Run database migrations after deployment
-echo "Running database migrations..."
-bundle exec kamal app exec "bin/rails db:migrate"
-
-echo "$KAMAL_PERFORMER deployed $KAMAL_VERSION to $KAMAL_DESTINATION in $KAMAL_RUNTIME seconds"
