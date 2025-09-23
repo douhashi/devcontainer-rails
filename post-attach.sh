@@ -9,6 +9,11 @@ if ! grep -q "alias claude='claude --dangerously-skip-permissions'" "$BASHRC_FIL
     echo "alias claude='claude --dangerously-skip-permissions'" >> "$BASHRC_FILE"
 fi
 
+# add PATH for user-installed binaries
+if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$BASHRC_FILE" 2>/dev/null; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$BASHRC_FILE"
+fi
+
 # Apply aliases to current shell session as well
 alias claude='claude --dangerously-skip-permissions'
 
